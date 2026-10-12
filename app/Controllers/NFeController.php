@@ -7,15 +7,19 @@ namespace App\Controllers;
 use App\DTO\NFeRequestDTO;
 use App\Http\JsonResponse;
 use App\Http\Request;
+use App\Services\Fiscal\NFeDistributionSyncService;
 use App\Services\Fiscal\NFeService;
 
 final class NFeController
 {
     private NFeService $service;
 
-    public function __construct(NFeService $service)
+    private NFeDistributionSyncService $syncService;
+
+    public function __construct(NFeService $service, NFeDistributionSyncService $syncService)
     {
         $this->service = $service;
+        $this->syncService = $syncService;
     }
 
     public function validarCertificado(Request $request): JsonResponse
@@ -28,6 +32,14 @@ final class NFeController
         return $this->success(
             'Consulta de distribuição de NF-e realizada com sucesso.',
             $this->service->distribuir(NFeRequestDTO::fromArray($request->body()))
+        );
+    }
+
+    public function sincronizar(Request $request): JsonResponse
+    {
+        return $this->success(
+            'Sincronização de documentos fiscais concluída.',
+            $this->syncService->synchronize($request->body(), (string) $request->header('authorization', ''))
         );
     }
 

@@ -12,6 +12,8 @@ export type Company = {
   name: string
   state: string
   created_at: string
+  cnpj_registry_data?: Record<string, unknown>
+  cnpj_registry_fetched_at?: string | null
 }
 
 export type FiscalDocument = {
@@ -30,6 +32,12 @@ export type FiscalDocument = {
   issued_at: string | null
   total_amount: number | null
   situation: string
+  is_purchase: boolean
+  is_sale: boolean
+  source_company_ids: string[]
+  operation_categories: string[]
+  cfops: string[]
+  operation_nature: string | null
   storage_path: string
   created_at: string
   company?: Pick<Company, 'name' | 'cnpj'>

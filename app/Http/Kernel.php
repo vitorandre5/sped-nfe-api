@@ -5,10 +5,14 @@ declare(strict_types=1);
 namespace App\Http;
 
 use App\Adapters\SpedNFeAdapter;
+use App\Controllers\AccountController;
+use App\Controllers\CnpjRegistryController;
 use App\Controllers\NFCeController;
 use App\Controllers\NFeController;
 use App\Exceptions\FiscalException;
 use App\Services\Fiscal\CertificateService;
+use App\Services\Fiscal\AccountPasswordService;
+use App\Services\Fiscal\CnpjRegistryService;
 use App\Services\Fiscal\CompanyContextResolver;
 use App\Services\Fiscal\DanfeService;
 use App\Services\Fiscal\NFCeService;
@@ -219,7 +223,12 @@ final class Kernel
         $adapter = new SpedNFeAdapter();
         $danfeService = new DanfeService();
         $sefazService = new SefazService($contextResolver, $certificateService, $adapter, $danfeService);
-        $nfeController = new NFeController(new NFeService($sefazService));
+        $nfeService = new NFeService($sefazService);
+        $syncService = new \App\Services\Fiscal\NFeDistributionSyncService(
+            $nfeService,
+            new \App\Services\Fiscal\FiscalDocumentXmlParser()
+        );
+        $nfeController = new NFeController($nfeService, $syncService);
         $nfceController = new NFCeController(new NFCeService($sefazService));
 
         $health = static function (Request $request): JsonResponse {
@@ -234,6 +243,23 @@ final class Kernel
         };
 
         $router->get('/health', $health);
+
+        $accountController = new AccountController(new AccountPasswordService(
+            trim((string) (getenv('SUPABASE_API_URL') ?: '')),
+            trim((string) (getenv('SUPABASE_ANON_KEY') ?: '')),
+            trim((string) (getenv('SUPABASE_SERVICE_ROLE_KEY') ?: ''))
+        ));
+        /** @var callable $accountRoutes */
+        $accountRoutes = require dirname(__DIR__) . '/Routes/account.php';
+        $accountRoutes($router, $accountController);
+
+        $cnpjRegistryController = new CnpjRegistryController(new CnpjRegistryService(
+            trim((string) (getenv('SUPABASE_API_URL') ?: '')),
+            trim((string) (getenv('SUPABASE_ANON_KEY') ?: ''))
+        ));
+        /** @var callable $cnpjRoutes */
+        $cnpjRoutes = require dirname(__DIR__) . '/Routes/cnpj.php';
+        $cnpjRoutes($router, $cnpjRegistryController);
 
         /** @var callable $nfeRoutes */
         $nfeRoutes = require dirname(__DIR__) . '/Routes/nfe.php';

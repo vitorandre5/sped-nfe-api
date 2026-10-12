@@ -352,11 +352,11 @@ final class SpedNFeAdapter
         $documents = [];
 
         $dom = new DOMDocument('1.0', 'UTF-8');
-        if ($dom->loadXML($responseXml) !== false) {
+        if ($dom->loadXML($responseXml, LIBXML_NONET | LIBXML_NOBLANKS) !== false) {
             foreach ($dom->getElementsByTagName('docZip') as $docZip) {
                 $encoded = trim((string) $docZip->nodeValue);
                 $decoded = base64_decode($encoded, true);
-                $xml = $decoded === false ? false : gzdecode($decoded);
+                $xml = $decoded === false ? false : gzdecode($decoded, 20 * 1024 * 1024);
 
                 $documents[] = [
                     'nsu' => $docZip->getAttribute('NSU'),

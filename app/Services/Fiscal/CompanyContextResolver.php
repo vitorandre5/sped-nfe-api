@@ -32,7 +32,7 @@ final class CompanyContextResolver
         $ambiente = $this->normalizeEnvironment($payload['ambiente'] ?? $payload['tpAmb'] ?? getenv('NFE_TPAMB') ?: '2');
         $uf = strtoupper((string) ($payload['uf'] ?? $emitenteEndereco['UF'] ?? $emitenteEndereco['uf'] ?? getenv('NFE_SIGLA_UF') ?: ''));
 
-        $documento = preg_replace('/\D/', '', (string) ($emitente['cnpj'] ?? $payload['cnpj'] ?? getenv('NFE_CNPJ') ?: ''));
+        $documento = strtoupper(preg_replace('/[^A-Z0-9]/i', '', (string) ($emitente['cnpj'] ?? $payload['cnpj'] ?? getenv('NFE_CNPJ') ?: '')));
         $cpf = preg_replace('/\D/', '', (string) ($emitente['cpf'] ?? $payload['cpf'] ?? ''));
         $isCpfEmitter = strlen($cpf) === 11 || (strlen($documento) === 11 && strlen($cpf) === 0);
 
@@ -62,7 +62,7 @@ final class CompanyContextResolver
                 'IM' => $emitente['im'] ?? $emitente['IM'] ?? null,
                 'CNAE' => $emitente['cnae'] ?? $emitente['CNAE'] ?? null,
                 'CRT' => $emitente['crt'] ?? $emitente['CRT'] ?? null,
-                'CNPJ' => strlen($documento) === 14 ? $documento : null,
+                'CNPJ' => strlen($documento) === 14 && preg_match('/^[A-Z0-9]{12}[0-9]{2}$/', $documento) ? $documento : null,
                 'CPF' => strlen($cpf) === 11 ? $cpf : (strlen($documento) === 11 ? $documento : null),
                 'enderEmit' => [
                     'xLgr' => $emitenteEndereco['xLgr'] ?? $emitenteEndereco['logradouro'] ?? null,

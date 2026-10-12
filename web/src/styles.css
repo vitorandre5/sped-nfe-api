@@ -443,6 +443,14 @@ a {
   color:#879188;
   font-size:10px
 }
+.direction-filter select {
+  border:0;
+  outline:0;
+  color:#526057;
+  background:transparent;
+  font-size:10px;
+  cursor:pointer;
+}
 .date-filter input {
   width:104px;
   border:0;
@@ -837,11 +845,29 @@ tbody td {
 .field-label input[type=file] {
   padding:8px
 }
+.checkbox-field {
+  display:flex;
+  align-items:center;
+  gap:10px
+}
+.checkbox-field input[type=checkbox] {
+  width:16px;
+  min-height:16px;
+  margin:0;
+  padding:0;
+  accent-color:#23724e
+}
 .field-label small {
   font-weight:400;
   color:#88948b;
   font-size:10px;
   line-height:1.5
+}
+.cnpj-lookup-status {
+  color:#6e7f72!important;
+  font-weight:400;
+  font-size:10px!important;
+  line-height:1.45
 }
 .dialog-note {
   display:flex;
