@@ -46,7 +46,7 @@ services:
       OPENAI_API_KEY: ""
 
       SUPABASE_URL: http://api-gw:8000
-      SUPABASE_PUBLIC_URL: https://supabase-fiscal.teste.melhornegocio.shop
+      SUPABASE_PUBLIC_URL: https://supabase-fiscal.oc2.freeddns.org
       SUPABASE_ANON_KEY: ${SERVICE_SUPABASEANON_JWT}
       SUPABASE_SERVICE_KEY: ${SERVICE_SUPABASESERVICE_JWT}
       AUTH_JWT_SECRET: ${SERVICE_PASSWORD_JWT}
@@ -97,8 +97,8 @@ services:
       SUPABASE_SECRET_KEY: ${SUPABASE_SECRET_KEY:-}
       ANON_KEY_ASYMMETRIC: ${ANON_KEY_ASYMMETRIC:-}
       SERVICE_ROLE_KEY_ASYMMETRIC: ${SERVICE_ROLE_KEY_ASYMMETRIC:-}
-      SUPABASE_PUBLIC_URL: https://supabase-fiscal.teste.melhornegocio.shop
-      SERVICE_FQDN_API_GW_8000: supabase-fiscal.teste.melhornegocio.shop
+      SUPABASE_PUBLIC_URL: https://supabase-fiscal.oc2.freeddns.org
+      SERVICE_FQDN_API_GW_8000: supabase-fiscal.oc2.freeddns.org
       DASHBOARD_USERNAME: fiscaladmin
       DASHBOARD_PASSWORD: ${SERVICE_PASSWORD_64_DASHBOARD}
     entrypoint: ["/bin/sh", "/docker-entrypoint.sh"]
@@ -126,13 +126,13 @@ services:
     environment:
       GOTRUE_API_HOST: 0.0.0.0
       GOTRUE_API_PORT: 9999
-      API_EXTERNAL_URL: https://supabase-fiscal.teste.melhornegocio.shop/auth/v1
+      API_EXTERNAL_URL: https://supabase-fiscal.oc2.freeddns.org/auth/v1
 
       GOTRUE_DB_DRIVER: postgres
       GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${SERVICE_PASSWORD_64_POSTGRES}@db:5432/postgres
 
-      GOTRUE_SITE_URL: https://fiscal.teste.melhornegocio.shop
-      GOTRUE_URI_ALLOW_LIST: https://fiscal.teste.melhornegocio.shop
+      GOTRUE_SITE_URL: https://fiscal.oc2.freeddns.org
+      GOTRUE_URI_ALLOW_LIST: https://fiscal.oc2.freeddns.org
       GOTRUE_DISABLE_SIGNUP: true
 
       GOTRUE_JWT_ADMIN_ROLES: service_role
@@ -147,7 +147,7 @@ services:
       # For Podman, use: GOTRUE_JWT_KEYS: ${JWT_KEYS}
       #GOTRUE_JWT_KEYS: ${JWT_KEYS:-[]}
 
-      GOTRUE_JWT_ISSUER: https://supabase-fiscal.teste.melhornegocio.shop/auth/v1
+      GOTRUE_JWT_ISSUER: https://supabase-fiscal.oc2.freeddns.org/auth/v1
 
       GOTRUE_EXTERNAL_EMAIL_ENABLED: true
       GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED: false
@@ -158,7 +158,7 @@ services:
 
       # GOTRUE_MAILER_SECURE_EMAIL_CHANGE_ENABLED: "true"
       # GOTRUE_SMTP_MAX_FREQUENCY: 1s
-      GOTRUE_SMTP_ADMIN_EMAIL: admin@teste.melhornegocio.shop
+      GOTRUE_SMTP_ADMIN_EMAIL: admin@oc2.freeddns.org
       GOTRUE_SMTP_HOST: ""
       GOTRUE_SMTP_PORT: 587
       GOTRUE_SMTP_USER: ""
@@ -176,17 +176,17 @@ services:
       # GOTRUE_EXTERNAL_GOOGLE_ENABLED: ${GOOGLE_ENABLED}
       # GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       # GOTRUE_EXTERNAL_GOOGLE_SECRET: ${GOOGLE_SECRET}
-      # GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI: https://supabase-fiscal.teste.melhornegocio.shop/auth/v1/callback
+      # GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI: https://supabase-fiscal.oc2.freeddns.org/auth/v1/callback
 
       # GOTRUE_EXTERNAL_GITHUB_ENABLED: ${GITHUB_ENABLED}
       # GOTRUE_EXTERNAL_GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
       # GOTRUE_EXTERNAL_GITHUB_SECRET: ${GITHUB_SECRET}
-      # GOTRUE_EXTERNAL_GITHUB_REDIRECT_URI: https://supabase-fiscal.teste.melhornegocio.shop/auth/v1/callback
+      # GOTRUE_EXTERNAL_GITHUB_REDIRECT_URI: https://supabase-fiscal.oc2.freeddns.org/auth/v1/callback
 
       # GOTRUE_EXTERNAL_AZURE_ENABLED: ${AZURE_ENABLED}
       # GOTRUE_EXTERNAL_AZURE_CLIENT_ID: ${AZURE_CLIENT_ID}
       # GOTRUE_EXTERNAL_AZURE_SECRET: ${AZURE_SECRET}
-      # GOTRUE_EXTERNAL_AZURE_REDIRECT_URI: https://supabase-fiscal.teste.melhornegocio.shop/auth/v1/callback
+      # GOTRUE_EXTERNAL_AZURE_REDIRECT_URI: https://supabase-fiscal.oc2.freeddns.org/auth/v1/callback
 
       # Uncomment to configure SMS delivery (phone auth and phone MFA).
       # GOTRUE_SMS_PROVIDER: ${SMS_PROVIDER}
@@ -360,7 +360,7 @@ services:
       #JWT_JWKS: ${JWT_JWKS:-{"keys":[]}}
 
       DATABASE_URL: postgres://supabase_storage_admin:${SERVICE_PASSWORD_64_POSTGRES}@db:5432/postgres
-      STORAGE_PUBLIC_URL: https://supabase-fiscal.teste.melhornegocio.shop
+      STORAGE_PUBLIC_URL: https://supabase-fiscal.oc2.freeddns.org
       REQUEST_ALLOW_X_FORWARDED_PATH: "true"
       FILE_SIZE_LIMIT: 20971520
       STORAGE_BACKEND: file
@@ -466,7 +466,7 @@ services:
       #SUPABASE_JWKS: ${JWT_JWKS:-{"keys":[]}}
 
       SUPABASE_URL: http://api-gw:8000
-      SUPABASE_PUBLIC_URL: https://supabase-fiscal.teste.melhornegocio.shop
+      SUPABASE_PUBLIC_URL: https://supabase-fiscal.oc2.freeddns.org
       # Legacy API keys (HS256-signed JWTs)
       SUPABASE_ANON_KEY: ${SERVICE_SUPABASEANON_JWT}
       SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_SUPABASESERVICE_JWT}
@@ -609,7 +609,7 @@ services:
     restart: unless-stopped
     environment:
       API_PORT: "8080"
-      API_ORIGIN_KEYS: "https://fiscal.teste.melhornegocio.shop=${SERVICE_PASSWORD_64_APIPROXY}"
+      API_ORIGIN_KEYS: "https://fiscal.oc2.freeddns.org=${SERVICE_PASSWORD_64_APIPROXY}"
       NFE_TPAMB: ${NFE_TPAMB:-2}
       NFE_RAZAO_SOCIAL: ${NFE_RAZAO_SOCIAL:-EMPRESA NAO INFORMADA}
       NFE_CNPJ: ${NFE_CNPJ:-}
@@ -631,7 +631,7 @@ services:
     build:
       context: ./web
       args:
-        VITE_SUPABASE_URL: https://supabase-fiscal.teste.melhornegocio.shop
+        VITE_SUPABASE_URL: https://supabase-fiscal.oc2.freeddns.org
         VITE_SUPABASE_ANON_KEY: ${SERVICE_SUPABASEANON_JWT}
         VITE_NFE_TPAMB: ${NFE_TPAMB:-2}
         VITE_ALLOW_SIGNUP: "false"
@@ -639,7 +639,7 @@ services:
     environment:
       API_PROXY_KEY: ${SERVICE_PASSWORD_64_APIPROXY}
       NGINX_ENVSUBST_FILTER: API_PROXY_KEY
-      SERVICE_FQDN_WEB_8080: fiscal.teste.melhornegocio.shop
+      SERVICE_FQDN_WEB_8080: fiscal.oc2.freeddns.org
     depends_on:
       api:
         condition: service_healthy
