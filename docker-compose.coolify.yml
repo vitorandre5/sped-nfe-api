@@ -379,7 +379,9 @@ services:
 
   # Apply app schema only after GoTrue and Storage create their own schemas.
   fiscal-migrations:
-    image: postgres:17-alpine
+    build:
+      context: .
+      dockerfile: deployment/supabase/images/migrations/Dockerfile
     restart: "no"
     depends_on:
       db:
@@ -394,9 +396,6 @@ services:
       PGDATABASE: postgres
       PGUSER: postgres
       PGPASSWORD: ${SERVICE_PASSWORD_64_POSTGRES}
-    volumes:
-      - ./supabase/migrations:/migrations/supabase:ro
-      - ./deployment/supabase/migrate.sh:/migrations/migrate.sh:ro
     command: ["/bin/sh", "/migrations/migrate.sh"]
 
   imgproxy:

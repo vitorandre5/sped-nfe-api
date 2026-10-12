@@ -1,0 +1,71 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile.production
+    restart: unless-stopped
+    environment:
+      API_PORT: '8080'
+      API_ORIGIN_KEYS: https://fiscal.oc2.freeddns.org=${SERVICE_PASSWORD_64_APIPROXY}
+      NFE_TPAMB: ${NFE_TPAMB:-2}
+      NFE_RAZAO_SOCIAL: ${NFE_RAZAO_SOCIAL:-EMPRESA NAO INFORMADA}
+      NFE_CNPJ: ${NFE_CNPJ:-}
+      NFE_SIGLA_UF: ${NFE_SIGLA_UF:-MG}
+      NFE_SCHEMES: ${NFE_SCHEMES:-PL_009_V4}
+      NFE_VERSAO: ${NFE_VERSAO:-4.00}
+      NFE_VERAPLIC: ${NFE_VERAPLIC:-}
+    command:
+    - php
+    - -S
+    - 0.0.0.0:8080
+    - -t
+    - api/public
+    - api/router.php
+    healthcheck:
+      test:
+      - CMD
+      - php
+      - -r
+      - 'exit(@file_get_contents(''http://127.0.0.1:8080/health'') === false ? 1 : 0);'
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      fiscal-private: {}
+  web:
+    expose:
+    - '8080'
+    build:
+      context: ./web
+      args:
+        VITE_SUPABASE_URL: https://supabase-fiscal.oc2.freeddns.org
+        VITE_SUPABASE_ANON_KEY: ${SERVICE_SUPABASEANON_JWT}
+        VITE_NFE_TPAMB: ${NFE_TPAMB:-2}
+        VITE_ALLOW_SIGNUP: 'false'
+    restart: unless-stopped
+    environment:
+      API_PROXY_KEY: ${SERVICE_PASSWORD_64_APIPROXY}
+      NGINX_ENVSUBST_FILTER: API_PROXY_KEY
+      SERVICE_FQDN_WEB_8080: fiscal.oc2.freeddns.org
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - wget -q --spider http://127.0.0.1:8080/ || exit 1
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      fiscal-private: {}
+      coolify: {}
+networks:
+  fiscal-private:
+    external: true
+    name: fiscal-private
+  coolify:
+    external: true
+    name: coolify

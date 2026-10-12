@@ -1,0 +1,31 @@
+services:
+  redis:
+    image: redis:7.4-alpine
+    restart: unless-stopped
+    command:
+    - redis-server
+    - --appendonly
+    - 'yes'
+    - --save
+    - '60'
+    - '1000'
+    volumes:
+    - redis-data:/data
+    healthcheck:
+      test:
+      - CMD
+      - redis-cli
+      - ping
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      fiscal-private: {}
+volumes:
+  redis-data:
+    external: true
+    name: pb3gplmtorrozsuon9hnhj50_redis-data
+networks:
+  fiscal-private:
+    external: true
+    name: fiscal-private
