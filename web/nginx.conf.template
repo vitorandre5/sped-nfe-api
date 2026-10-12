@@ -17,6 +17,16 @@ server {
         proxy_send_timeout 360s;
     }
 
+    location = /index.html {
+        add_header Cache-Control "no-store, no-cache, must-revalidate" always;
+        add_header Pragma "no-cache" always;
+        add_header Expires "0" always;
+    }
+
+    location /assets/ {
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+    }
+
     location / {
         try_files $uri $uri/ /index.html;
     }

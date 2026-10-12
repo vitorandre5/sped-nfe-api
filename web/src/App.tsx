@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { FormEvent, ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
@@ -61,6 +61,7 @@ function App() {
   const [notice, setNotice] = useState<Notice>(null)
   const [busy, setBusy] = useState(false)
   const [autoSync, setAutoSync] = useState<AutoSync[]>([])
+  const searchInput = useRef<HTMLInputElement>(null)
   const autoSyncRunning = useRef(false)
   const queryClient = useQueryClient()
 
@@ -77,6 +78,11 @@ function App() {
   useEffect(() => {
     if (!session) setAutoSync([])
   }, [session])
+
+  useLayoutEffect(() => {
+    setSearch('')
+    if (searchInput.current) searchInput.current.value = ''
+  }, [session?.user.id])
 
   const { data: membership, isLoading: membershipLoading, error: membershipError } = useQuery({
     queryKey: ['membership', session?.user.id],
@@ -261,7 +267,7 @@ function App() {
 
               <section className="search-panel">
                 <div className="search-row">
-                  <label className="search-input"><Search size={18} /><span className="sr-only">Buscar documentos</span><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar por emitente, destinatário, CNPJ ou chave…" /></label>
+                  <label className="search-input"><Search size={18} /><span className="sr-only">Buscar documentos</span><input ref={searchInput} type="search" name="fiscal-document-search" autoComplete="off" autoCorrect="off" spellCheck={false} value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar por emitente, destinatário, CNPJ ou chave…" /></label>
                   <label className="company-select"><Building2 size={16} /><span className="sr-only">Filtrar por empresa</span><select value={selectedCompany} onChange={(event) => setSelectedCompany(event.target.value)}><option value="all">Todas as empresas</option>{companies.map((company) => <option key={company.id} value={company.id}>{company.name}</option>)}</select><ChevronDown size={15} /></label>
                 </div>
                 <div className="filter-row"><div className="filter-caption"><SlidersHorizontal size={15} /><span>Filtros</span></div><label className="date-filter"><CalendarDays size={15} /><span>De</span><input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} /></label><label className="date-filter"><CalendarDays size={15} /><span>Até</span><input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} /></label><label className="date-filter direction-filter"><span>Tipo</span><select value={documentDirection} onChange={(event) => setDocumentDirection(event.target.value as typeof documentDirection)}><option value="all">Tudo</option><option value="purchase">Compras</option><option value="sale">Vendas</option><option value="return">Devolução</option><option value="transfer">Transferência entre filiais</option><option value="remittance_return">Remessa e retorno</option><option value="bonus">Bonificação</option><option value="industrialization">Industrialização</option><option value="import_export">Importação/exportação</option></select></label><span className="type-pill"><span className="type-dot" /> NF-e · Modelo 55</span><span className="updated-at">{dataUpdatedAt ? `Atualizado às ${new Intl.DateTimeFormat('pt-BR', { timeStyle: 'short' }).format(dataUpdatedAt)}` : 'Aguardando consulta'}</span></div>
