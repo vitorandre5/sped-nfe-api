@@ -59,8 +59,8 @@ services:
       SNIPPETS_MANAGEMENT_FOLDER: /app/snippets
       EDGE_FUNCTIONS_MANAGEMENT_FOLDER: /app/edge-functions
     volumes:
-      - ./deployment/supabase/volumes/snippets:/app/snippets:z
-      - ./deployment/supabase/volumes/functions:/app/edge-functions:ro,z
+      - ./deployment/supabase/coolify-config/snippets:/app/snippets:z
+      - ./deployment/supabase/coolify-config/functions:/app/edge-functions:ro,z
 
   # Envoy is the default API gateway
   # See: https://github.com/orgs/supabase/discussions/48048
@@ -86,10 +86,10 @@ services:
       studio:
         condition: service_healthy
     volumes:
-      - ./deployment/supabase/volumes/api/envoy/envoy.yaml:/etc/envoy/envoy.yaml:ro
-      - ./deployment/supabase/volumes/api/envoy/cds.yaml:/etc/envoy/cds.yaml:ro
-      - ./deployment/supabase/volumes/api/envoy/lds.template.yaml:/etc/envoy/lds.template.yaml:ro
-      - ./deployment/supabase/volumes/api/envoy/docker-entrypoint.sh:/docker-entrypoint.sh:ro
+      - ./deployment/supabase/coolify-config/api/envoy/envoy.yaml:/etc/envoy/envoy.yaml:ro
+      - ./deployment/supabase/coolify-config/api/envoy/cds.yaml:/etc/envoy/cds.yaml:ro
+      - ./deployment/supabase/coolify-config/api/envoy/lds.template.yaml:/etc/envoy/lds.template.yaml:ro
+      - ./deployment/supabase/coolify-config/api/envoy/docker-entrypoint.sh:/docker-entrypoint.sh:ro
     environment:
       ANON_KEY: ${SERVICE_SUPABASEANON_JWT}
       SERVICE_ROLE_KEY: ${SERVICE_SUPABASESERVICE_JWT}
@@ -448,7 +448,7 @@ services:
     image: supabase/edge-runtime:v1.76.2
     restart: unless-stopped
     volumes:
-      - ./deployment/supabase/volumes/functions:/home/deno/functions:z
+      - ./deployment/supabase/coolify-config/functions:/home/deno/functions:z
       - deno-cache:/root/.cache/deno
     depends_on:
       api-gw:
@@ -491,21 +491,21 @@ services:
     image: supabase/postgres:17.6.1.136
     restart: unless-stopped
     volumes:
-      - ./deployment/supabase/volumes/db/realtime.sql:/docker-entrypoint-initdb.d/migrations/99-realtime.sql:Z
+      - ./deployment/supabase/coolify-config/db/realtime.sql:/docker-entrypoint-initdb.d/migrations/99-realtime.sql:Z
       # Must be superuser to create event trigger
-      - ./deployment/supabase/volumes/db/webhooks.sql:/docker-entrypoint-initdb.d/init-scripts/98-webhooks.sql:Z
+      - ./deployment/supabase/coolify-config/db/webhooks.sql:/docker-entrypoint-initdb.d/init-scripts/98-webhooks.sql:Z
       # Must be superuser to alter reserved role
-      - ./deployment/supabase/volumes/db/roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:Z
+      - ./deployment/supabase/coolify-config/db/roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:Z
       # Initialize the database settings with JWT_EXP
-      - ./deployment/supabase/volumes/db/jwt.sql:/docker-entrypoint-initdb.d/init-scripts/99-jwt.sql:Z
+      - ./deployment/supabase/coolify-config/db/jwt.sql:/docker-entrypoint-initdb.d/init-scripts/99-jwt.sql:Z
       # PGDATA directory is persisted between restarts
       - fiscal-postgres-data:/var/lib/postgresql/data:Z
       # Changes required for internal supabase data such as _analytics
-      - ./deployment/supabase/volumes/db/_supabase.sql:/docker-entrypoint-initdb.d/migrations/97-_supabase.sql:Z
+      - ./deployment/supabase/coolify-config/db/_supabase.sql:/docker-entrypoint-initdb.d/migrations/97-_supabase.sql:Z
       # Changes required for Analytics support
-      - ./deployment/supabase/volumes/db/logs.sql:/docker-entrypoint-initdb.d/migrations/99-logs.sql:Z
+      - ./deployment/supabase/coolify-config/db/logs.sql:/docker-entrypoint-initdb.d/migrations/99-logs.sql:Z
       # Changes required for Pooler support
-      - ./deployment/supabase/volumes/db/pooler.sql:/docker-entrypoint-initdb.d/migrations/99-pooler.sql:Z
+      - ./deployment/supabase/coolify-config/db/pooler.sql:/docker-entrypoint-initdb.d/migrations/99-pooler.sql:Z
       # Use named volume to persist pgsodium decryption key between restarts
       - db-config:/etc/postgresql-custom
     healthcheck:
@@ -544,7 +544,7 @@ services:
     image: supabase/supavisor:2.9.12
     restart: unless-stopped
     volumes:
-      - ./deployment/supabase/volumes/pooler/pooler.exs:/etc/pooler/pooler.exs:ro,z
+      - ./deployment/supabase/coolify-config/pooler/pooler.exs:/etc/pooler/pooler.exs:ro,z
     healthcheck:
       test:
         [
