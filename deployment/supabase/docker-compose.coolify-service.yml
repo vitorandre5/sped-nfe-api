@@ -1,0 +1,428 @@
+services:
+  studio:
+    image: supabase/studio:2026.09.07-sha-7996410
+    restart: unless-stopped
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - node -e "fetch('http://localhost:3000/api/platform/profile').then((r) => {if (r.status !== 200) throw new Error(r.status)})"
+      timeout: 10s
+      interval: 5s
+      retries: 3
+      start_period: 20s
+    environment:
+      HOSTNAME: 0.0.0.0
+      STUDIO_PG_META_URL: http://meta:8080
+      POSTGRES_PORT: 5432
+      POSTGRES_HOST: db
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: ${SERVICE_PASSWORD_64_POSTGRES}
+      POSTGRES_USER_READ_WRITE: postgres
+      PG_META_CRYPTO_KEY: ${SERVICE_HEX_32_PGMETACRYPTO}
+      PGRST_DB_SCHEMAS: public,graphql_public
+      PGRST_DB_MAX_ROWS: ${PGRST_DB_MAX_ROWS:-1000}
+      PGRST_DB_EXTRA_SEARCH_PATH: ${PGRST_DB_EXTRA_SEARCH_PATH:-public}
+      DEFAULT_ORGANIZATION_NAME: Fiscal
+      DEFAULT_PROJECT_NAME: Fiscal
+      OPENAI_API_KEY: ''
+      SUPABASE_URL: http://api-gw:8000
+      SUPABASE_PUBLIC_URL: https://supabase-fiscal.oc2.freeddns.org
+      SUPABASE_ANON_KEY: ${SERVICE_SUPABASEANON_JWT}
+      SUPABASE_SERVICE_KEY: ${SERVICE_SUPABASESERVICE_JWT}
+      AUTH_JWT_SECRET: ${SERVICE_PASSWORD_JWT}
+      SUPABASE_PUBLISHABLE_KEY: ${SUPABASE_PUBLISHABLE_KEY:-}
+      SUPABASE_SECRET_KEY: ${SUPABASE_SECRET_KEY:-}
+      ENABLED_FEATURES_LOGS_ALL: 'false'
+      SNIPPETS_MANAGEMENT_FOLDER: /app/snippets
+      EDGE_FUNCTIONS_MANAGEMENT_FOLDER: /app/edge-functions
+    networks:
+      fiscal-private: {}
+  api-gw:
+    build:
+      context: https://github.com/vitorandre5/sped-nfe-api.git#b7e8e2d81439f5b6dcbfd2b2f98dbb743c68b529
+      dockerfile: deployment/supabase/images/envoy/Dockerfile
+    restart: unless-stopped
+    expose:
+    - '8000'
+    networks:
+      fiscal-private:
+        aliases:
+        - envoy
+        - kong
+      coolify: {}
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - timeout 1 bash -c '</dev/tcp/127.0.0.1/8000'
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      studio:
+        condition: service_healthy
+    environment:
+      ANON_KEY: ${SERVICE_SUPABASEANON_JWT}
+      SERVICE_ROLE_KEY: ${SERVICE_SUPABASESERVICE_JWT}
+      SUPABASE_PUBLISHABLE_KEY: ${SUPABASE_PUBLISHABLE_KEY:-}
+      SUPABASE_SECRET_KEY: ${SUPABASE_SECRET_KEY:-}
+      ANON_KEY_ASYMMETRIC: ${ANON_KEY_ASYMMETRIC:-}
+      SERVICE_ROLE_KEY_ASYMMETRIC: ${SERVICE_ROLE_KEY_ASYMMETRIC:-}
+      SUPABASE_PUBLIC_URL: https://supabase-fiscal.oc2.freeddns.org
+      SERVICE_FQDN_API_GW_8000: supabase-fiscal.oc2.freeddns.org
+      DASHBOARD_USERNAME: fiscaladmin
+      DASHBOARD_PASSWORD: ${SERVICE_PASSWORD_64_DASHBOARD}
+  auth:
+    image: supabase/gotrue:v2.196.0
+    restart: unless-stopped
+    healthcheck:
+      test:
+      - CMD
+      - wget
+      - --no-verbose
+      - --tries=1
+      - --spider
+      - http://localhost:9999/health
+      timeout: 5s
+      interval: 5s
+      retries: 3
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      API_EXTERNAL_URL: https://supabase-fiscal.oc2.freeddns.org/auth/v1
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${SERVICE_PASSWORD_64_POSTGRES}@db:5432/postgres
+      GOTRUE_SITE_URL: https://fiscal.oc2.freeddns.org
+      GOTRUE_URI_ALLOW_LIST: https://fiscal.oc2.freeddns.org
+      GOTRUE_DISABLE_SIGNUP: true
+      GOTRUE_JWT_ADMIN_ROLES: service_role
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_JWT_EXP: 3600
+      GOTRUE_JWT_SECRET: ${SERVICE_PASSWORD_JWT}
+      GOTRUE_JWT_ISSUER: https://supabase-fiscal.oc2.freeddns.org/auth/v1
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: true
+      GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED: false
+      GOTRUE_MAILER_AUTOCONFIRM: false
+      GOTRUE_SMTP_ADMIN_EMAIL: admin@oc2.freeddns.org
+      GOTRUE_SMTP_HOST: ''
+      GOTRUE_SMTP_PORT: 587
+      GOTRUE_SMTP_USER: ''
+      GOTRUE_SMTP_PASS: ''
+      GOTRUE_SMTP_SENDER_NAME: Fiscal
+      GOTRUE_MAILER_URLPATHS_INVITE: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_CONFIRMATION: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_RECOVERY: /auth/v1/verify
+      GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: /auth/v1/verify
+      GOTRUE_EXTERNAL_PHONE_ENABLED: false
+      GOTRUE_SMS_AUTOCONFIRM: false
+    networks:
+      fiscal-private: {}
+  rest:
+    image: postgrest/postgrest:v14.17
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+      - CMD
+      - postgrest
+      - --ready
+      interval: 5s
+      timeout: 5s
+      retries: 3
+    environment:
+      PGRST_DB_URI: postgres://authenticator:${SERVICE_PASSWORD_64_POSTGRES}@db:5432/postgres
+      PGRST_DB_SCHEMAS: public,graphql_public
+      PGRST_DB_MAX_ROWS: ${PGRST_DB_MAX_ROWS:-1000}
+      PGRST_DB_EXTRA_SEARCH_PATH: ${PGRST_DB_EXTRA_SEARCH_PATH:-public}
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_ADMIN_SERVER_PORT: 3001
+      PGRST_ADMIN_SERVER_HOST: localhost
+      PGRST_JWT_SECRET: ${SERVICE_PASSWORD_JWT}
+      PGRST_DB_USE_LEGACY_GUCS: 'false'
+      PGRST_APP_SETTINGS_JWT_EXP: 3600
+    command:
+    - postgrest
+    networks:
+      fiscal-private: {}
+  realtime:
+    image: supabase/realtime:v2.134.10
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      fiscal-migrations:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - 'curl -sSfL --head -o /dev/null -H "Authorization: Bearer ${SERVICE_SUPABASEANON_JWT}" http://localhost:4000/api/tenants/realtime-dev/health'
+      timeout: 5s
+      interval: 30s
+      retries: 3
+      start_period: 10s
+    environment:
+      PORT: 4000
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: supabase_admin
+      DB_PASSWORD: ${SERVICE_PASSWORD_64_POSTGRES}
+      DB_NAME: postgres
+      DB_AFTER_CONNECT_QUERY: SET search_path TO _realtime
+      DB_ENC_KEY: ${FISCAL_REALTIME_DB_ENC_KEY}
+      API_JWT_SECRET: ${SERVICE_PASSWORD_JWT}
+      SECRET_KEY_BASE: ${SERVICE_BASE64_64_SECRETKEYBASE}
+      METRICS_JWT_SECRET: ${SERVICE_PASSWORD_JWT}
+      ERL_AFLAGS: -proto_dist inet_tcp
+      DNS_NODES: ''''''
+      RLIMIT_NOFILE: '10000'
+      APP_NAME: realtime
+      SEED_SELF_HOST: 'true'
+      RUN_JANITOR: 'true'
+      DISABLE_HEALTHCHECK_LOGGING: 'true'
+    networks:
+      fiscal-private: {}
+  storage:
+    image: supabase/storage-api:v1.74.0
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      rest:
+        condition: service_started
+      imgproxy:
+        condition: service_started
+    healthcheck:
+      test:
+      - CMD
+      - wget
+      - --no-verbose
+      - --tries=1
+      - --spider
+      - http://storage:5000/status
+      timeout: 5s
+      interval: 5s
+      retries: 3
+      start_period: 10s
+    environment:
+      ANON_KEY: ${SERVICE_SUPABASEANON_JWT}
+      SERVICE_KEY: ${SERVICE_SUPABASESERVICE_JWT}
+      POSTGREST_URL: http://rest:3000
+      AUTH_JWT_SECRET: ${SERVICE_PASSWORD_JWT}
+      DATABASE_URL: postgres://supabase_storage_admin:${SERVICE_PASSWORD_64_POSTGRES}@db:5432/postgres
+      STORAGE_PUBLIC_URL: https://supabase-fiscal.oc2.freeddns.org
+      REQUEST_ALLOW_X_FORWARDED_PATH: 'true'
+      FILE_SIZE_LIMIT: 20971520
+      STORAGE_BACKEND: file
+      GLOBAL_S3_BUCKET: stub
+      FILE_STORAGE_BACKEND_PATH: /var/lib/storage
+      TENANT_ID: fiscal
+      REGION: local
+      ENABLE_IMAGE_TRANSFORMATION: 'true'
+      IMGPROXY_URL: http://imgproxy:5001
+      S3_PROTOCOL_ACCESS_KEY_ID: ${SERVICE_HEX_32_S3ACCESSID}
+      S3_PROTOCOL_ACCESS_KEY_SECRET: ${SERVICE_PASSWORD_64_S3ACCESSSECRET}
+    volumes:
+    - fiscal-storage-data:/var/lib/storage
+    networks:
+      fiscal-private: {}
+  fiscal-migrations:
+    image: postgres:17-alpine
+    restart: 'no'
+    depends_on:
+      db:
+        condition: service_healthy
+      auth:
+        condition: service_healthy
+      storage:
+        condition: service_healthy
+    environment:
+      PGHOST: db
+      PGPORT: 5432
+      PGDATABASE: postgres
+      PGUSER: postgres
+      PGPASSWORD: ${SERVICE_PASSWORD_64_POSTGRES}
+    command:
+    - /bin/sh
+    - /migrations/migrate.sh
+    build:
+      context: https://github.com/vitorandre5/sped-nfe-api.git#b7e8e2d81439f5b6dcbfd2b2f98dbb743c68b529
+      dockerfile: deployment/supabase/images/migrations/Dockerfile
+    networks:
+      fiscal-private: {}
+  imgproxy:
+    image: darthsim/imgproxy:v3.31.4
+    restart: unless-stopped
+    volumes:
+    - fiscal-storage-data:/var/lib/storage:ro
+    healthcheck:
+      test:
+      - CMD
+      - imgproxy
+      - health
+      timeout: 5s
+      interval: 5s
+      retries: 3
+    environment:
+      IMGPROXY_BIND: :5001
+      IMGPROXY_LOCAL_FILESYSTEM_ROOT: /
+      IMGPROXY_USE_ETAG: 'true'
+      IMGPROXY_AUTO_WEBP: true
+      IMGPROXY_MAX_SRC_RESOLUTION: 16.8
+    networks:
+      fiscal-private: {}
+  meta:
+    image: supabase/postgres-meta:v0.99.0
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PG_META_PORT: 8080
+      PG_META_DB_HOST: db
+      PG_META_DB_PORT: 5432
+      PG_META_DB_NAME: postgres
+      PG_META_DB_USER: postgres
+      PG_META_DB_PASSWORD: ${SERVICE_PASSWORD_64_POSTGRES}
+      CRYPTO_KEY: ${SERVICE_HEX_32_PGMETACRYPTO}
+    networks:
+      fiscal-private: {}
+  functions:
+    build:
+      context: https://github.com/vitorandre5/sped-nfe-api.git#b7e8e2d81439f5b6dcbfd2b2f98dbb743c68b529
+      dockerfile: deployment/supabase/images/edge-functions/Dockerfile
+    restart: unless-stopped
+    volumes:
+    - deno-cache:/root/.cache/deno
+    depends_on:
+      api-gw:
+        condition: service_healthy
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - timeout 1 bash -c '</dev/tcp/127.0.0.1/9000'
+      interval: 5s
+      timeout: 5s
+      retries: 3
+    environment:
+      JWT_SECRET: ${SERVICE_PASSWORD_JWT}
+      SUPABASE_URL: http://api-gw:8000
+      SUPABASE_PUBLIC_URL: https://supabase-fiscal.oc2.freeddns.org
+      SUPABASE_ANON_KEY: ${SERVICE_SUPABASEANON_JWT}
+      SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_SUPABASESERVICE_JWT}
+      SUPABASE_PUBLISHABLE_KEYS: '{"default":"${SUPABASE_PUBLISHABLE_KEY:-}"}'
+      SUPABASE_SECRET_KEYS: '{"default":"${SUPABASE_SECRET_KEY:-}"}'
+      SUPABASE_DB_URL: postgresql://postgres:${SERVICE_PASSWORD_64_POSTGRES}@db:5432/postgres
+      VERIFY_JWT: 'true'
+    command:
+    - start
+    - --user-worker-request-idle-timeout
+    - '150000'
+    - --main-service
+    - /home/deno/functions/main
+    networks:
+      fiscal-private: {}
+  db:
+    build:
+      context: https://github.com/vitorandre5/sped-nfe-api.git#b7e8e2d81439f5b6dcbfd2b2f98dbb743c68b529
+      dockerfile: deployment/supabase/images/postgres/Dockerfile
+    restart: unless-stopped
+    volumes:
+    - fiscal-postgres-data:/var/lib/postgresql/data:Z
+    - db-config:/etc/postgresql-custom
+    healthcheck:
+      test:
+      - CMD
+      - pg_isready
+      - -U
+      - postgres
+      - -h
+      - localhost
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    environment:
+      POSTGRES_HOST: /var/run/postgresql
+      PGPORT: 5432
+      POSTGRES_PORT: 5432
+      PGPASSWORD: ${SERVICE_PASSWORD_64_POSTGRES}
+      POSTGRES_PASSWORD: ${SERVICE_PASSWORD_64_POSTGRES}
+      PGDATABASE: postgres
+      POSTGRES_DB: postgres
+      JWT_EXP: 3600
+    command:
+    - postgres
+    - -c
+    - config_file=/etc/postgresql/postgresql.conf
+    - -c
+    - log_min_messages=fatal
+    networks:
+      fiscal-private: {}
+  supavisor:
+    build:
+      context: https://github.com/vitorandre5/sped-nfe-api.git#b7e8e2d81439f5b6dcbfd2b2f98dbb743c68b529
+      dockerfile: deployment/supabase/images/supavisor/Dockerfile
+    restart: unless-stopped
+    healthcheck:
+      test:
+      - CMD
+      - curl
+      - -sSfL
+      - --head
+      - -o
+      - /dev/null
+      - http://127.0.0.1:4000/api/health
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT: 4000
+      POSTGRES_PORT: 5432
+      POSTGRES_HOST: db
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: ${SERVICE_PASSWORD_64_POSTGRES}
+      DATABASE_URL: ecto://supabase_admin:${SERVICE_PASSWORD_64_POSTGRES}@db:5432/_supabase
+      CLUSTER_POSTGRES: 'true'
+      SECRET_KEY_BASE: ${SERVICE_BASE64_64_SECRETKEYBASE}
+      VAULT_ENC_KEY: ${SERVICE_HEX_32_VAULTENCKEY}
+      API_JWT_SECRET: ${SERVICE_PASSWORD_JWT}
+      METRICS_JWT_SECRET: ${SERVICE_PASSWORD_JWT}
+      REGION: local
+      ERL_AFLAGS: -proto_dist inet_tcp
+      POOLER_TENANT_ID: fiscal
+      POOLER_DEFAULT_POOL_SIZE: 20
+      POOLER_MAX_CLIENT_CONN: 100
+      POOLER_POOL_MODE: transaction
+      DB_POOL_SIZE: 5
+    command:
+    - /bin/sh
+    - -c
+    - /app/bin/migrate && /app/bin/supavisor eval "$$(cat /etc/pooler/pooler.exs)" && /app/bin/server
+    networks:
+      fiscal-private: {}
+volumes:
+  fiscal-postgres-data:
+    external: true
+    name: pb3gplmtorrozsuon9hnhj50_fiscal-postgres-data
+  fiscal-storage-data:
+    external: true
+    name: pb3gplmtorrozsuon9hnhj50_fiscal-storage-data
+  db-config:
+    external: true
+    name: pb3gplmtorrozsuon9hnhj50_db-config
+  deno-cache: {}
+networks:
+  fiscal-private:
+    external: true
+    name: fiscal-private
+  coolify:
+    external: true
+    name: coolify
