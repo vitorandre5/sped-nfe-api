@@ -1,0 +1,19 @@
+FROM node:24-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+ARG VITE_SUPABASE_URL
+ARG VITE_SUPABASE_ANON_KEY
+ARG VITE_NFE_TPAMB=2
+ARG VITE_ALLOW_SIGNUP=true
+ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
+ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
+ENV VITE_NFE_TPAMB=$VITE_NFE_TPAMB
+ENV VITE_ALLOW_SIGNUP=$VITE_ALLOW_SIGNUP
+RUN npm run build
+
+FROM nginx:1.27-alpine
+COPY --from=build /app/dist /usr/share/nginx/html
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
+EXPOSE 8080

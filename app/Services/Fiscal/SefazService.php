@@ -67,15 +67,6 @@ final class SefazService
         }
 
         $context = $this->contextResolver->resolve($payload, $model, false);
-        if ((int) $context['tpAmb'] !== 1) {
-            throw new FiscalException(
-                'A distribuição DF-e só funciona em produção. Informe ambiente: 1.',
-                'DIST_DFE_PRODUCTION_REQUIRED',
-                ['required_field' => 'ambiente'],
-                422
-            );
-        }
-
         $this->certificateService->assertAvailable($context);
         return $this->adapter->distributeNFe($context, (int) $ultNsu);
     }

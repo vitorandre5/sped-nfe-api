@@ -31,21 +31,33 @@ services:
       - ./docker/php/conf.d/custom.ini:/usr/local/etc/php/conf.d/99-custom.ini:ro
     environment:
       API_PORT: ${API_PORT:-8080}
-      API_ORIGIN_KEYS: ${API_ORIGIN_KEYS:-}
-      API_KEY: ${API_KEY:-}
-      API_ALLOWED_ORIGINS: ${API_ALLOWED_ORIGINS:-}
-      NFE_CERT_PATH: ${NFE_CERT_PATH:-/var/www/sped-nfe/certs/certificado.pfx}
-      NFE_CERT_PASSWORD: ${NFE_CERT_PASSWORD:-}
+      API_ORIGIN_KEYS: ${APP_ORIGIN:-http://localhost:8081}=${API_PROXY_KEY:?Configure API_PROXY_KEY no arquivo .env}
       NFE_TPAMB: ${NFE_TPAMB:-2}
       NFE_RAZAO_SOCIAL: ${NFE_RAZAO_SOCIAL:-EMPRESA NAO INFORMADA}
       NFE_CNPJ: ${NFE_CNPJ:-}
-      NFE_SIGLA_UF: ${NFE_SIGLA_UF:-SP}
+      NFE_SIGLA_UF: ${NFE_SIGLA_UF:-MG}
       NFE_SCHEMES: ${NFE_SCHEMES:-PL_009_V4}
       NFE_VERSAO: ${NFE_VERSAO:-4.00}
       NFE_VERAPLIC: ${NFE_VERAPLIC:-}
     ports:
-      - "${API_PORT:-8080}:8080"
+      - "127.0.0.1:${API_PORT:-8080}:8080"
     command: php -S 0.0.0.0:8080 -t api/public api/router.php
+
+  web:
+    build:
+      context: ./web
+      args:
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL:-http://localhost:54321}
+        VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY:?Configure VITE_SUPABASE_ANON_KEY após supabase start}
+        VITE_NFE_TPAMB: ${VITE_NFE_TPAMB:-2}
+        VITE_ALLOW_SIGNUP: ${VITE_ALLOW_SIGNUP:-true}
+    environment:
+      API_PROXY_KEY: ${API_PROXY_KEY:?Configure API_PROXY_KEY no arquivo .env}
+      NGINX_ENVSUBST_FILTER: API_PROXY_KEY
+    depends_on:
+      - api
+    ports:
+      - "127.0.0.1:${APP_PORT:-8081}:8080"
 
 volumes:
   composer-cache:

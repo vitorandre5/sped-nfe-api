@@ -144,7 +144,55 @@ O processo de documentação ainda está no inicio, mas já existem alguns docum
 
 ## Microserviço HTTP com Docker
 
+### Aplicação local de busca fiscal
+
+Este repositório inclui uma aplicação web local, inicialmente focada em empresas de
+Minas Gerais, para organizar empresas e consultar documentos recebidos de NF-e
+modelo 55. Ela usa Supabase local para contas, dados e
+XMLs privados; os certificados A1 são enviados somente durante a consulta e não
+são gravados no projeto. O primeiro clique consulta um lote da SEFAZ. O cursor é
+salvo para a próxima execução, respeitando o intervalo de uma hora indicado pelo
+Ambiente Nacional. CT-e, NFS-e e sincronização automática ficam fora desta primeira
+entrega.
+
+No PowerShell, na raiz do repositório:
+
+```powershell
+Copy-Item .env.example .env
+npx supabase start
+```
+
+Copie `API URL` e `anon key` mostradas pelo Supabase para `VITE_SUPABASE_URL` e
+`VITE_SUPABASE_ANON_KEY` em `.env` (o arquivo `.env` é local e não deve ser
+versionado). Mantenha `VITE_NFE_TPAMB=2` para homologação; altere para `1` somente
+quando quiser consultar a produção. Os cursores de homologação e produção são
+separados. Troque também `API_PROXY_KEY` por uma chave aleatória local. Depois,
+suba apenas os serviços usados pela aplicação:
+
+```powershell
+docker compose run --rm api composer install --no-interaction
+docker compose up --build -d api web
+```
+
+Abra `http://localhost:8081`, crie uma conta e uma organização, cadastre o CNPJ e
+selecione a UF do estabelecimento vinculado a ele. Use **Sincronizar NF-e** para
+enviar o certificado A1 e sua senha. A distribuição do Ambiente Nacional consulta
+os documentos disponíveis para o CNPJ, independentemente da UF do emitente; para
+terceiros, a NF-e precisa identificar o CNPJ/CPF na tag `autXML`. Os XMLs ficam no
+bucket privado do Supabase e a tela mostra os 100 resultados mais recentes.
+
+Para encerrar os serviços da aplicação, execute `docker compose down`; para parar
+o Supabase local, execute `npx supabase stop`.
+
+### API fiscal existente
+
 Este repositório agora pode ser usado como microserviço HTTP em PHP para expor a biblioteca a outros sistemas, por exemplo um backend Node.js.
+
+### Publicação self-hosted no Coolify
+
+O arquivo `docker-compose.coolify.yml` sobe a aplicação, Supabase Auth/Postgres/Storage e Redis no mesmo projeto. Configure o caminho do Compose como `/docker-compose.coolify.yml` e escolha um servidor ARM64 compatível. Os domínios previstos são `fiscal.teste.melhornegocio.shop` e `supabase-fiscal.teste.melhornegocio.shop`; ajuste os nomes no arquivo se usar outro domínio. O banco, os XMLs e o Redis usam volumes persistentes. O cadastro público fica desativado e a conta inicial deve ser criada pelo endpoint Admin do Supabase com uma chave `service_role`, confirmando o e-mail no provisionamento.
+
+O ambiente padrão continua em homologação (`NFE_TPAMB=2`). Uma consulta real à SEFAZ em produção exige certificado A1 válido do CNPJ cadastrado. Faça backup periódico do Postgres e do volume de Storage; os volumes persistentes não substituem backup.
 
 ### Subindo a API
 
