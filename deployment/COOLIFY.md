@@ -1,12 +1,13 @@
 # Aplicações no Coolify
 
-> **Estado da migração (2026-10-12):** `fiscal.web` continua como Application; `supabase-bd` continua como Application e ainda atende o domínio em produção. Foi criado o Database Redis nativo `redis-bd-native` (`gzz3qkd6on1nsp6tokmsouc1`) no projeto `Fiscal` / `production`, usando `redis:7.4-alpine`, acesso privado e estado `Running`. O recurso Redis Application anterior foi preservado para rollback. A API fiscal ainda não usa Redis. Para o Supabase, o Compose preparado para importar como Service está em `deployment/supabase/docker-compose.coolify-service.yml`; não corte o domínio antes de iniciar e validar esse Service com os volumes e variáveis atuais.
+> **Validação (2026-10-12):** o Service Supabase nativo `supabase-bd-native` está funcional; o domínio de produção e TLS estão no Kong nativo, e os dados de Auth, organizações, empresas e documentos foram migrados. A aplicação antiga `supabase-bd` está sem domínio, preservada para rollback até a confirmação final de exclusão no Coolify. O usuário existente está vinculado como `admin` à organização `Teste`. O app apresenta falha com a sessão autenticada atual; após a migração, sessões antigas precisam entrar novamente. O código local agora oferece retentativa, novo login e criação de organização quando necessário; `npm run build` passou e a publicação de `fiscal.web` ainda está pendente. O Redis nativo `redis-bd-native` continua privado e não é usado pela API fiscal.
 
 Recursos esperados no projeto `Fiscal`, ambiente `production`:
 
 | Recurso | Tipo no Coolify | Compose/configuração | Domínio | Função |
 | --- | --- | --- | --- |
-| `supabase-bd` | Application (migração pendente para Service) | `docker-compose.supabase.yml`; Compose para Service em `deployment/supabase/docker-compose.coolify-service.yml` | `supabase-fiscal.oc2.freeddns.org` | Banco e serviços internos do Supabase |
+| `supabase-bd` | Application legado, sem domínio; exclusão pendente | `docker-compose.supabase.yml` | nenhum | Preservado para rollback até concluir a confirmação no Coolify |
+| `supabase-bd-native` | Service Supabase nativo | Template Supabase do Coolify | `supabase-fiscal.oc2.freeddns.org` | Produção ativa; Auth e banco validados |
 | `redis-bd-native` | Database Redis | imagem `redis:7.4-alpine`; recurso nativo do Coolify | nenhum; acesso privado | Cache/fila privado; ainda não é consumido pela API fiscal |
 | `redis-bd` | Application (legado para rollback) | `docker-compose.redis.yml` | nenhum | Recurso anterior, preservado temporariamente |
 | `fiscal.web` | Application | `docker-compose.fiscal.yml` | `fiscal.oc2.freeddns.org` | Interface web e API PHP |
@@ -24,7 +25,7 @@ As migrações são copiadas para a imagem de `fiscal-migrations`. Não monte `.
 No Coolify, mantenha manualmente apenas as variáveis listadas abaixo. Entradas associadas a serviços como `studio`, `api-gw` e `storage` são geradas pelo Compose; variáveis herdadas do Compose antigo podem continuar listadas, mas não têm efeito quando não são referenciadas pelo Compose atual.
 
 - `supabase-bd`: segredos `SERVICE_PASSWORD_64_POSTGRES`, `SERVICE_PASSWORD_JWT`, `SERVICE_SUPABASEANON_JWT`, `SERVICE_SUPABASESERVICE_JWT`, `SERVICE_PASSWORD_64_DASHBOARD`, `SERVICE_BASE64_64_SECRETKEYBASE`, `SERVICE_HEX_32_PGMETACRYPTO`, `SERVICE_HEX_32_S3ACCESSID`, `SERVICE_PASSWORD_64_S3ACCESSSECRET`, `SERVICE_HEX_32_VAULTENCKEY` e `FISCAL_REALTIME_DB_ENC_KEY` (16 caracteres, obrigatório para AES-128 no Realtime). Preserve os valores atuais ao mudar o Compose desta aplicação.
-- O Studio do Supabase é acessado em `https://supabase-fiscal.oc2.freeddns.org`; usuário `fiscaladmin` e senha na variável `SERVICE_PASSWORD_64_DASHBOARD` de `supabase-bd`.
+- O Studio do Supabase é acessado em `https://supabase-fiscal.oc2.freeddns.org`; usuário `fiscaladmin` e senha na variável `SERVICE_PASSWORD_ADMIN` de `supabase-bd-native`.
 - `SERVICE_HEX_32_REALTIMEKEY` é legado e não é usado pelo Compose atual. Ele permanece apenas para evitar uma exclusão permanente; a chave ativa é `FISCAL_REALTIME_DB_ENC_KEY`.
 - `redis-bd-native`: use as credenciais geradas pelo Coolify e mantenha `Access: Private`; não publique a porta. Não há necessidade de copiar segredo Redis para `fiscal.web` enquanto a aplicação não o consome.
 - `redis-bd` (legado): as variáveis do antigo Compose permanecem apenas para rollback; não exclua o recurso nem o volume antigo durante esta migração.
@@ -34,9 +35,8 @@ Os segredos ficam no Coolify e não devem ser copiados para `.env.example`. A UR
 
 ## Ordem de implantação
 
-1. Garantir a rede externa `fiscal-private` no servidor Docker.
-2. Implantar `supabase-bd`; confirmar banco saudável e migrations concluídas.
-3. Implantar `redis-bd`.
-4. Implantar `fiscal.web` e testar login e carregamento da organização.
+1. O Supabase nativo e o corte do domínio já foram validados; sessões antigas do app precisam autenticar novamente.
+2. Publicar a correção local de `fiscal.web` e validar login/criação de organização.
+3. Concluir a confirmação final para excluir `supabase-bd` legado e renomear o Service nativo.
 
 O Postgres preserva o banco existente. Antes de substituir os três containers de uma vez, confirme a saúde dos recursos novos e mantenha os volumes listados acima.

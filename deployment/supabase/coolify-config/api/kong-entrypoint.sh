@@ -46,7 +46,21 @@ awk '{
   while (match(rest, /\$[A-Za-z_][A-Za-z_0-9]*/)) {
     varname = substr(rest, RSTART + 1, RLENGTH - 1)
     if (varname in ENVIRON) {
-      result = result substr(rest, 1, RSTART - 1) ENVIRON[varname]
+      value = ENVIRON[varname]
+      if (varname == "DASHBOARD_USERNAME" || varname == "DASHBOARD_PASSWORD") {
+        escaped = ""
+        for (i = 1; i <= length(value); i++) {
+          char = substr(value, i, 1)
+          if (char == "\\") escaped = escaped "\\\\"
+          else if (char == "\"") escaped = escaped "\\\""
+          else if (char == "\n") escaped = escaped "\\n"
+          else if (char == "\r") escaped = escaped "\\r"
+          else if (char == "\t") escaped = escaped "\\t"
+          else escaped = escaped char
+        }
+        value = escaped
+      }
+      result = result substr(rest, 1, RSTART - 1) value
     } else {
       result = result substr(rest, 1, RSTART + RLENGTH - 1)
     }

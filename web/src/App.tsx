@@ -52,6 +52,7 @@ function App() {
   const [dateTo, setDateTo] = useState('')
   const [companyDialog, setCompanyDialog] = useState(false)
   const [syncDialog, setSyncDialog] = useState(false)
+  const [showOrganizationSetup, setShowOrganizationSetup] = useState(false)
   const [notice, setNotice] = useState<Notice>(null)
   const [busy, setBusy] = useState(false)
   const queryClient = useQueryClient()
@@ -124,8 +125,8 @@ function App() {
   if (!authReady) return <div className="boot-screen"><div className="brand-mark"><img src="/fiscal-symbol-white.svg" alt="" /></div><span>Preparando seu espaço fiscal…</span></div>
   if (!session) return <AuthScreen onNotice={setNotice} />
   if (membershipLoading) return <div className="boot-screen"><div className="spinner" /><span>Carregando organização…</span></div>
-  if (membershipError) return <div className="boot-screen"><p>Não foi possível carregar sua organização.</p><button className="button button-secondary" onClick={() => queryClient.invalidateQueries({ queryKey: ['membership'] })}>Tentar novamente</button></div>
-  if (!membership) return <CreateOrganization user={session.user.email ?? ''} onNotice={setNotice} />
+  if (membershipError && !showOrganizationSetup) return <div className="setup-screen"><div className="setup-card"><span className="brand-mark"><Building2 size={20}/></span><h1>Não foi possível carregar sua organização</h1><p>Sua sessão pode ter expirado. Entre novamente para recuperar o acesso; se sua conta ainda não tiver uma organização, você poderá criar uma.</p><div className="organization-error-actions"><button className="button button-secondary" onClick={() => queryClient.invalidateQueries({ queryKey: ['membership'] })}>Tentar novamente</button><button className="button button-secondary" onClick={async () => { await supabase!.auth.signOut(); queryClient.clear() }}>Entrar novamente</button><button className="button button-primary" onClick={() => setShowOrganizationSetup(true)}>Criar organização<ArrowRight size={16}/></button></div></div></div>
+  if (!membership || showOrganizationSetup) return <CreateOrganization user={session.user.email ?? ''} onNotice={setNotice} onBack={showOrganizationSetup ? () => setShowOrganizationSetup(false) : undefined} />
 
   const totalValue = documents.reduce((sum, item) => sum + Number(item.total_amount ?? 0), 0)
   const companyName = selectedCompany === 'all' ? 'Todas as empresas' : companies.find((item) => item.id === selectedCompany)?.name ?? 'Empresa'
@@ -182,7 +183,7 @@ function App() {
                 <div className="results-heading"><div><h2>Documentos recebidos</h2><p>{documents.length} resultado{documents.length === 1 ? '' : 's'} nesta página</p></div><button className="icon-button" title="Limpar filtros" onClick={() => { setSearch(''); setDateFrom(''); setDateTo(''); setSelectedCompany('all') }}><Filter size={17} /><span className="sr-only">Limpar filtros</span></button></div>
                 {documentsLoading ? <div className="loading-state"><div className="spinner" /><span>Buscando documentos…</span></div> : documents.length ? <DocumentTable documents={documents} onOpen={(document) => { void openDocumentXml(document).catch((error) => setNotice({ tone: 'error', text: error instanceof Error ? error.message : 'Não foi possível abrir o XML.' })) }} /> : <EmptyDocuments hasCompanies={companies.length > 0} onAddCompany={() => setCompanyDialog(true)} onSync={() => setSyncDialog(true)} />}
               </section>
-              <footer className="content-footer"><span>Dados isolados por organização e empresa</span><span><span className="footer-dot" /> Conectado ao Supabase local</span></footer>
+              <footer className="content-footer"><span>Dados isolados por organização e empresa</span><span><span className="footer-dot" /> Conectado ao Supabase</span></footer>
             </>
           ) : (
             <CompaniesPage companies={companies} loading={companiesLoading} onAdd={() => setCompanyDialog(true)} onSync={(id) => { setSelectedCompany(id); setSyncDialog(true) }} />
@@ -231,7 +232,7 @@ function AuthScreen({ onNotice }: { onNotice: (notice: Notice) => void }) {
   return <div className="auth-screen"><div className="auth-decoration"><div className="auth-orbit orbit-one"/><div className="auth-orbit orbit-two"/><div className="auth-brand"><span className="brand-mark"><img src="/fiscal-symbol-white.svg" alt="" /></span><b>fiscal<span>.</span></b></div><div className="auth-manifesto"><span className="eyebrow">SEU ARQUIVO FISCAL</span><h1>Documentos em ordem.<br/><em>Decisões com clareza.</em></h1><p>Uma visão organizada das notas fiscais que chegam para suas empresas.</p></div><div className="auth-decoration-foot"><span>NF-e · modelo 55</span><span>Ambiente protegido</span></div></div><div className="auth-form-side"><form className="auth-form" onSubmit={submit}><span className="eyebrow">{isSignup ? 'PRIMEIRO ACESSO' : 'BEM-VINDO DE VOLTA'}</span><h2>{isSignup ? 'Crie sua conta' : 'Entre na sua conta'}</h2><p>Acesse seu espaço fiscal para continuar.</p><label className="field-label">E-mail<input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label><label className="field-label">Senha<input type="password" autoComplete={isSignup ? 'new-password' : 'current-password'} minLength={8} value={password} onChange={(event) => setPassword(event.target.value)} required /></label>{message && <div className={`inline-message ${message.startsWith('Erro:') ? 'error' : ''}`} role="status">{message}</div>}<button className="button button-primary auth-submit" disabled={working}>{working ? <><span className="button-spinner"/>Processando…</> : <>{isSignup ? 'Criar conta' : 'Entrar'}<ArrowRight size={16}/></>}</button>{ALLOW_SIGNUP && <button type="button" className="text-button" onClick={() => { setIsSignup(!isSignup); setMessage('') }}>{isSignup ? 'Já tem conta? Entrar' : 'Ainda não tem conta? Criar acesso'}</button>}<div className="auth-privacy"><ShieldCheck size={16}/>Seus dados fiscais ficam no seu ambiente Supabase.</div></form></div></div>
 }
 
-function CreateOrganization({ user, onNotice }: { user: string; onNotice: (notice: Notice) => void }) {
+function CreateOrganization({ user, onNotice, onBack }: { user: string; onNotice: (notice: Notice) => void; onBack?: () => void }) {
   const [name, setName] = useState('')
   const [working, setWorking] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
@@ -250,7 +251,7 @@ function CreateOrganization({ user, onNotice }: { user: string; onNotice: (notic
       onNotice({ tone: 'error', text: message })
     } finally { setWorking(false) }
   }
-  return <div className="setup-screen"><form className="setup-card organization-setup" onSubmit={create}><span className="brand-mark"><Building2 size={20}/></span><p className="eyebrow">UM ESPAÇO PARA {user.toUpperCase()}</p><h1>Crie sua organização</h1><p>Empresas e documentos ficam agrupados neste espaço.</p><label className="field-label">Nome da organização<input autoFocus value={name} onChange={(event) => setName(event.target.value)} placeholder="Ex.: Meu escritório" required maxLength={100}/></label>{errorMessage && <div className="inline-message error" role="alert">{errorMessage}</div>}<button className="button button-primary" disabled={working}>{working ? 'Criando…' : 'Continuar'}<ArrowRight size={16}/></button></form></div>
+  return <div className="setup-screen"><form className="setup-card organization-setup" onSubmit={create}><span className="brand-mark"><Building2 size={20}/></span><p className="eyebrow">UM ESPAÇO PARA {user.toUpperCase()}</p><h1>Crie sua organização</h1><p>Empresas e documentos ficam agrupados neste espaço.</p><label className="field-label">Nome da organização<input autoFocus value={name} onChange={(event) => setName(event.target.value)} placeholder="Ex.: Meu escritório" required maxLength={100}/></label>{errorMessage && <div className="inline-message error" role="alert">{errorMessage}</div>}{onBack ? <div className="organization-error-actions"><button type="button" className="button button-secondary" onClick={onBack}>Voltar</button><button className="button button-primary" disabled={working}>{working ? 'Criando…' : 'Continuar'}<ArrowRight size={16}/></button></div> : <button className="button button-primary" disabled={working}>{working ? 'Criando…' : 'Continuar'}<ArrowRight size={16}/></button>}</form></div>
 }
 
 function CompanyDialog({ organizationId, onClose, onSaved, onNotice }: { organizationId: string; onClose: () => void; onSaved: () => void; onNotice: (notice: Notice) => void }) {

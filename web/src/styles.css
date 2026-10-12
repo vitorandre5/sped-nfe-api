@@ -874,6 +874,14 @@ tbody td {
   gap:8px;
   padding-top:6px
 }
+.organization-error-actions {
+  display:grid;
+  gap:8px;
+  margin-top:14px
+}
+.organization-error-actions .button {
+  justify-content:center
+}
 .sync-progress {
   display:flex;
   align-items:center;
