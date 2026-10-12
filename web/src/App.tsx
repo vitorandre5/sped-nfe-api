@@ -4,14 +4,14 @@ import type { FormEvent, ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import {
   ArrowDownToLine, ArrowRight, Building2, CalendarDays, Check, ChevronDown,
-  CircleAlert, Clock3, FileSearch, FileText, Filter, Plus,
-  RefreshCw, Search, ShieldCheck, SlidersHorizontal, X,
+  CircleAlert, Clock3, FileSearch, FileText, Filter, LogOut, Plus,
+  RefreshCw, Search, Settings, ShieldCheck, SlidersHorizontal, X,
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import type { Company, FiscalDocument } from './lib/supabase'
 
 type Membership = { organization_id: string; role: string; organizations: { name: string } | null }
-type Page = 'documents' | 'companies'
+type Page = 'documents' | 'companies' | 'settings'
 type Notice = { tone: 'success' | 'error' | 'info'; text: string } | null
 type AutoSync = { companyId: string; file: File; password: string; nextSyncAt: string | null }
 type CnpjRegistryProfile = Record<string, unknown>
@@ -53,6 +53,7 @@ function App() {
   const [selectedCompany, setSelectedCompany] = useState('all')
   const [documentDirection, setDocumentDirection] = useState<'all' | 'purchase' | 'sale' | 'return' | 'transfer' | 'remittance_return' | 'bonus' | 'industrialization' | 'import_export'>('all')
   const [search, setSearch] = useState('')
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false)
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [companyDialog, setCompanyDialog] = useState(false)
@@ -62,6 +63,7 @@ function App() {
   const [busy, setBusy] = useState(false)
   const [autoSync, setAutoSync] = useState<AutoSync[]>([])
   const searchInput = useRef<HTMLInputElement>(null)
+  const accountMenuRef = useRef<HTMLDivElement>(null)
   const autoSyncRunning = useRef(false)
   const queryClient = useQueryClient()
 
@@ -78,6 +80,22 @@ function App() {
   useEffect(() => {
     if (!session) setAutoSync([])
   }, [session])
+
+  useEffect(() => {
+    if (!accountMenuOpen) return
+    const closeOnOutsideClick = (event: MouseEvent) => {
+      if (!accountMenuRef.current?.contains(event.target as Node)) setAccountMenuOpen(false)
+    }
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setAccountMenuOpen(false)
+    }
+    window.addEventListener('pointerdown', closeOnOutsideClick)
+    window.addEventListener('keydown', closeOnEscape)
+    return () => {
+      window.removeEventListener('pointerdown', closeOnOutsideClick)
+      window.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [accountMenuOpen])
 
   useLayoutEffect(() => {
     setSearch('')
@@ -244,15 +262,23 @@ function App() {
       <main className="main-area">
         <header className="topbar">
           <div className="mobile-brand"><span className="brand-mark"><img src="/fiscal-symbol-white.svg" alt="" /></span><b>fiscal<span>.</span></b></div>
-          <div className="breadcrumb"><span>Workspace</span><span className="crumb-slash">/</span><strong>{page === 'documents' ? 'Documentos' : 'Empresas'}</strong></div>
+          <div className="breadcrumb"><span>Workspace</span><span className="crumb-slash">/</span><strong>{page === 'documents' ? 'Documentos' : page === 'companies' ? 'Empresas' : 'Configurações'}</strong></div>
           <div className="top-actions">
             <span className="secure-label"><ShieldCheck size={15} /> Área protegida</span>
-            <button className="avatar-button" title={`Conta de ${session.user.email}`} onClick={async () => { await supabase!.auth.signOut(); queryClient.clear() }}>{session.user.email?.slice(0, 1).toUpperCase()}<span className="sr-only">Sair da conta</span></button>
+            <div className="account-menu" ref={accountMenuRef}>
+              <button className="avatar-button" type="button" title={`Conta de ${session.user.email}`} aria-label="Abrir configurações da conta" aria-controls="account-menu-content" aria-expanded={accountMenuOpen} onClick={() => setAccountMenuOpen((open) => !open)}>{session.user.email?.slice(0, 1).toUpperCase()}</button>
+              {accountMenuOpen && <div className="account-menu-popover" id="account-menu-content"><button type="button" onClick={() => { setPage('settings'); setAccountMenuOpen(false) }}><Settings size={16} />Configurações</button><button type="button" onClick={async () => { const { error } = await supabase!.auth.signOut(); if (error) { setNotice({ tone: 'error', text: 'Não foi possível sair da conta. Tente novamente.' }); return } queryClient.clear(); setAccountMenuOpen(false) }}><LogOut size={16} />Sair</button></div>}
+            </div>
           </div>
         </header>
 
         <div className="content-wrap">
-          {page === 'documents' ? (
+          {page === 'settings' ? (
+            <>
+              <section className="page-heading"><div><div className="eyebrow"><span className="eyebrow-line" /> CONTA</div><h1>Configurações</h1><p>Gerencie o acesso à sua conta.</p></div></section>
+              <SettingsPage onNotice={setNotice} />
+            </>
+          ) : page === 'documents' ? (
             <>
               <section className="page-heading">
                 <div><div className="eyebrow"><span className="eyebrow-line" /> CENTRAL DE DOCUMENTOS</div><h1>Busca fiscal</h1><p>Encontre notas e acompanhe o que chega para suas empresas.</p></div>
@@ -277,7 +303,7 @@ function App() {
                 <div className="results-heading"><div><h2>Documentos fiscais</h2><p>{documents.length} resultado{documents.length === 1 ? '' : 's'} nesta página</p></div><button className="icon-button" title="Limpar filtros" onClick={() => { setSearch(''); setDateFrom(''); setDateTo(''); setSelectedCompany('all'); setDocumentDirection('all') }}><Filter size={17} /><span className="sr-only">Limpar filtros</span></button></div>
                 {documentsLoading ? <div className="loading-state"><div className="spinner" /><span>Buscando documentos…</span></div> : documents.length ? <DocumentTable documents={documents} onOpen={(document) => { void openDocumentXml(document).catch((error) => setNotice({ tone: 'error', text: error instanceof Error ? error.message : 'Não foi possível abrir o XML.' })) }} /> : <EmptyDocuments hasCompanies={companies.length > 0} onAddCompany={() => setCompanyDialog(true)} onSync={() => setSyncDialog(true)} />}
               </section>
-              <footer className="content-footer"><span>Dados isolados por organização e empresa</span><span><span className="footer-dot" /> Conectado ao Supabase</span></footer>
+              <footer className="content-footer"><span>Dados isolados por organização e empresa</span></footer>
             </>
           ) : (
             <CompaniesPage companies={companies} loading={companiesLoading} onAdd={() => setCompanyDialog(true)} onSync={(id) => { setSelectedCompany(id); setSyncDialog(true) }} />
@@ -314,7 +340,7 @@ function AuthScreen({ onNotice }: { onNotice: (notice: Notice) => void }) {
         })
         if (error) throw error
         if (data.session) setMessage('Conta criada. Antes de continuar, entre novamente para definir sua senha pessoal.')
-        else setMessage('Conta criada com a senha inicial padrão. Confirme o e-mail e, no primeiro login, defina sua senha pessoal.')
+        else setMessage('Conta criada. Confirme o e-mail e, ao entrar, defina sua senha pessoal.')
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
@@ -326,7 +352,7 @@ function AuthScreen({ onNotice }: { onNotice: (notice: Notice) => void }) {
     }
     finally { setWorking(false) }
   }
-  return <div className="auth-screen"><div className="auth-decoration"><div className="auth-orbit orbit-one"/><div className="auth-orbit orbit-two"/><div className="auth-brand"><span className="brand-mark"><img src="/fiscal-symbol-white.svg" alt="" /></span><b>fiscal<span>.</span></b></div><div className="auth-manifesto"><span className="eyebrow">SEU ARQUIVO FISCAL</span><h1>Documentos em ordem.<br/><em>Decisões com clareza.</em></h1><p>Uma visão organizada das notas fiscais que chegam para suas empresas.</p></div><div className="auth-decoration-foot"><span>NF-e · modelo 55</span><span>Ambiente protegido</span></div></div><div className="auth-form-side"><form className="auth-form" onSubmit={submit}><span className="eyebrow">{isSignup ? 'PRIMEIRO ACESSO' : 'BEM-VINDO DE VOLTA'}</span><h2>{isSignup ? 'Crie sua conta' : 'Entre na sua conta'}</h2><p>Acesse seu espaço fiscal para continuar.</p><label className="field-label">E-mail<input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label>{isSignup ? <div className="dialog-note"><ShieldCheck size={16}/>A senha inicial é {DEFAULT_USER_PASSWORD}. Após confirmar o e-mail e entrar, você deverá criar uma senha pessoal antes de acessar sua organização.</div> : <label className="field-label">Senha<input type="password" autoComplete="current-password" minLength={8} value={password} onChange={(event) => setPassword(event.target.value)} required /></label>}{message && <div className={`inline-message ${message.startsWith('Erro:') ? 'error' : ''}`} role="status">{message}</div>}<button className="button button-primary auth-submit" disabled={working}>{working ? <><span className="button-spinner"/>Processando…</> : <>{isSignup ? 'Criar conta' : 'Entrar'}<ArrowRight size={16}/></>}</button>{ALLOW_SIGNUP && <button type="button" className="text-button" onClick={() => { setIsSignup(!isSignup); setPassword(''); setMessage('') }}>{isSignup ? 'Já tem conta? Entrar' : 'Ainda não tem conta? Criar acesso'}</button>}<div className="auth-privacy"><ShieldCheck size={16}/>Seus dados fiscais ficam no seu ambiente Supabase.</div></form></div></div>
+  return <div className="auth-screen"><div className="auth-decoration"><div className="auth-orbit orbit-one"/><div className="auth-orbit orbit-two"/><div className="auth-brand"><span className="brand-mark"><img src="/fiscal-symbol-white.svg" alt="" /></span><b>fiscal<span>.</span></b></div><div className="auth-manifesto"><span className="eyebrow">SEU ARQUIVO FISCAL</span><h1>Documentos em ordem.<br/><em>Decisões com clareza.</em></h1><p>Uma visão organizada das notas fiscais que chegam para suas empresas.</p></div><div className="auth-decoration-foot"><span>NF-e · modelo 55</span><span>Ambiente protegido</span></div></div><div className="auth-form-side"><form className="auth-form" onSubmit={submit}><span className="eyebrow">{isSignup ? 'PRIMEIRO ACESSO' : 'BEM-VINDO DE VOLTA'}</span><h2>{isSignup ? 'Crie sua conta' : 'Entre na sua conta'}</h2><p>Acesse seu espaço fiscal para continuar.</p><label className="field-label">E-mail<input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label>{isSignup ? <div className="dialog-note"><ShieldCheck size={16}/>Ao entrar pela primeira vez, você definirá uma senha pessoal antes de acessar sua organização.</div> : <label className="field-label">Senha<input type="password" autoComplete="current-password" minLength={8} value={password} onChange={(event) => setPassword(event.target.value)} required /></label>}{message && <div className={`inline-message ${message.startsWith('Erro:') ? 'error' : ''}`} role="status">{message}</div>}<button className="button button-primary auth-submit" disabled={working}>{working ? <><span className="button-spinner"/>Processando…</> : <>{isSignup ? 'Criar conta' : 'Entrar'}<ArrowRight size={16}/></>}</button>{ALLOW_SIGNUP && <button type="button" className="text-button" onClick={() => { setIsSignup(!isSignup); setPassword(''); setMessage('') }}>{isSignup ? 'Já tem conta? Entrar' : 'Ainda não tem conta? Criar acesso'}</button>}<div className="auth-privacy"><ShieldCheck size={16}/>Seus dados fiscais ficam no seu ambiente Supabase.</div></form></div></div>
 }
 
 function ChangePasswordScreen({ onNotice }: { onNotice: (notice: Notice) => void }) {
@@ -366,6 +392,39 @@ function ChangePasswordScreen({ onNotice }: { onNotice: (notice: Notice) => void
   }
 
   return <div className="setup-screen"><form className="setup-card organization-setup" onSubmit={submit}><span className="brand-mark"><ShieldCheck size={20}/></span><p className="eyebrow">PROTEÇÃO DA CONTA</p><h1>Defina sua senha pessoal</h1><p>Para continuar, troque a senha inicial por uma senha pessoal com pelo menos 12 caracteres.</p><label className="field-label">Nova senha<input type="password" autoComplete="new-password" minLength={12} value={password} onChange={(event) => setPassword(event.target.value)} required/></label><label className="field-label">Confirme a nova senha<input type="password" autoComplete="new-password" minLength={12} value={confirmation} onChange={(event) => setConfirmation(event.target.value)} required/></label>{message && <div className="inline-message error" role="alert">{message}</div>}<button className="button button-primary" disabled={working}>{working ? 'Atualizando…' : 'Salvar nova senha'}<ArrowRight size={16}/></button></form></div>
+}
+
+function SettingsPage({ onNotice }: { onNotice: (notice: Notice) => void }) {
+  const [password, setPassword] = useState('')
+  const [confirmation, setConfirmation] = useState('')
+  const [working, setWorking] = useState(false)
+  const [message, setMessage] = useState('')
+
+  const changePassword = async (event: FormEvent) => {
+    event.preventDefault()
+    if (!supabase) return
+    if (password.length < 12) { setMessage('Use pelo menos 12 caracteres na nova senha.'); return }
+    if (password === DEFAULT_USER_PASSWORD) { setMessage('Escolha uma senha pessoal diferente da senha inicial.'); return }
+    if (password !== confirmation) { setMessage('As senhas não coincidem.'); return }
+
+    setWorking(true)
+    setMessage('')
+    try {
+      const { error } = await supabase.auth.updateUser({ password })
+      if (error) throw error
+      setPassword('')
+      setConfirmation('')
+      onNotice({ tone: 'success', text: 'Senha alterada com sucesso.' })
+    } catch {
+      const text = 'Não foi possível alterar a senha. Confira os requisitos e tente novamente.'
+      setMessage(text)
+      onNotice({ tone: 'error', text })
+    } finally {
+      setWorking(false)
+    }
+  }
+
+  return <section className="companies-card settings-card"><form className="dialog-form settings-form" onSubmit={changePassword}><p>Altere a senha usada para entrar na sua conta. Use pelo menos 12 caracteres.</p><label className="field-label">Nova senha<input type="password" autoComplete="new-password" minLength={12} value={password} onChange={(event) => setPassword(event.target.value)} required /></label><label className="field-label">Confirme a nova senha<input type="password" autoComplete="new-password" minLength={12} value={confirmation} onChange={(event) => setConfirmation(event.target.value)} required /></label>{message && <div className="inline-message error" role="alert">{message}</div>}<div className="settings-actions"><button className="button button-primary" disabled={working}>{working ? 'Salvando…' : 'Salvar senha'}<ArrowRight size={16} /></button></div></form></section>
 }
 
 function CreateOrganization({ user, onNotice, onBack }: { user: string; onNotice: (notice: Notice) => void; onBack?: () => void }) {

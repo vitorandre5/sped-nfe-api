@@ -238,6 +238,42 @@ a {
   font-size:12px;
   font-weight:700
 }
+.account-menu {
+  position:relative
+}
+.account-menu-popover {
+  position:absolute;
+  z-index:30;
+  top:calc(100% + 8px);
+  right:0;
+  width:190px;
+  padding:5px;
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:10px;
+  box-shadow:0 12px 30px rgba(31,49,37,.14)
+}
+.account-menu-popover button {
+  width:100%;
+  min-height:38px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:0 10px;
+  border:0;
+  border-radius:7px;
+  background:transparent;
+  color:#435047;
+  text-align:left;
+  font-size:12px
+}
+.account-menu-popover button:hover,.account-menu-popover button:focus-visible {
+  background:#f2f6f2;
+  outline:none
+}
+.account-menu-popover button:last-child {
+  color:#a34439
+}
 .content-wrap {
   max-width:1370px;
   margin:0 auto;
@@ -714,6 +750,21 @@ tbody td {
   color:#9ba49d;
   font-size:10px;
   padding:17px 3px
+}
+.settings-card {
+  max-width:620px;
+  padding:22px
+}
+.settings-form>p {
+  margin:0 0 4px;
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.6
+}
+.settings-actions {
+  display:flex;
+  justify-content:flex-end;
+  margin-top:3px
 }
 .content-footer>span:last-child {
   display:flex;
