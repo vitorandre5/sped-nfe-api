@@ -384,6 +384,28 @@ services:
     volumes:
       - fiscal-storage-data:/var/lib/storage
 
+  # Apply app schema only after GoTrue and Storage create their own schemas.
+  fiscal-migrations:
+    image: postgres:17-alpine
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+      auth:
+        condition: service_healthy
+      storage:
+        condition: service_healthy
+    environment:
+      PGHOST: db
+      PGPORT: 5432
+      PGDATABASE: postgres
+      PGUSER: postgres
+      PGPASSWORD: ${SERVICE_PASSWORD_64_POSTGRES}
+    volumes:
+      - ./supabase/migrations:/migrations/supabase:ro
+      - ./deployment/supabase/migrate.sh:/migrations/migrate.sh:ro
+    command: ["/bin/sh", "/migrations/migrate.sh"]
+
   imgproxy:
     image: darthsim/imgproxy:v3.31.4
     restart: unless-stopped
@@ -476,7 +498,6 @@ services:
       - ./deployment/supabase/volumes/db/roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:Z
       # Initialize the database settings with JWT_EXP
       - ./deployment/supabase/volumes/db/jwt.sql:/docker-entrypoint-initdb.d/init-scripts/99-jwt.sql:Z
-      - ./deployment/supabase/volumes/db/init/zz-fiscal-schema.sql:/docker-entrypoint-initdb.d/init-scripts/zz-fiscal-schema.sql:Z
       # PGDATA directory is persisted between restarts
       - fiscal-postgres-data:/var/lib/postgresql/data:Z
       # Changes required for internal supabase data such as _analytics
@@ -622,6 +643,8 @@ services:
     depends_on:
       api:
         condition: service_healthy
+      fiscal-migrations:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8080/ || exit 1"]
       interval: 30s
