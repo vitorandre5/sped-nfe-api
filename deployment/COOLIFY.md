@@ -20,7 +20,7 @@ As migrações são copiadas para a imagem de `fiscal-migrations`. Não monte `.
 
 - `supabase-bd`: segredos `SERVICE_PASSWORD_64_POSTGRES`, `SERVICE_PASSWORD_JWT`, `SERVICE_SUPABASEANON_JWT`, `SERVICE_SUPABASESERVICE_JWT`, `SERVICE_PASSWORD_64_DASHBOARD`, `SERVICE_BASE64_64_SECRETKEYBASE`, `SERVICE_HEX_32_PGMETACRYPTO`, `SERVICE_HEX_32_REALTIMEKEY`, `SERVICE_HEX_32_S3ACCESSID`, `SERVICE_PASSWORD_64_S3ACCESSSECRET` e `SERVICE_HEX_32_VAULTENCKEY`. Preserve os valores atuais ao mudar o Compose desta aplicação.
 - `redis-bd`: sem variáveis; a senha não é necessária porque o Redis não publica portas e só participa da rede privada.
-- `fiscal.web`: `SERVICE_PASSWORD_64_APIPROXY`, `SERVICE_SUPABASEANON_JWT` e `NFE_TPAMB`, `NFE_RAZAO_SOCIAL`, `NFE_CNPJ`, `NFE_SIGLA_UF`, `NFE_SCHEMES`, `NFE_VERSAO`, `NFE_VERAPLIC`. O valor anon deve ser o mesmo usado pelo Supabase. O modo `2` é homologação.
+- `fiscal.web`: `SERVICE_PASSWORD_64_APIPROXY`, `NFE_TPAMB`, `NFE_RAZAO_SOCIAL`, `NFE_CNPJ`, `NFE_SIGLA_UF`, `NFE_SCHEMES`, `NFE_VERSAO`, `NFE_VERAPLIC`. Use uma shared variable de projeto chamada `FISCAL_SUPABASE_ANON_KEY` com a chave anon do Supabase e referencie-a em `fiscal.web` como `{{project.FISCAL_SUPABASE_ANON_KEY}}`. O modo `2` é homologação.
 
 Os segredos ficam no Coolify e não devem ser copiados para `.env.example`. A URL e a chave anon do Supabase são embutidas no build da interface; ao alterá-las, reconstrua `fiscal.web`.
 

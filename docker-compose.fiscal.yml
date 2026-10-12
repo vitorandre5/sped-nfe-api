@@ -40,7 +40,7 @@ services:
       context: ./web
       args:
         VITE_SUPABASE_URL: https://supabase-fiscal.oc2.freeddns.org
-        VITE_SUPABASE_ANON_KEY: ${SERVICE_SUPABASEANON_JWT}
+        VITE_SUPABASE_ANON_KEY: ${FISCAL_SUPABASE_ANON_KEY}
         VITE_NFE_TPAMB: ${NFE_TPAMB:-2}
         VITE_ALLOW_SIGNUP: 'false'
     restart: unless-stopped
