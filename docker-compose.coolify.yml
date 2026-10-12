@@ -67,6 +67,8 @@ services:
   api-gw:
     image: envoyproxy/envoy:v1.39.1
     restart: unless-stopped
+    expose:
+      - "8000"
     networks:
       default:
         # Expose `envoy` and `kong` as network aliases, so internal configs
@@ -603,6 +605,8 @@ services:
       start_period: 15s
 
   web:
+    expose:
+      - "8080"
     build:
       context: ./web
       args:
