@@ -1,6 +1,6 @@
 # Aplicações no Coolify
 
-> **Validação (2026-10-12):** o Service Supabase nativo `supabase-bd-native` está funcional; o domínio de produção e TLS estão no Kong nativo, e os dados de Auth, organizações, empresas e documentos foram migrados. A aplicação antiga `supabase-bd` está sem domínio, preservada para rollback até a confirmação final de exclusão no Coolify. O usuário existente está vinculado como `admin` à organização `Teste`. O app apresenta falha com a sessão autenticada atual; após a migração, sessões antigas precisam entrar novamente. O código local agora oferece retentativa, novo login e criação de organização quando necessário; `npm run build` passou e a publicação de `fiscal.web` ainda está pendente. O Redis nativo `redis-bd-native` continua privado e não é usado pela API fiscal.
+> **Validação (2026-10-12):** o Service Supabase nativo `supabase-bd-native` está funcional; o domínio de produção e TLS estão no Kong nativo, e os dados de Auth, organizações, empresas e documentos foram migrados. A aplicação antiga `supabase-bd` está sem domínio, preservada para rollback até a confirmação final de exclusão no Coolify. O usuário existente está vinculado como `admin` à organização `Teste`. A correção de `fiscal.web` (retentativa, novo login e criação de organização quando necessário) foi publicada no commit `1c2b04f`; o deploy terminou com sucesso e a API ficou saudável. Sessões antigas precisam entrar novamente. O Redis nativo `redis-bd-native` continua privado e não é usado pela API fiscal.
 
 Recursos esperados no projeto `Fiscal`, ambiente `production`:
 
@@ -36,7 +36,7 @@ Os segredos ficam no Coolify e não devem ser copiados para `.env.example`. A UR
 ## Ordem de implantação
 
 1. O Supabase nativo e o corte do domínio já foram validados; sessões antigas do app precisam autenticar novamente.
-2. Publicar a correção local de `fiscal.web` e validar login/criação de organização.
+2. Recarregar `fiscal.web`, entrar novamente com a sessão atualizada e validar acesso à organização.
 3. Concluir a confirmação final para excluir `supabase-bd` legado e renomear o Service nativo.
 
 O Postgres preserva o banco existente. Antes de substituir os três containers de uma vez, confirme a saúde dos recursos novos e mantenha os volumes listados acima.
