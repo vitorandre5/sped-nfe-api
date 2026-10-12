@@ -21,8 +21,8 @@ final class AccountPasswordService
 
     public function changeForAuthenticatedUser(string $authorization, string $password): void
     {
-        if (strlen($password) < 12 || $password === 'teste123') {
-            throw new FiscalException('Escolha uma senha pessoal com pelo menos 12 caracteres.', 'PASSWORD_TOO_WEAK', [], 422);
+        if (strlen($password) < 8 || $password === 'teste123') {
+            throw new FiscalException('Escolha uma senha pessoal com pelo menos 8 caracteres.', 'PASSWORD_TOO_WEAK', [], 422);
         }
         if ($this->baseUrl === '' || $this->anonKey === '' || $this->serviceRoleKey === '') {
             throw new FiscalException('A troca segura de senha está indisponível. Configure o serviço de autenticação.', 'PASSWORD_CHANGE_UNAVAILABLE', [], 503);

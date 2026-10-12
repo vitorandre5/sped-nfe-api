@@ -371,7 +371,7 @@ function ChangePasswordScreen({ onReturnToLogin }: { onReturnToLogin: (message: 
   const submit = async (event: FormEvent) => {
     event.preventDefault()
     if (!supabase) return
-    if (password.length < 12) { setMessage('Use pelo menos 12 caracteres na nova senha.'); return }
+    if (password.length < 8) { setMessage('Use pelo menos 8 caracteres na nova senha.'); return }
     if (password === DEFAULT_USER_PASSWORD) { setMessage('Escolha uma senha diferente da senha inicial.'); return }
     if (password !== confirmation) { setMessage('As senhas não coincidem.'); return }
     setWorking(true); setMessage('')
@@ -394,7 +394,7 @@ function ChangePasswordScreen({ onReturnToLogin }: { onReturnToLogin: (message: 
     } finally { setWorking(false) }
   }
 
-  return <div className="setup-screen"><form className="setup-card organization-setup" onSubmit={submit}><span className="brand-mark"><ShieldCheck size={20}/></span><p className="eyebrow">PROTEÇÃO DA CONTA</p><h1>Defina sua senha pessoal</h1><p>Para continuar, troque a senha inicial por uma senha pessoal com pelo menos 12 caracteres.</p><label className="field-label">Nova senha<input type="password" autoComplete="new-password" minLength={12} value={password} onChange={(event) => setPassword(event.target.value)} required/></label><label className="field-label">Confirme a nova senha<input type="password" autoComplete="new-password" minLength={12} value={confirmation} onChange={(event) => setConfirmation(event.target.value)} required/></label>{message && <div className="inline-message error" role="alert">{message}</div>}<button className="button button-primary" disabled={working}>{working ? 'Atualizando…' : 'Salvar nova senha'}<ArrowRight size={16}/></button><button className="text-button" type="button" disabled={working} onClick={() => void onReturnToLogin('Session encerrada. Entre novamente com a senha padrao se ainda nao conseguiu altera-la.')}>Sair e tentar novamente</button></form></div>
+  return <div className="setup-screen"><form className="setup-card organization-setup" onSubmit={submit}><span className="brand-mark"><ShieldCheck size={20}/></span><p className="eyebrow">PROTEÇÃO DA CONTA</p><h1>Defina sua senha pessoal</h1><p>Para continuar, troque a senha inicial por uma senha pessoal com pelo menos 8 caracteres.</p><label className="field-label">Nova senha<input type="password" autoComplete="new-password" minLength={8} value={password} onChange={(event) => setPassword(event.target.value)} required/></label><label className="field-label">Confirme a nova senha<input type="password" autoComplete="new-password" minLength={8} value={confirmation} onChange={(event) => setConfirmation(event.target.value)} required/></label>{message && <div className="inline-message error" role="alert">{message}</div>}<button className="button button-primary" disabled={working}>{working ? 'Atualizando…' : 'Salvar nova senha'}<ArrowRight size={16}/></button><button className="text-button" type="button" disabled={working} onClick={() => void onReturnToLogin('Session encerrada. Entre novamente com a senha padrao se ainda nao conseguiu altera-la.')}>Sair e tentar novamente</button></form></div>
 }
 
 function SettingsPage({ onNotice }: { onNotice: (notice: Notice) => void }) {
@@ -406,7 +406,7 @@ function SettingsPage({ onNotice }: { onNotice: (notice: Notice) => void }) {
   const changePassword = async (event: FormEvent) => {
     event.preventDefault()
     if (!supabase) return
-    if (password.length < 12) { setMessage('Use pelo menos 12 caracteres na nova senha.'); return }
+    if (password.length < 8) { setMessage('Use pelo menos 8 caracteres na nova senha.'); return }
     if (password === DEFAULT_USER_PASSWORD) { setMessage('Escolha uma senha pessoal diferente da senha inicial.'); return }
     if (password !== confirmation) { setMessage('As senhas não coincidem.'); return }
 
@@ -427,7 +427,7 @@ function SettingsPage({ onNotice }: { onNotice: (notice: Notice) => void }) {
     }
   }
 
-  return <section className="companies-card settings-card"><form className="dialog-form settings-form" onSubmit={changePassword}><p>Altere a senha usada para entrar na sua conta. Use pelo menos 12 caracteres.</p><label className="field-label">Nova senha<input type="password" autoComplete="new-password" minLength={12} value={password} onChange={(event) => setPassword(event.target.value)} required /></label><label className="field-label">Confirme a nova senha<input type="password" autoComplete="new-password" minLength={12} value={confirmation} onChange={(event) => setConfirmation(event.target.value)} required /></label>{message && <div className="inline-message error" role="alert">{message}</div>}<div className="settings-actions"><button className="button button-primary" disabled={working}>{working ? 'Salvando…' : 'Salvar senha'}<ArrowRight size={16} /></button></div></form></section>
+  return <section className="companies-card settings-card"><form className="dialog-form settings-form" onSubmit={changePassword}><p>Altere a senha usada para entrar na sua conta. Use pelo menos 8 caracteres.</p><label className="field-label">Nova senha<input type="password" autoComplete="new-password" minLength={8} value={password} onChange={(event) => setPassword(event.target.value)} required /></label><label className="field-label">Confirme a nova senha<input type="password" autoComplete="new-password" minLength={8} value={confirmation} onChange={(event) => setConfirmation(event.target.value)} required /></label>{message && <div className="inline-message error" role="alert">{message}</div>}<div className="settings-actions"><button className="button button-primary" disabled={working}>{working ? 'Salvando…' : 'Salvar senha'}<ArrowRight size={16} /></button></div></form></section>
 }
 
 function CreateOrganization({ user, onNotice, onBack }: { user: string; onNotice: (notice: Notice) => void; onBack?: () => void }) {
