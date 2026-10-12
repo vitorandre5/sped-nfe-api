@@ -18,6 +18,8 @@ As migrações são copiadas para a imagem de `fiscal-migrations`. Não monte `.
 
 ## Variáveis por aplicação
 
+No Coolify, mantenha manualmente apenas as variáveis listadas abaixo. Entradas associadas a serviços como `studio`, `api-gw` e `storage` são geradas pelo Compose; variáveis herdadas do Compose antigo podem continuar listadas, mas não têm efeito quando não são referenciadas pelo Compose atual.
+
 - `supabase-bd`: segredos `SERVICE_PASSWORD_64_POSTGRES`, `SERVICE_PASSWORD_JWT`, `SERVICE_SUPABASEANON_JWT`, `SERVICE_SUPABASESERVICE_JWT`, `SERVICE_PASSWORD_64_DASHBOARD`, `SERVICE_BASE64_64_SECRETKEYBASE`, `SERVICE_HEX_32_PGMETACRYPTO`, `SERVICE_HEX_32_S3ACCESSID`, `SERVICE_PASSWORD_64_S3ACCESSSECRET`, `SERVICE_HEX_32_VAULTENCKEY` e `FISCAL_REALTIME_DB_ENC_KEY` (16 caracteres, obrigatório para AES-128 no Realtime). Preserve os valores atuais ao mudar o Compose desta aplicação.
 - O Studio do Supabase é acessado em `https://supabase-fiscal.oc2.freeddns.org`; usuário `fiscaladmin` e senha na variável `SERVICE_PASSWORD_64_DASHBOARD` de `supabase-bd`.
 - `SERVICE_HEX_32_REALTIMEKEY` é legado e não é usado pelo Compose atual. Ele permanece apenas para evitar uma exclusão permanente; a chave ativa é `FISCAL_REALTIME_DB_ENC_KEY`.
