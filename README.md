@@ -190,7 +190,7 @@ Este repositório agora pode ser usado como microserviço HTTP em PHP para expor
 
 ### Publicação self-hosted no Coolify
 
-O arquivo `docker-compose.coolify.yml` sobe a aplicação, Supabase Auth/Postgres/Storage e Redis no mesmo projeto. Configure o caminho do Compose como `/docker-compose.coolify.yml` e escolha um servidor ARM64 compatível. Os domínios configurados são `fiscal.oc2.freeddns.org` e `supabase-fiscal.oc2.freeddns.org`. O banco, os XMLs e o Redis usam volumes persistentes. O cadastro público fica desativado e a conta inicial deve ser criada pelo endpoint Admin do Supabase com uma chave `service_role`, confirmando o e-mail no provisionamento.
+O arquivo `docker-compose.coolify.yml` sobe a aplicação, Supabase Auth/Postgres/Storage e Redis no mesmo projeto. Configure o caminho do Compose como `/docker-compose.coolify.yml` e escolha um servidor ARM64 compatível. Os domínios configurados são `fiscal.oc2.freeddns.org` e `supabase-fiscal.oc2.freeddns.org`. As configurações que antes eram montadas como arquivos agora são incorporadas às imagens locais do Envoy, Postgres, funções Edge e Supavisor para evitar binds vazios no Coolify. O banco, os XMLs e o Redis usam volumes persistentes. O cadastro público fica desativado e a conta inicial deve ser criada pelo endpoint Admin do Supabase com uma chave `service_role`, confirmando o e-mail no provisionamento.
 
 O ambiente padrão continua em homologação (`NFE_TPAMB=2`). Uma consulta real à SEFAZ em produção exige certificado A1 válido do CNPJ cadastrado. Faça backup periódico do Postgres e do volume de Storage; os volumes persistentes não substituem backup.
 

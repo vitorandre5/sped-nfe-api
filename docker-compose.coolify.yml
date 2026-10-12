@@ -58,14 +58,13 @@ services:
 
       SNIPPETS_MANAGEMENT_FOLDER: /app/snippets
       EDGE_FUNCTIONS_MANAGEMENT_FOLDER: /app/edge-functions
-    volumes:
-      - ./deployment/supabase/coolify-config/snippets:/app/snippets:z
-      - ./deployment/supabase/coolify-config/functions:/app/edge-functions:ro,z
 
   # Envoy is the default API gateway
   # See: https://github.com/orgs/supabase/discussions/48048
   api-gw:
-    image: envoyproxy/envoy:v1.39.1
+    build:
+      context: .
+      dockerfile: deployment/supabase/images/envoy/Dockerfile
     restart: unless-stopped
     expose:
       - "8000"
@@ -85,11 +84,6 @@ services:
     depends_on:
       studio:
         condition: service_healthy
-    volumes:
-      - ./deployment/supabase/coolify-config/api/envoy/envoy.yaml:/etc/envoy/envoy.yaml:ro
-      - ./deployment/supabase/coolify-config/api/envoy/cds.yaml:/etc/envoy/cds.yaml:ro
-      - ./deployment/supabase/coolify-config/api/envoy/lds.template.yaml:/etc/envoy/lds.template.yaml:ro
-      - ./deployment/supabase/coolify-config/api/envoy/docker-entrypoint.sh:/docker-entrypoint.sh:ro
     environment:
       ANON_KEY: ${SERVICE_SUPABASEANON_JWT}
       SERVICE_ROLE_KEY: ${SERVICE_SUPABASESERVICE_JWT}
@@ -101,7 +95,6 @@ services:
       SERVICE_FQDN_API_GW_8000: supabase-fiscal.oc2.freeddns.org
       DASHBOARD_USERNAME: fiscaladmin
       DASHBOARD_PASSWORD: ${SERVICE_PASSWORD_64_DASHBOARD}
-    entrypoint: ["/bin/sh", "/docker-entrypoint.sh"]
 
   auth:
     image: supabase/gotrue:v2.196.0
@@ -445,10 +438,11 @@ services:
       CRYPTO_KEY: ${SERVICE_HEX_32_PGMETACRYPTO}
 
   functions:
-    image: supabase/edge-runtime:v1.76.2
+    build:
+      context: .
+      dockerfile: deployment/supabase/images/edge-functions/Dockerfile
     restart: unless-stopped
     volumes:
-      - ./deployment/supabase/coolify-config/functions:/home/deno/functions:z
       - deno-cache:/root/.cache/deno
     depends_on:
       api-gw:
@@ -488,24 +482,14 @@ services:
   # Comment out everything below this point if you are using an external Postgres database
   db:
     # To upgrade an existing Postgres 15 database in place, see utils/upgrade-pg17.sh.
-    image: supabase/postgres:17.6.1.136
+    build:
+      context: .
+      dockerfile: deployment/supabase/images/postgres/Dockerfile
     restart: unless-stopped
     volumes:
-      - ./deployment/supabase/coolify-config/db/realtime.sql:/docker-entrypoint-initdb.d/migrations/99-realtime.sql:Z
-      # Must be superuser to create event trigger
-      - ./deployment/supabase/coolify-config/db/webhooks.sql:/docker-entrypoint-initdb.d/init-scripts/98-webhooks.sql:Z
-      # Must be superuser to alter reserved role
-      - ./deployment/supabase/coolify-config/db/roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:Z
-      # Initialize the database settings with JWT_EXP
-      - ./deployment/supabase/coolify-config/db/jwt.sql:/docker-entrypoint-initdb.d/init-scripts/99-jwt.sql:Z
-      # PGDATA directory is persisted between restarts
+      # Supabase SQL initialization scripts are baked into this image.
+      # PGDATA is persisted between restarts.
       - fiscal-postgres-data:/var/lib/postgresql/data:Z
-      # Changes required for internal supabase data such as _analytics
-      - ./deployment/supabase/coolify-config/db/_supabase.sql:/docker-entrypoint-initdb.d/migrations/97-_supabase.sql:Z
-      # Changes required for Analytics support
-      - ./deployment/supabase/coolify-config/db/logs.sql:/docker-entrypoint-initdb.d/migrations/99-logs.sql:Z
-      # Changes required for Pooler support
-      - ./deployment/supabase/coolify-config/db/pooler.sql:/docker-entrypoint-initdb.d/migrations/99-pooler.sql:Z
       # Use named volume to persist pgsodium decryption key between restarts
       - db-config:/etc/postgresql-custom
     healthcheck:
@@ -541,10 +525,10 @@ services:
 
   # Update the DATABASE_URL if you are using an external Postgres database
   supavisor:
-    image: supabase/supavisor:2.9.12
+    build:
+      context: .
+      dockerfile: deployment/supabase/images/supavisor/Dockerfile
     restart: unless-stopped
-    volumes:
-      - ./deployment/supabase/coolify-config/pooler/pooler.exs:/etc/pooler/pooler.exs:ro,z
     healthcheck:
       test:
         [
