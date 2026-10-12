@@ -7,7 +7,6 @@
 certs
 vendor
 web
-deployment/supabase/volumes
 supabase/.temp
 supabase/.branches
 storage
