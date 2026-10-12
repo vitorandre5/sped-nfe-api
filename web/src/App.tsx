@@ -121,7 +121,7 @@ function App() {
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['documents', organizationId] })
 
   if (!supabase) return <SetupNotice />
-  if (!authReady) return <div className="boot-screen"><div className="brand-mark"><FileText size={20} /></div><span>Preparando seu espaço fiscal…</span></div>
+  if (!authReady) return <div className="boot-screen"><div className="brand-mark"><img src="/fiscal-symbol-white.svg" alt="" /></div><span>Preparando seu espaço fiscal…</span></div>
   if (!session) return <AuthScreen onNotice={setNotice} />
   if (membershipLoading) return <div className="boot-screen"><div className="spinner" /><span>Carregando organização…</span></div>
   if (membershipError) return <div className="boot-screen"><p>Não foi possível carregar sua organização.</p><button className="button button-secondary" onClick={() => queryClient.invalidateQueries({ queryKey: ['membership'] })}>Tentar novamente</button></div>
@@ -134,7 +134,7 @@ function App() {
     <div className="app-shell">
       <aside className="sidebar">
         <a className="brand" href="#documentos" onClick={() => setPage('documents')}>
-          <span className="brand-mark"><FileText size={19} strokeWidth={2.2} /></span>
+          <span className="brand-mark"><img src="/fiscal-symbol-white.svg" alt="" /></span>
           <span className="brand-name">fiscal<span>.</span></span>
         </a>
         <div className="org-switcher"><div className="org-avatar">{(membership.organizations?.name ?? 'O').slice(0, 1).toUpperCase()}</div><div className="org-copy"><small>Organização</small><strong>{membership.organizations?.name ?? 'Minha organização'}</strong></div><ChevronDown size={15} /></div>
@@ -148,7 +148,7 @@ function App() {
 
       <main className="main-area">
         <header className="topbar">
-          <div className="mobile-brand"><span className="brand-mark"><FileText size={18} /></span><b>fiscal<span>.</span></b></div>
+          <div className="mobile-brand"><span className="brand-mark"><img src="/fiscal-symbol-white.svg" alt="" /></span><b>fiscal<span>.</span></b></div>
           <div className="breadcrumb"><span>Workspace</span><span className="crumb-slash">/</span><strong>{page === 'documents' ? 'Documentos' : 'Empresas'}</strong></div>
           <div className="top-actions">
             <span className="secure-label"><ShieldCheck size={15} /> Área protegida</span>
@@ -199,7 +199,7 @@ function App() {
 }
 
 function SetupNotice() {
-  return <div className="setup-screen"><div className="setup-card"><span className="brand-mark"><FileText size={20} /></span><p className="eyebrow">CONFIGURAÇÃO LOCAL</p><h1>Conecte o Supabase</h1><p>Copie as chaves locais geradas pelo Supabase para o arquivo <code>.env</code> e reinicie o Compose.</p><div className="setup-command">npx supabase start</div></div></div>
+  return <div className="setup-screen"><div className="setup-card"><span className="brand-mark"><img src="/fiscal-symbol-white.svg" alt="" /></span><p className="eyebrow">CONFIGURAÇÃO LOCAL</p><h1>Conecte o Supabase</h1><p>Copie as chaves locais geradas pelo Supabase para o arquivo <code>.env</code> e reinicie o Compose.</p><div className="setup-command">npx supabase start</div></div></div>
 }
 
 function AuthScreen({ onNotice }: { onNotice: (notice: Notice) => void }) {
@@ -228,7 +228,7 @@ function AuthScreen({ onNotice }: { onNotice: (notice: Notice) => void }) {
     }
     finally { setWorking(false) }
   }
-  return <div className="auth-screen"><div className="auth-decoration"><div className="auth-orbit orbit-one"/><div className="auth-orbit orbit-two"/><div className="auth-brand"><span className="brand-mark"><FileText size={20}/></span><b>fiscal<span>.</span></b></div><div className="auth-manifesto"><span className="eyebrow">SEU ARQUIVO FISCAL</span><h1>Documentos em ordem.<br/><em>Decisões com clareza.</em></h1><p>Uma visão organizada das notas fiscais que chegam para suas empresas.</p></div><div className="auth-decoration-foot"><span>NF-e · modelo 55</span><span>Ambiente protegido</span></div></div><div className="auth-form-side"><form className="auth-form" onSubmit={submit}><span className="eyebrow">{isSignup ? 'PRIMEIRO ACESSO' : 'BEM-VINDO DE VOLTA'}</span><h2>{isSignup ? 'Crie sua conta' : 'Entre na sua conta'}</h2><p>Acesse seu espaço fiscal para continuar.</p><label className="field-label">E-mail<input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label><label className="field-label">Senha<input type="password" autoComplete={isSignup ? 'new-password' : 'current-password'} minLength={8} value={password} onChange={(event) => setPassword(event.target.value)} required /></label>{message && <div className={`inline-message ${message.startsWith('Erro:') ? 'error' : ''}`} role="status">{message}</div>}<button className="button button-primary auth-submit" disabled={working}>{working ? <><span className="button-spinner"/>Processando…</> : <>{isSignup ? 'Criar conta' : 'Entrar'}<ArrowRight size={16}/></>}</button>{ALLOW_SIGNUP && <button type="button" className="text-button" onClick={() => { setIsSignup(!isSignup); setMessage('') }}>{isSignup ? 'Já tem conta? Entrar' : 'Ainda não tem conta? Criar acesso'}</button>}<div className="auth-privacy"><ShieldCheck size={16}/>Seus dados fiscais ficam no seu ambiente Supabase.</div></form></div></div>
+  return <div className="auth-screen"><div className="auth-decoration"><div className="auth-orbit orbit-one"/><div className="auth-orbit orbit-two"/><div className="auth-brand"><span className="brand-mark"><img src="/fiscal-symbol-white.svg" alt="" /></span><b>fiscal<span>.</span></b></div><div className="auth-manifesto"><span className="eyebrow">SEU ARQUIVO FISCAL</span><h1>Documentos em ordem.<br/><em>Decisões com clareza.</em></h1><p>Uma visão organizada das notas fiscais que chegam para suas empresas.</p></div><div className="auth-decoration-foot"><span>NF-e · modelo 55</span><span>Ambiente protegido</span></div></div><div className="auth-form-side"><form className="auth-form" onSubmit={submit}><span className="eyebrow">{isSignup ? 'PRIMEIRO ACESSO' : 'BEM-VINDO DE VOLTA'}</span><h2>{isSignup ? 'Crie sua conta' : 'Entre na sua conta'}</h2><p>Acesse seu espaço fiscal para continuar.</p><label className="field-label">E-mail<input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label><label className="field-label">Senha<input type="password" autoComplete={isSignup ? 'new-password' : 'current-password'} minLength={8} value={password} onChange={(event) => setPassword(event.target.value)} required /></label>{message && <div className={`inline-message ${message.startsWith('Erro:') ? 'error' : ''}`} role="status">{message}</div>}<button className="button button-primary auth-submit" disabled={working}>{working ? <><span className="button-spinner"/>Processando…</> : <>{isSignup ? 'Criar conta' : 'Entrar'}<ArrowRight size={16}/></>}</button>{ALLOW_SIGNUP && <button type="button" className="text-button" onClick={() => { setIsSignup(!isSignup); setMessage('') }}>{isSignup ? 'Já tem conta? Entrar' : 'Ainda não tem conta? Criar acesso'}</button>}<div className="auth-privacy"><ShieldCheck size={16}/>Seus dados fiscais ficam no seu ambiente Supabase.</div></form></div></div>
 }
 
 function CreateOrganization({ user, onNotice }: { user: string; onNotice: (notice: Notice) => void }) {

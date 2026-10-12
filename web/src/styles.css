@@ -88,6 +88,11 @@ a {
   border-radius:11px;
   flex:none
 }
+.brand-mark img {
+  display:block;
+  width:22px;
+  height:22px
+}
 .brand-name,.mobile-brand b,.auth-brand b {
   font:800 21px system-ui,sans-serif;
   letter-spacing:-1px
@@ -997,8 +1002,8 @@ tbody td {
   gap:10px
 }
 .auth-brand .brand-mark {
-  background:#73ad7d;
-  color:#143d2a
+  background:#23734f;
+  color:#fff
 }
 .auth-manifesto {
   position:relative;

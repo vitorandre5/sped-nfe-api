@@ -155,6 +155,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      fiscal-migrations:
+        condition: service_completed_successfully
     healthcheck:
       test:
       - CMD-SHELL
