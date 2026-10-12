@@ -186,16 +186,6 @@ a {
   border-radius:50%;
   box-shadow:0 0 0 3px #e6f4e9
 }
-.local-tag {
-  margin-left:auto;
-  padding:3px 6px;
-  border-radius:5px;
-  background:#f0f3ef;
-  color:#89928a;
-  font-size:9px;
-  font-weight:700;
-  letter-spacing:.08em
-}
 .main-area {
   margin-left:248px;
   min-height:100vh
