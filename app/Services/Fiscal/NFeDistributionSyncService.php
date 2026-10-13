@@ -26,6 +26,45 @@ final class NFeDistributionSyncService
      */
     public function synchronize(array $payload, string $authorization): array
     {
+        $sourceType = (string) ($payload['document_type'] ?? 'nfe55');
+        if ($sourceType === 'all') {
+            $results = [];
+            $errors = [];
+            foreach (['nfe55', 'nfse'] as $type) {
+                try {
+                    $results[$type] = $this->synchronize(array_replace($payload, ['document_type' => $type]), $authorization);
+                } catch (FiscalException $exception) {
+                    $errors[$type] = ['code' => $exception->errorCode(), 'message' => $exception->getMessage(), 'details' => $exception->details(), 'http_status' => $exception->httpStatus()];
+                }
+            }
+            if ($results === []) {
+                $first = reset($errors);
+                throw new FiscalException($first['message'], $first['code'], $first['details'], $first['http_status']);
+            }
+            $nextDates = array_filter(array_column($results, 'next_sync_at'));
+            foreach ($errors as $error) {
+                if (!empty($error['details']['next_sync_at'])) {
+                    $nextDates[] = $error['details']['next_sync_at'];
+                }
+            }
+            sort($nextDates);
+            return [
+                'documentos_salvos' => array_sum(array_column($results, 'documentos_salvos')),
+                'next_sync_at' => $nextDates[0] ?? null,
+                'message' => implode(' ', array_map(static fn (string $type, array $result): string => ($type === 'nfse' ? 'NFS-e: ' : 'NF-e: ') . $result['message'], array_keys($results), array_values($results)))
+                    . ($errors !== [] ? ' ' . implode(' ', array_map(static fn (array $error): string => $error['message'], $errors)) : ''),
+                'sources' => $results,
+                'source_errors' => $errors,
+            ];
+        }
+        if (!in_array($sourceType, ['nfe55', 'nfse'], true)) {
+            throw new FiscalException('Tipo de documento fiscal inválido.', 'INVALID_DOCUMENT_TYPE', [], 422);
+        }
+        $isNfse = $sourceType === 'nfse';
+        $specificNsu = isset($payload['num_nsu']) && (string) $payload['num_nsu'] !== '' ? $this->nsu((string) $payload['num_nsu']) : null;
+        if ($isNfse && $specificNsu !== null) {
+            throw new FiscalException('A consulta por NSU específico é exclusiva da NF-e.', 'INVALID_DOCUMENT_TYPE', [], 422);
+        }
         $accessToken = $this->bearerToken($authorization);
         $supabaseUrl = trim((string) (getenv('SUPABASE_API_URL') ?: ''));
         $anonKey = trim((string) (getenv('SUPABASE_ANON_KEY') ?: ''));
@@ -66,7 +105,7 @@ final class NFeDistributionSyncService
         if (!in_array($environment, [1, 2], true)) {
             throw new FiscalException('O ambiente fiscal não está configurado.', 'INVALID_FISCAL_ENVIRONMENT', [], 503);
         }
-        $documentType = $environment === 1 ? 'nfe55' : 'nfe55_hom';
+        $documentType = $environment === 1 ? $sourceType : $sourceType . '_hom';
         $lockToken = $this->newUuid();
         $cursorRows = $client->rpc('acquire_nfe_distribution_cursor', [
             'p_organization_id' => $organizationId,
@@ -93,7 +132,7 @@ final class NFeDistributionSyncService
             if ($nextSyncAt !== null && strtotime($nextSyncAt) !== false && strtotime($nextSyncAt) > time()) {
                 $this->finishCursor($client, $organizationId, $companyId, $documentType, $lockToken, $lastNsu, $maxNsu, $nextSyncAt);
                 $cursorSaved = true;
-                throw new FiscalException('A SEFAZ pediu que você aguarde antes de consultar este CNPJ novamente.', 'SYNC_COOLDOWN', ['next_sync_at' => $nextSyncAt], 429);
+                throw new FiscalException(($isNfse ? 'O Ambiente Nacional da NFS-e' : 'A SEFAZ') . ' pediu que você aguarde antes de consultar este CNPJ novamente.', 'SYNC_COOLDOWN', ['next_sync_at' => $nextSyncAt], 429);
             }
 
             $run = $client->insert('sync_runs', [
@@ -128,13 +167,17 @@ final class NFeDistributionSyncService
                 ],
             ];
             $nextSyncAt = null;
-            $maxBatches = 6;
+            $maxBatches = $specificNsu !== null ? 1 : ($isNfse ? 2 : 6);
 
             for ($index = 0; $index < $maxBatches; $index++) {
                 $previousNsu = $lastNsu;
                 $savedBeforeBatch = $documentsSaved;
                 try {
-                    $result = $this->nfeService->distribuir(new NFeRequestDTO($fiscalPayload + ['ult_nsu' => $lastNsu]));
+                    $result = $isNfse
+                        ? (new NationalNfseService())->distribute($fiscalPayload, $lastNsu)
+                        : $this->nfeService->distribuir(new NFeRequestDTO($fiscalPayload + ['ult_nsu' => $lastNsu, 'num_nsu' => $specificNsu ?? '0']));
+                } catch (FiscalException $exception) {
+                    throw $exception;
                 } catch (Throwable $exception) {
                     throw new FiscalException('Não foi possível consultar a distribuição oficial da NF-e. Tente novamente mais tarde.', 'SEFAZ_REQUEST_FAILED', [], 502);
                 }
@@ -143,7 +186,7 @@ final class NFeDistributionSyncService
                 $batches++;
                 if ($status === '656') {
                     $nextSyncAt = gmdate(DATE_ATOM, time() + 3600);
-                    $message = 'A SEFAZ bloqueou novas consultas por uma hora. A sincronização poderá ser retomada após o horário indicado.';
+                    $message = 'A SEFAZ bloqueou novas consultas por uma hora. Outro sistema pode estar consultando este CNPJ com um NSU diferente. Aguarde o horário indicado e confira o último NSU usado pelo outro sistema.';
                     break;
                 }
                 if ($status === '137') {
@@ -154,7 +197,7 @@ final class NFeDistributionSyncService
                     break;
                 }
                 if ($status !== '138') {
-                    throw new FiscalException('A SEFAZ não concluiu a consulta. Verifique o certificado e tente novamente mais tarde.', 'SEFAZ_DISTRIBUTION_REJECTED', ['cStat' => $status !== '' ? $status : null], 502);
+                    throw new FiscalException('A SEFAZ não concluiu a consulta (cStat ' . $status . ').', 'SEFAZ_DISTRIBUTION_REJECTED', ['cStat' => $status !== '' ? $status : null], 502);
                 }
 
                 foreach (($result['documentos'] ?? []) as $source) {
@@ -167,16 +210,25 @@ final class NFeDistributionSyncService
                         $organizationId,
                         $companyId,
                         $cnpj,
-                        $environment
+                        $environment,
+                        $sourceType
                     );
                 }
 
-                $returnedNsu = $this->nsu((string) ($result['ult_nsu'] ?? $lastNsu));
-                $returnedMax = $this->nsu((string) ($result['max_nsu'] ?? $maxNsu ?? $returnedNsu));
-                $lastNsu = max($lastNsu, $returnedNsu);
-                $maxNsu = max($maxNsu ?? $returnedMax, $returnedMax);
+                if ($specificNsu !== null) {
+                    $nextSyncAt = gmdate(DATE_ATOM, time() + 180);
+                    $message = 'Documento consultado pelo NSU informado. O cursor de distribuição foi preservado.';
+                    break;
+                }
 
-                if ($lastNsu >= $maxNsu) {
+                $returnedNsu = $this->nsu((string) ($result['ult_nsu'] ?? $lastNsu));
+                $returnedMax = $isNfse && !empty($result['has_more'])
+                    ? null
+                    : $this->nsu((string) ($result['max_nsu'] ?? $maxNsu ?? $returnedNsu));
+                $lastNsu = max($lastNsu, $returnedNsu);
+                $maxNsu = $returnedMax === null ? null : max($maxNsu ?? $returnedMax, $returnedMax);
+
+                if ($maxNsu !== null && $lastNsu >= $maxNsu) {
                     $nextSyncAt = gmdate(DATE_ATOM, time() + 3600);
                     $message = 'Todos os documentos disponíveis foram sincronizados. A próxima consulta poderá ser feita após o horário indicado.';
                     break;
@@ -249,14 +301,17 @@ final class NFeDistributionSyncService
         string $organizationId,
         string $companyId,
         string $cnpj,
-        int $environment
+        int $environment,
+        string $documentType = 'nfe55'
     ): int {
         $nsu = $this->nsu((string) ($source['nsu'] ?? ''));
         $schema = (string) ($source['schema'] ?? '');
         $xml = (string) $source['xml'];
-        $parsed = $this->parser->parse($xml, $schema, $cnpj);
+        $parsed = $documentType === 'nfse'
+            ? (new NfseXmlParser())->parse($source, $cnpj, $environment)
+            : $this->parser->parse($xml, $schema, $cnpj);
         $digest = hash('sha256', $xml);
-        $path = sprintf('%s/%s/55/%d/%s-%s.xml', $organizationId, $companyId, $environment, $nsu, $digest);
+        $path = sprintf('%s/%s/%s/%d/%s-%s.xml', $organizationId, $companyId, $documentType === 'nfse' ? 'nfse' : '55', $environment, $nsu, $digest);
         $client->uploadXml($path, $xml);
 
         $documentId = null;
@@ -282,7 +337,7 @@ final class NFeDistributionSyncService
             $document = [
                 'organization_id' => $organizationId,
                 'company_id' => (string) ($previous['company_id'] ?? $companyId),
-                'document_type' => 'nfe55',
+                'document_type' => $documentType,
                 'external_id' => $parsed['access_key'],
                 'access_key' => $parsed['access_key'],
                 'nsu' => $nsu,
@@ -330,7 +385,7 @@ final class NFeDistributionSyncService
             'organization_id' => $organizationId,
             'company_id' => $companyId,
             'fiscal_document_id' => $documentId,
-            'source_type' => 'nfe_distribution',
+            'source_type' => $documentType === 'nfse' ? 'nfse_national' : 'nfe_distribution',
             'environment' => $environment,
             'source_external_id' => $environment . ':' . $nsu,
             'access_key' => $parsed['access_key'],
@@ -350,7 +405,11 @@ final class NFeDistributionSyncService
 
     private function isCancellation(array $parsed): bool
     {
-        return (string) ($parsed['event_type'] ?? '') === '110111'
+        $eventType = (string) ($parsed['event_type'] ?? '');
+        if ($eventType !== '' && !ctype_digit($eventType)) {
+            return in_array($eventType, ['CANCELAMENTO', 'CANCELAMENTO_POR_SUBSTITUICAO', 'CANCELAMENTO_DEFERIDO_ANALISE_FISCAL', 'CANCELAMENTO_POR_OFICIO'], true);
+        }
+        return $eventType === '110111'
             || stripos((string) ($parsed['event_description'] ?? ''), 'cancelamento') !== false;
     }
 

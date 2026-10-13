@@ -68,7 +68,11 @@ final class SefazService
 
         $context = $this->contextResolver->resolve($payload, $model, false);
         $this->certificateService->assertAvailable($context);
-        return $this->adapter->distributeNFe($context, (int) $ultNsu);
+        $numNsu = (string) ($payload['num_nsu'] ?? '0');
+        if (!preg_match('/^\d{1,15}$/', $numNsu)) {
+            throw new FiscalException('O NSU específico deve conter até 15 dígitos.', 'INVALID_NSU', [], 422);
+        }
+        return $this->adapter->distributeNFe($context, (int) $ultNsu, (int) $numNsu);
     }
 
     /**

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Adapters;
 
 use App\Exceptions\FiscalException;
+use App\Services\Fiscal\CertificateService;
 use DOMDocument;
-use NFePHP\Common\Certificate;
 use NFePHP\Common\UFList;
 use NFePHP\NFe\Common\Standardize;
 use NFePHP\NFe\Complements;
@@ -282,7 +282,7 @@ final class SpedNFeAdapter
     public function validateCertificate(array $context): array
     {
         $certificate = $this->readCertificate($context);
-        $pfx = Certificate::readPfx($certificate['content'], $certificate['password']);
+        $pfx = (new CertificateService())->readPfx($certificate['content'], $certificate['password']);
 
         return [
             'subject' => $pfx->publicKey->commonName ?? null,
@@ -345,9 +345,9 @@ final class SpedNFeAdapter
      * @param array<string, mixed> $context
      * @return array<string, mixed>
      */
-    public function distributeNFe(array $context, int $ultNsu): array
+    public function distributeNFe(array $context, int $ultNsu, int $numNsu = 0): array
     {
-        $responseXml = $this->tools($context)->sefazDistDFe($ultNsu);
+        $responseXml = $this->tools($context)->sefazDistDFe($ultNsu, $numNsu);
         $response = $this->toArray($responseXml);
         $documents = [];
 
@@ -465,9 +465,17 @@ final class SpedNFeAdapter
     private function tools(array $context): Tools
     {
         $certificate = $this->readCertificate($context);
+        $a1 = (new CertificateService())->readPfx($certificate['content'], $certificate['password']);
+        if ($a1->isExpired()) {
+            throw new FiscalException('O certificado A1 está vencido.', 'CERTIFICATE_EXPIRED', [], 422);
+        }
+        if ($a1->getCnpj() !== '' && !empty($context['emitente']['CNPJ'])
+            && substr($a1->getCnpj(), 0, 8) !== substr($context['emitente']['CNPJ'], 0, 8)) {
+            throw new FiscalException('O certificado A1 não pertence à raiz do CNPJ selecionado.', 'CERTIFICATE_COMPANY_MISMATCH', [], 422);
+        }
         $tools = new Tools(
             json_encode($context['config'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
-            Certificate::readPfx($certificate['content'], $certificate['password'])
+            $a1
         );
         $tools->model((int) $context['modelo']);
 

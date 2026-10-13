@@ -1,0 +1,121 @@
+<?xml version='1.0' encoding='utf-8'?>
+<NFSe xmlns="http://www.sped.fazenda.gov.br/nfse" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" versao="1.00">
+  <infNFSe Id="NFS11111111111111111111111111111111111111111111111111">
+    <xLocEmi>Cidade Exemplo</xLocEmi>
+    <xLocPrestacao>Cidade Exemplo</xLocPrestacao>
+    <nNFSe>123</nNFSe>
+    <cLocIncid>3550308</cLocIncid>
+    <xLocIncid>Cidade Exemplo</xLocIncid>
+    <xTribNac>Servicos de exemplo</xTribNac>
+    <xNBS>Serviço fictício — linha um
+linha dois </xNBS>
+    <verAplic>SefinNacional_1.6.0</verAplic>
+    <ambGer>2</ambGer>
+    <tpEmis>1</tpEmis>
+    <procEmi>1</procEmi>
+    <cStat>107</cStat>
+    <dhProc>2026-01-15T10:00:00-03:00</dhProc>
+    <nDFSe>999</nDFSe>
+    <emit>
+      <CNPJ>12345678000195</CNPJ>
+      <IM>12345</IM>
+      <xNome>EMPRESA EXEMPLO LTDA</xNome>
+      <enderNac>
+        <xLgr>AV EXEMPLO</xLgr>
+        <nro>100</nro>
+        <xCpl>SALA 1</xCpl>
+        <xBairro>CENTRO</xBairro>
+        <cMun>3550308</cMun>
+        <UF>SP</UF>
+        <CEP>01310100</CEP>
+      </enderNac>
+      <fone>1140041234</fone>
+      <email>contato@exemplo.com.br</email>
+    </emit>
+    <valores>
+      <vCalcDR>9.89</vCalcDR>
+      <vBC>23.08</vBC>
+      <pAliqAplic>4.00</pAliqAplic>
+      <vISSQN>0.92</vISSQN>
+      <vLiq>32.97</vLiq>
+    </valores>
+    <DPS versao="1.00">
+      <infDPS Id="DPS111111111111111111111111111111111111111111">
+        <tpAmb>1</tpAmb>
+        <dhEmi>2026-01-15T09:59:00-03:00</dhEmi>
+        <verAplic>php-nfse-1.0</verAplic>
+        <serie>1</serie>
+        <nDPS>1000</nDPS>
+        <dCompet>2026-01-15</dCompet>
+        <tpEmit>1</tpEmit>
+        <cLocEmi>3550308</cLocEmi>
+        <prest>
+          <CNPJ>12345678000195</CNPJ>
+          <IM>12345</IM>
+          <regTrib>
+            <opSimpNac>1</opSimpNac>
+            <regEspTrib>0</regEspTrib>
+          </regTrib>
+        </prest>
+        <toma>
+          <CPF>12345678909</CPF>
+          <xNome>JOAO DA SILVA</xNome>
+          <end>
+            <endNac>
+              <cMun>3550308</cMun>
+              <CEP>01310100</CEP>
+            </endNac>
+            <xLgr>RUA EXEMPLO</xLgr>
+            <nro>200</nro>
+            <xBairro>CENTRO</xBairro>
+          </end>
+        </toma>
+        <serv>
+          <locPrest>
+            <cLocPrestacao>3550308</cLocPrestacao>
+          </locPrest>
+          <cServ>
+            <cTribNac>210101</cTribNac>
+            <xDescServ>Servico de exemplo - valores ficticios para teste</xDescServ>
+            <cNBS>113040000</cNBS>
+          </cServ>
+        </serv>
+        <valores>
+          <vServPrest>
+            <vServ>32.97</vServ>
+          </vServPrest>
+          <vDedRed>
+            <vDR>9.89</vDR>
+          </vDedRed>
+          <trib>
+            <tribMun>
+              <tribISSQN>1</tribISSQN>
+              <tpRetISSQN>1</tpRetISSQN>
+            </tribMun>
+            <totTrib>
+              <pTotTrib>
+                <pTotTribFed>0.00</pTotTribFed>
+                <pTotTribEst>0.00</pTotTribEst>
+                <pTotTribMun>4.00</pTotTribMun>
+              </pTotTrib>
+            </totTrib>
+          </trib>
+        </valores>
+      </infDPS>
+    </DPS>
+  </infNFSe>
+  <ds:Signature>
+    <ds:SignedInfo>
+      <ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#WithComments" />
+      <ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256" />
+      <ds:Reference URI="#NFS11111111111111111111111111111111111111111111111111">
+        <ds:Transforms>
+          <ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" />
+        </ds:Transforms>
+        <ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256" />
+        <ds:DigestValue>AQ==</ds:DigestValue>
+      </ds:Reference>
+    </ds:SignedInfo>
+    <ds:SignatureValue>AQ==</ds:SignatureValue>
+  </ds:Signature>
+</NFSe>

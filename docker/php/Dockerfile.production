@@ -3,7 +3,8 @@ FROM php:8.3-cli-alpine
 ENV COMPOSER_ALLOW_SUPERUSER=1 \
     COMPOSER_HOME=/tmp/composer
 
-RUN apk add --no-cache libxml2 libzip \
+RUN apk add --no-cache libxml2 libzip openssl \
+    && openssl list -providers -provider default -provider legacy > /dev/null \
     && apk add --no-cache --virtual .build-deps $PHPIZE_DEPS libxml2-dev libzip-dev curl-dev \
     && docker-php-ext-install -j"$(nproc)" dom simplexml soap zip curl \
     && apk del .build-deps

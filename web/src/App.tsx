@@ -13,12 +13,12 @@ import type { Company, FiscalDocument } from './lib/supabase'
 type Membership = { organization_id: string; role: string; organizations: { name: string } | null }
 type Page = 'documents' | 'companies' | 'settings'
 type Notice = { tone: 'success' | 'error' | 'info'; text: string } | null
-type AutoSync = { companyId: string; file: File; password: string; nextSyncAt: string | null }
+type AutoSync = { documentType: 'all' | 'nfe55' | 'nfse'; companyId: string; file: File; password: string; nextSyncAt: string | null }
 type CnpjRegistryProfile = Record<string, unknown>
 
 const ALLOW_SIGNUP = import.meta.env.VITE_ALLOW_SIGNUP !== 'false'
 const DEFAULT_USER_PASSWORD = 'teste123'
-const NFE_CURSOR_TYPE = import.meta.env.VITE_NFE_TPAMB === '1' ? 'nfe55' : 'nfe55_hom'
+const FISCAL_CURSOR_TYPES = import.meta.env.VITE_NFE_TPAMB === '1' ? ['nfe55', 'nfse'] : ['nfe55_hom', 'nfse_hom']
 const BRAZILIAN_STATES = [
   ['AC', 'Acre'], ['AL', 'Alagoas'], ['AP', 'Amapá'], ['AM', 'Amazonas'],
   ['BA', 'Bahia'], ['CE', 'Ceará'], ['DF', 'Distrito Federal'], ['ES', 'Espírito Santo'],
@@ -127,8 +127,8 @@ function App() {
         const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
         if (sessionError || !sessionData.session?.access_token) throw new Error('Entre novamente para retomar a sincronização automática.')
         const form = new FormData()
-        form.set('payload', JSON.stringify({ organization_id: organizationId, company_id: due.companyId }))
-        form.set('certificado', due.file, due.file.name)
+        form.set('payload', JSON.stringify({ organization_id: organizationId, company_id: due.companyId, document_type: due.documentType }))
+        form.set('certificado', due.file, 'certificado.pfx')
         form.set('certificado_password', due.password)
         const response = await fetch('/api/nfe/sincronizar', {
           method: 'POST',
@@ -138,7 +138,7 @@ function App() {
         const result = await response.json() as { success?: boolean; message?: string; data?: { message?: string; documentos_salvos?: number; next_sync_at?: string | null } }
         if (!response.ok || !result.success || !result.data) throw new Error(result.message ?? 'A sincronização automática falhou.')
         const count = result.data.documentos_salvos ?? 0
-        setAutoSync((current) => current.map((item) => item.companyId === due.companyId
+        setAutoSync((current) => current.map((item) => item.companyId === due.companyId && item.documentType === due.documentType
           ? { ...item, nextSyncAt: result.data!.next_sync_at ?? new Date(Date.now() + 60 * 60 * 1000).toISOString() }
           : item))
         await queryClient.invalidateQueries({ queryKey: ['documents', organizationId] })
@@ -151,7 +151,7 @@ function App() {
         }
       } catch (error) {
         setNotice({ tone: 'error', text: error instanceof Error ? error.message : 'Falha na sincronização automática.' })
-        setAutoSync((current) => current.map((item) => item.companyId === due.companyId
+        setAutoSync((current) => current.map((item) => item.companyId === due.companyId && item.documentType === due.documentType
           ? { ...item, nextSyncAt: new Date(Date.now() + 15 * 60 * 1000).toISOString() }
           : item))
       } finally {
@@ -177,7 +177,7 @@ function App() {
     enabled: Boolean(organizationId),
     queryFn: async () => {
       let request = supabase!.from('sync_cursors').select('company_id,last_nsu,next_sync_at,last_run_at')
-        .eq('organization_id', organizationId!).eq('document_type', NFE_CURSOR_TYPE)
+        .eq('organization_id', organizationId!).in('document_type', FISCAL_CURSOR_TYPES)
       if (selectedCompany !== 'all') request = request.eq('company_id', selectedCompany)
       const { data, error } = await request
       if (error) throw error
@@ -280,7 +280,7 @@ function App() {
             <>
               <section className="page-heading">
                 <div><div className="eyebrow"><span className="eyebrow-line" /> CENTRAL DE DOCUMENTOS</div><h1>Busca fiscal</h1><p>Encontre notas e acompanhe o que chega para suas empresas.</p></div>
-                <div className="heading-actions">{autoSync.length > 0 && <button className="button button-secondary" onClick={() => setAutoSync([])} title="Interromper a sincronização automática desta sessão">Automática ativa ({autoSync.length}) · Pausar</button>}<button className="button button-secondary" onClick={() => refresh()} disabled={documentsLoading}><RefreshCw size={16} className={documentsLoading ? 'spin' : ''} />Atualizar</button><button className="button button-primary" onClick={() => companies.length ? setSyncDialog(true) : setCompanyDialog(true)}><ArrowDownToLine size={17} />Sincronizar NF-e</button></div>
+                <div className="heading-actions">{autoSync.length > 0 && <button className="button button-secondary" onClick={() => setAutoSync([])} title="Interromper a sincronização automática desta sessão">Automática ativa ({autoSync.length}) · Pausar</button>}<button className="button button-secondary" onClick={() => refresh()} disabled={documentsLoading}><RefreshCw size={16} className={documentsLoading ? 'spin' : ''} />Atualizar</button><button className="button button-primary" onClick={() => companies.length ? setSyncDialog(true) : setCompanyDialog(true)}><ArrowDownToLine size={17} />Sincronizar notas</button></div>
               </section>
 
               <section className="summary-grid" aria-label="Resumo dos documentos">
@@ -294,7 +294,7 @@ function App() {
                   <label className="search-input"><Search size={18} /><span className="sr-only">Buscar documentos</span><input ref={searchInput} type="search" name="fiscal-document-search" autoComplete="off" autoCorrect="off" spellCheck={false} value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar por emitente, destinatário, CNPJ ou chave…" /></label>
                   <label className="company-select"><Building2 size={16} /><span className="sr-only">Filtrar por empresa</span><select value={selectedCompany} onChange={(event) => setSelectedCompany(event.target.value)}><option value="all">Todas as empresas</option>{companies.map((company) => <option key={company.id} value={company.id}>{company.name}</option>)}</select><ChevronDown size={15} /></label>
                 </div>
-                <div className="filter-row"><div className="filter-caption"><SlidersHorizontal size={15} /><span>Filtros</span></div><label className="date-filter"><CalendarDays size={15} /><span>De</span><input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} /></label><label className="date-filter"><CalendarDays size={15} /><span>Até</span><input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} /></label><label className="date-filter direction-filter"><span>Tipo</span><select value={documentDirection} onChange={(event) => setDocumentDirection(event.target.value as typeof documentDirection)}><option value="all">Tudo</option><option value="purchase">Compras</option><option value="sale">Vendas</option><option value="return">Devolução</option><option value="transfer">Transferência entre filiais</option><option value="remittance_return">Remessa e retorno</option><option value="bonus">Bonificação</option><option value="industrialization">Industrialização</option><option value="import_export">Importação/exportação</option></select></label><span className="type-pill"><span className="type-dot" /> NF-e · Modelo 55</span><span className="updated-at">{dataUpdatedAt ? `Atualizado às ${new Intl.DateTimeFormat('pt-BR', { timeStyle: 'short' }).format(dataUpdatedAt)}` : 'Aguardando consulta'}</span></div>
+                <div className="filter-row"><div className="filter-caption"><SlidersHorizontal size={15} /><span>Filtros</span></div><label className="date-filter"><CalendarDays size={15} /><span>De</span><input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} /></label><label className="date-filter"><CalendarDays size={15} /><span>Até</span><input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} /></label><label className="date-filter direction-filter"><span>Tipo</span><select value={documentDirection} onChange={(event) => setDocumentDirection(event.target.value as typeof documentDirection)}><option value="all">Tudo</option><option value="purchase">Compras</option><option value="sale">Vendas</option><option value="return">Devolução</option><option value="transfer">Transferência entre filiais</option><option value="remittance_return">Remessa e retorno</option><option value="bonus">Bonificação</option><option value="industrialization">Industrialização</option><option value="import_export">Importação/exportação</option></select></label><span className="type-pill"><span className="type-dot" /> NF-e e NFS-e Nacional</span><span className="updated-at">{dataUpdatedAt ? `Atualizado às ${new Intl.DateTimeFormat('pt-BR', { timeStyle: 'short' }).format(dataUpdatedAt)}` : 'Aguardando consulta'}</span></div>
               </section>
 
               <section className="results-card">
@@ -494,6 +494,8 @@ function CompanyDialog({ organizationId, onClose, onSaved, onNotice }: { organiz
 
 function SyncDialog({ companies, initialCompanyId, organizationId, onClose, onNotice, onBusy, onEnableAuto, onDone }: { companies: Company[]; initialCompanyId?: string; organizationId: string; onClose: () => void; onNotice: (notice: Notice) => void; onBusy: (busy: boolean) => void; onEnableAuto: (value: AutoSync) => void; onDone: () => void }) {
   const [companyId, setCompanyId] = useState(initialCompanyId ?? '')
+  const [documentType, setDocumentType] = useState<'all' | 'nfe55' | 'nfse'>('all')
+  const [specificNsu, setSpecificNsu] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const [password, setPassword] = useState('')
   const [working, setWorking] = useState(false)
@@ -510,8 +512,8 @@ function SyncDialog({ companies, initialCompanyId, organizationId, onClose, onNo
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
       if (sessionError || !sessionData.session?.access_token) throw new Error('Entre novamente para sincronizar documentos.')
       const form = new FormData()
-      form.set('payload', JSON.stringify({ organization_id: organizationId, company_id: company.id }))
-      form.set('certificado', file, file.name)
+      form.set('payload', JSON.stringify({ organization_id: organizationId, company_id: company.id, document_type: documentType, ...(documentType === 'nfe55' && specificNsu ? { num_nsu: specificNsu } : {}) }))
+      form.set('certificado', file, 'certificado.pfx')
       form.set('certificado_password', password)
       setPhase('Consultando a distribuicao oficial e salvando documentos...')
       const response = await fetch('/api/nfe/sincronizar', {
@@ -524,7 +526,7 @@ function SyncDialog({ companies, initialCompanyId, organizationId, onClose, onNo
       const count = result.data.documentos_salvos ?? 0
       const next = result.data.next_sync_at ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(result.data.next_sync_at)) : null
       onNotice({ tone: 'success', text: `${result.data.message ?? 'Sincronizacao concluida.'} ${count} documento${count === 1 ? '' : 's'} recebido${count === 1 ? '' : 's'}${next ? ` Proxima consulta a partir de ${next}.` : ''}` })
-      if (autoEnabled) onEnableAuto({ companyId: company.id, file, password, nextSyncAt: result.data.next_sync_at ?? null })
+      if (autoEnabled && !specificNsu) onEnableAuto({ documentType, companyId: company.id, file, password, nextSyncAt: result.data.next_sync_at ?? null })
       onDone()
     } catch (error) {
       onNotice({ tone: 'error', text: error instanceof Error ? error.message : 'Falha ao sincronizar os documentos.' })
@@ -534,7 +536,7 @@ function SyncDialog({ companies, initialCompanyId, organizationId, onClose, onNo
     }
   }
 
-  return <Modal title="Sincronizar NF-e" description="Consulta oficial. Certificado e senha sao processados no servidor durante esta solicitacao." onClose={onClose}><form className="dialog-form" onSubmit={sync}><div className="dialog-note"><ShieldCheck size={16}/>A consulta usa o servico oficial e respeita o NSU salvo.</div><label className="field-label">Empresa<select value={companyId} onChange={(event) => setCompanyId(event.target.value)} required><option value="">Selecione a empresa</option>{companies.map((item) => <option key={item.id} value={item.id}>{item.name} - {formatCnpj(item.cnpj)}</option>)}</select></label><label className="field-label">Certificado digital A1<input ref={certificateInput} type="file" accept=".pfx,.p12,application/x-pkcs12" onChange={(event) => setFile(event.target.files?.[0] ?? null)} required/><small>O arquivo vai diretamente para a API fiscal e nao fica salvo no navegador.</small></label><label className="field-label">Senha do certificado<input type="password" autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} required/></label><label className="field-label checkbox-field"><input type="checkbox" checked={autoEnabled} onChange={async (event) => { setAutoEnabled(event.target.checked); if (event.target.checked && 'Notification' in window && Notification.permission === 'default') await Notification.requestPermission() }}/>Ativar sincronizacao automatica nesta sessao</label><small>Enquanto esta tela permanecer aberta e conectada, o sistema retoma no horario liberado pela SEFAZ. O certificado e a senha ficam somente na memoria desta sessao. Para avisos fora da pagina, permita notificacoes do navegador.</small><div className="dialog-note"><ShieldCheck size={16}/>A sincronizacao respeita os intervalos da SEFAZ e nao envia manifestacao automatica.</div>{working && <div className="sync-progress"><span className="spinner"/>{phase}</div>}<div className="dialog-actions"><button type="button" className="button button-secondary" onClick={onClose} disabled={working}>Cancelar</button><button className="button button-primary" disabled={working || !file || !companyId}>{working ? "Sincronizando..." : "Iniciar consulta"}<ArrowRight size={16}/></button></div></form></Modal>
+  return <Modal title="Sincronizar notas" description="Consulta oficial. Certificado e senha sao processados no servidor durante esta solicitacao." onClose={onClose}><form className="dialog-form" onSubmit={sync}><div className="dialog-note"><ShieldCheck size={16}/>Consulte NF-e na SEFAZ e notas de serviço no Ambiente Nacional da NFS-e.</div><label className="field-label">Empresa<select value={companyId} onChange={(event) => setCompanyId(event.target.value)} required><option value="">Selecione a empresa</option>{companies.map((item) => <option key={item.id} value={item.id}>{item.name} - {formatCnpj(item.cnpj)}</option>)}</select></label><label className="field-label">Documentos<select value={documentType} onChange={(event) => setDocumentType(event.target.value as typeof documentType)}><option value="all">NF-e e NFS-e Nacional</option><option value="nfe55">NF-e · SEFAZ</option><option value="nfse">NFS-e · Ambiente Nacional</option></select></label>{documentType === 'nfe55' && <label className="field-label">NSU específico (opcional)<input inputMode="numeric" value={specificNsu} onChange={(event) => setSpecificNsu(event.target.value.replace(/\D/g, '').slice(0, 15))} placeholder="Deixe vazio para buscar novas notas"/><small>Permite recuperar uma nota já recebida por outro sistema. O histórico de distribuição não é alterado.</small></label>}<label className="field-label">Certificado digital A1<input ref={certificateInput} type="file" accept=".pfx,.p12,application/x-pkcs12" onChange={(event) => setFile(event.target.files?.[0] ?? null)} required/><small>O arquivo vai diretamente para a API fiscal e nao fica salvo no navegador.</small></label><label className="field-label">Senha do certificado<input type="password" autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} required/></label><label className="field-label checkbox-field"><input type="checkbox" checked={autoEnabled} onChange={async (event) => { setAutoEnabled(event.target.checked); if (event.target.checked && 'Notification' in window && Notification.permission === 'default') await Notification.requestPermission() }}/>Ativar sincronizacao automatica nesta sessao</label><small>Enquanto esta tela permanecer aberta e conectada, o sistema retoma no horário liberado por cada serviço. O certificado e a senha ficam somente na memoria desta sessao. Para avisos fora da pagina, permita notificacoes do navegador.</small><div className="dialog-note"><ShieldCheck size={16}/>Cada serviço mantém seu próprio histórico de consulta. Nenhuma manifestação fiscal é enviada automaticamente.</div>{working && <div className="sync-progress"><span className="spinner"/>{phase}</div>}<div className="dialog-actions"><button type="button" className="button button-secondary" onClick={onClose} disabled={working}>Cancelar</button><button className="button button-primary" disabled={working || !file || !companyId}>{working ? "Sincronizando..." : "Iniciar consulta"}<ArrowRight size={16}/></button></div></form></Modal>
 }
 
 function DocumentTable({ documents, onOpen }: { documents: FiscalDocument[]; onOpen: (document: FiscalDocument) => void }) {
@@ -554,7 +556,7 @@ async function openDocumentXml(document: FiscalDocument) {
 }
 
 function EmptyDocuments({ hasCompanies, onAddCompany, onSync }: { hasCompanies: boolean; onAddCompany: () => void; onSync: () => void }) {
-  return <div className="empty-state"><div className="empty-art"><div className="empty-sheet sheet-back"/><div className="empty-sheet sheet-front"><span/><span/><span/></div><div className="empty-search"><Search size={18}/></div></div><h3>{hasCompanies ? 'Sua caixa fiscal está vazia' : 'Comece adicionando uma empresa'}</h3><p>{hasCompanies ? 'Faça uma consulta ao Ambiente Nacional para buscar documentos destinados a uma empresa.' : 'Cadastre um CNPJ para organizar os documentos fiscais recebidos.'}</p><button className="button button-primary" onClick={hasCompanies ? onSync : onAddCompany}>{hasCompanies ? <><ArrowDownToLine size={16}/>Sincronizar NF-e</> : <><Plus size={16}/>Adicionar empresa</>}</button></div>
+  return <div className="empty-state"><div className="empty-art"><div className="empty-sheet sheet-back"/><div className="empty-sheet sheet-front"><span/><span/><span/></div><div className="empty-search"><Search size={18}/></div></div><h3>{hasCompanies ? 'Sua caixa fiscal está vazia' : 'Comece adicionando uma empresa'}</h3><p>{hasCompanies ? 'Sincronize as notas de produtos e serviços das suas empresas.' : 'Cadastre um CNPJ para organizar os documentos fiscais recebidos.'}</p><button className="button button-primary" onClick={hasCompanies ? onSync : onAddCompany}>{hasCompanies ? <><ArrowDownToLine size={16}/>Sincronizar notas</> : <><Plus size={16}/>Adicionar empresa</>}</button></div>
 }
 
 function CompaniesPage({ companies, loading, onAdd, onSync }: { companies: Company[]; loading: boolean; onAdd: () => void; onSync: (id: string) => void }) {
