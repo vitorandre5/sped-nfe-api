@@ -250,7 +250,7 @@ services:
     - /bin/sh
     - /migrations/migrate.sh
     build:
-      context: https://github.com/vitorandre5/sped-nfe-api.git#b7e8e2d81439f5b6dcbfd2b2f98dbb743c68b529
+      context: https://github.com/vitorandre5/sped-nfe-api.git#b6cb4b9
       dockerfile: deployment/supabase/images/migrations/Dockerfile
     networks:
       fiscal-private: {}
