@@ -612,7 +612,7 @@ function SyncDialog({ companies, initialCompanyId, organizationId, onClose, onNo
         headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
         body: JSON.stringify({ organization_id: organizationId, company_id: company.id, document_type: 'all' }),
       })
-      const result = await response.json() as { success?: boolean; code?: string; data?: { documentos_salvos?: number; next_sync_at?: string | null; sources?: Partial<Record<'nfe55' | 'nfse', { next_sync_at?: string | null }>>; source_errors?: Partial<Record<'nfe55' | 'nfse', { details?: { next_sync_at?: string | null } }>> }
+      const result = await response.json() as { success?: boolean; code?: string; data?: { documentos_salvos?: number; next_sync_at?: string | null; sources?: Partial<Record<'nfe55' | 'nfse', { next_sync_at?: string | null }>>; source_errors?: Partial<Record<'nfe55' | 'nfse', { details?: { next_sync_at?: string | null } }>> } }
       if (!response.ok || !result.success || !result.data) throw new Error(syncFailureMessage(result.code))
       const count = result.data.documentos_salvos ?? 0
       onNotice({ tone: 'success', text: count > 0
