@@ -4,7 +4,7 @@ The application queries NF-e model 55 through NFeDistribuicaoDFe (SPED-NFe) and 
 
 Production ADN: `https://adn.nfse.gov.br/contribuintes/DFe/{NSU}?cnpjConsulta={CNPJ}&lote=true`. Authentication uses A1 mTLS, with HTTPS peer/hostname validation enabled. Responses provide up to 50 compressed XMLs per page. The next request uses the largest successfully stored NSU. Each sync request imports at most two NFS-e pages; the existing session automation can resume pending pages.
 
-For NF-e received by another application, `num_nsu` performs a single consNSU lookup and stores the document without advancing the sequential distribution cursor. SEFAZ cooldowns apply; a 656 response never causes immediate retries or cursor resets.
+For NF-e received by another application, `num_nsu` performs a single consNSU lookup and stores the document without advancing the sequential distribution cursor. SEFAZ cooldowns apply; a 656 response never causes immediate retries or cursor resets. When 656 reports a higher `ultNSU` already used by another consumer, the app records that authoritative checkpoint for the next sequential request and explicitly states that earlier documents require specific-NSU recovery.
 
 OpenSSL 3 does not read some valid PFX containers using RC2 by default. `CertificateService` uses the native reader first, then the OpenSSL legacy provider in a dedicated subprocess only for unsupported container algorithms. The original encrypted PFX is temporary with mode 0600; the password and decrypted keys use pipes/memory and are not recorded. Production includes the OpenSSL CLI and legacy provider. Wrong passwords produce a safe, actionable error.
 

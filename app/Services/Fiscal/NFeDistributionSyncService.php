@@ -187,6 +187,11 @@ final class NFeDistributionSyncService
                 if ($status === '656') {
                     $nextSyncAt = gmdate(DATE_ATOM, time() + 3600);
                     $message = 'A SEFAZ bloqueou novas consultas por uma hora. Outro sistema pode estar consultando este CNPJ com um NSU diferente. Aguarde o horário indicado e confira o último NSU usado pelo outro sistema.';
+                    $providerNsu = isset($result['ult_nsu']) ? $this->nsu((string) $result['ult_nsu']) : $lastNsu;
+                    if ($providerNsu > $lastNsu) {
+                        $lastNsu = $providerNsu;
+                        $message .= ' O último NSU informado pela SEFAZ foi salvo para retomar a busca de novas notas. Documentos anteriores podem ser recuperados pelo NSU específico.';
+                    }
                     break;
                 }
                 if ($status === '137') {
@@ -247,7 +252,6 @@ final class NFeDistributionSyncService
             }
 
             if ($status === '656') {
-                $lastNsu = $this->nsu((string) ($cursor['last_nsu'] ?? $lastNsu));
                 $maxNsu = isset($cursor['max_nsu']) ? $this->nsu((string) $cursor['max_nsu']) : $maxNsu;
             }
 
