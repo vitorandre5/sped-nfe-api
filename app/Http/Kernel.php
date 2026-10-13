@@ -5,13 +5,11 @@ declare(strict_types=1);
 namespace App\Http;
 
 use App\Adapters\SpedNFeAdapter;
-use App\Controllers\AccountController;
 use App\Controllers\CnpjRegistryController;
 use App\Controllers\NFCeController;
 use App\Controllers\NFeController;
 use App\Exceptions\FiscalException;
 use App\Services\Fiscal\CertificateService;
-use App\Services\Fiscal\AccountPasswordService;
 use App\Services\Fiscal\CnpjRegistryService;
 use App\Services\Fiscal\CompanyContextResolver;
 use App\Services\Fiscal\DanfeService;
@@ -243,15 +241,6 @@ final class Kernel
         };
 
         $router->get('/health', $health);
-
-        $accountController = new AccountController(new AccountPasswordService(
-            trim((string) (getenv('SUPABASE_API_URL') ?: '')),
-            trim((string) (getenv('SUPABASE_ANON_KEY') ?: '')),
-            trim((string) (getenv('SUPABASE_SERVICE_ROLE_KEY') ?: ''))
-        ));
-        /** @var callable $accountRoutes */
-        $accountRoutes = require dirname(__DIR__) . '/Routes/account.php';
-        $accountRoutes($router, $accountController);
 
         $cnpjRegistryController = new CnpjRegistryController(new CnpjRegistryService(
             trim((string) (getenv('SUPABASE_API_URL') ?: '')),
