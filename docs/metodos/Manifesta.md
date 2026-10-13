@@ -45,10 +45,10 @@ try {
     $tools = new Tools($configJson, $certificate);
     $tools->model('55');
 
-    $chNFe = '12345678901234567890123456789012345678901234'; //chave de 44 digitos da nota do fornecedor
+    $chNFe = '12345678901234567890123456789012345678901234'; //chave de 44 dígitos da nota do fornecedor
     $tpEvento = '210210'; //ciencia da operação
     $xJust = ''; //a ciencia não requer justificativa
-    $nSeqEvento = 1; //a ciencia em geral será numero inicial de uma sequencia para essa nota e evento
+    $nSeqEvento = 1; //a ciencia em geral será número inicial de uma sequencia para essa nota e evento
 
     $response = $tools->sefazManifesta($chNFe,$tpEvento,$xJust = '',$nSeqEvento = 1);
     //você pode padronizar os dados de retorno atraves da classe abaixo

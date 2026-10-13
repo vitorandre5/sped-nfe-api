@@ -2,7 +2,7 @@
 
 ## Layout 4.00
 
-> Uma UNICA TAG PAG
+> Uma ÚNICA TAG PAG
 > E até 100 detPag
 
 ```xml

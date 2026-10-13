@@ -121,7 +121,7 @@ trait TraitTagIde
             }
             if (method_exists(Keys::class, 'cNFIsValid')) {
                 if (!Keys::cNFIsValid($std->cNF)) {
-                    $this->errors[] = "$identificador O valor $std->cNF para cNF é invalido.";
+                    $this->errors[] = "$identificador O valor $std->cNF para cNF é inválido.";
                 }
             }
         }

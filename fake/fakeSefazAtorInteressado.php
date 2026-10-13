@@ -40,10 +40,10 @@ try {
     $tools->loadSoapClass($soap);
 
     $std = new \stdClass();
-    $std->chNFe = '12345678901234567890123456789012345678901234'; //chave de 44 digitos da nota do fornecedor
+    $std->chNFe = '12345678901234567890123456789012345678901234'; //chave de 44 dígitos da nota do fornecedor
     $std->tpAutor = 1; //1-emitente 2-destinatário 3-transportador indica quem está incluindo ou removendo atores
     //$std->verAplic = '1.2.3'; //opcional se inicado anteriormente - versão da aplicação que está gerando o evento
-    $std->nSeqEvento = 1; //numero sequencial do evento, incrementar ao incluir outros ou remover
+    $std->nSeqEvento = 1; //número sequencial do evento, incrementar ao incluir outros ou remover
     $std->tpAutorizacao = 1; //0-não autorizo ou 1-autorizo
     $std->CNPJ = '12345678901234';
     $std->CPF = null;

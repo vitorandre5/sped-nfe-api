@@ -8,7 +8,7 @@ Consulta Cadastro de Contribuinte do ICMS de uma UF.
 **Método:** consultaCadastro
 
 ## Descrição
-Permite consultar a situação cadastral de um contribuinte em uma determinada UF, a funcionalidade é util para verificar se o destinatário da NF-e é um contribuinte em situação regular na UF de destino. Lembrando que quando o destinatário está inabilitado a NFe será DENEGADA.
+Permite consultar a situação cadastral de um contribuinte em uma determinada UF, a funcionalidade é útil para verificar se o destinatário da NF-e é um contribuinte em situação regular na UF de destino. Lembrando que quando o destinatário está inabilitado a NFe será DENEGADA.
 
 > NOTA: Funciona somente para modelo 55 (NFe), o modelo 65 (NFCe) evidentemente não possue esse tipo de serviço.
 
@@ -69,7 +69,7 @@ try {
 > NOTA: A prioridade na pesquisa é na ordem CNPJ, IEST e CPF, mesmo que você indique os três apenas o CNPJ será usado. 
 
 
-## Parametros
+## Parâmetros
 
 | Variável | Detalhamento  |
 | :---:  | :--- |
@@ -111,7 +111,7 @@ try {
 
 ### RETORNO
 
-A variavel $response no exemplo conterá esse XML, ou algo semelhante.
+A variável $response no exemplo conterá esse XML, ou algo semelhante.
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -318,7 +318,7 @@ A consulta com sucesso poderá resultar:
 
 Caso não passe em alguma validação ou sejam encontrados problemas na comunicação, será SEMPRE retornado um EXCEPTION que deve ser capturado.
 
-Mas os erros não se restringem a esse tipo de falha. Além de falhas na fase de montagem da mensagem e na comunicação podem ser retornados erros relativos a analise pelas regras de negócios da SEFAZ nesse caso os erros deverão ser analisados no xml de retorno.
+Mas os erros não se restringem a esse tipo de falha. Além de falhas na fase de montagem da mensagem e na comunicação podem ser retornados erros relativos a análise pelas regras de negócios da SEFAZ nesse caso os erros deverão ser analisados no xml de retorno.
 
 ### Verificação do Certificado de Transmissão
 

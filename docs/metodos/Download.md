@@ -12,9 +12,9 @@ Download de NF-e Confirmadas
 
 Este serviço disponibiliza para alguns atores as NFe's de seu interesse.
 
-Os documentos fiscais eletrônicos estarão disponíveis para o download por um periodo após sua recepção pelo Ambiente Nacional da NF-e. 
+Os documentos fiscais eletrônicos estarão disponíveis para o download por um período após sua recepção pelo Ambiente Nacional da NF-e. 
 
-**NOTA: Este serviço NÃO está disponivel para os emitentes, mas apenas aos destinatários, transportadores e outros autorizados, desde que essa NFe tenha sido previamente manifestada !!!**
+**NOTA: Este serviço NÃO está disponível para os emitentes, mas apenas aos destinatários, transportadores e outros autorizados, desde que essa NFe tenha sido previamente manifestada !!!**
 
 ## Dependências
 [NFePHP\Common\Certificate::class](Certificate.md)
@@ -48,14 +48,14 @@ try {
 
 ```
 
-## Parametros
+## Parâmetros
 
 | Variável | Detalhamento  |
 | :---:  | :--- |
 | $configJson | String Json com os dados de configuração (OBRIGATÓRIO) |
 | $pfxcontent | String com o conteúdo do certificado PFX (OBRIGATÓRIO) |
 | $password | String com a senha de acesso ao certificado PFX (OBRIGATÓRIO) |
-| $chave | Chave de 44 digitos da NFe de interesse |
+| $chave | Chave de 44 dígitos da NFe de interesse |
 
 ## Mensagens
 
@@ -83,7 +83,7 @@ try {
 
 ### RETORNO
 
-A variavel $response no exemplo conterá esse XML, ou algo semelhante.
+A variável $response no exemplo conterá esse XML, ou algo semelhante.
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>

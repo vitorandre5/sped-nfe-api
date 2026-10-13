@@ -186,7 +186,7 @@ class Parser
     }
 
     /**
-     * Retorna erros na criacao do DOM
+     * Retorna erros na criação do DOM
      */
     public function getErrors(): array
     {
@@ -1108,7 +1108,7 @@ class Parser
      */
     protected function qEntity(stdClass $std): void
     {
-        //carrega numero do item
+        //carrega número do item
         $std->item = $this->item;
         $this->stdPIS = $std;
         $this->stdPIS->vBC = null;
@@ -1202,7 +1202,7 @@ class Parser
      */
     protected function rEntity(stdClass $std): void
     {
-        //carrega numero do item
+        //carrega número do item
         $std->item = $this->item;
         $this->stdPISST = $std;
         $this->stdPISST->vBC = null;
@@ -1250,7 +1250,7 @@ class Parser
      */
     protected function sEntity(stdClass $std): void
     {
-        //carrega numero do item
+        //carrega número do item
         $std->item = $this->item;
         $this->stdCOFINS = $std;
         $this->stdCOFINS->vBC = null;
@@ -1343,7 +1343,7 @@ class Parser
      */
     protected function tEntity(stdClass $std): void
     {
-        //carrega numero do item
+        //carrega número do item
         $std->item = $this->item;
         $this->stdCOFINSST = $std;
         $this->stdCOFINSST->vBC = null;

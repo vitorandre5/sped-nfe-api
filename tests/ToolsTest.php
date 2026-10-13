@@ -60,12 +60,12 @@ class ToolsTest extends NFeTestCase
     }
 
     /**
-     * Testa a consulta pela chave validando o parâmetro de chave incompleta (comprimento diferente de 44 digitos).
+     * Testa a consulta pela chave validando o parâmetro de chave incompleta (comprimento diferente de 44 dígitos).
      */
     public function testSefazConsultaChaveThrowsInvalidArgExceptionChaveCompleta()
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->tools->sefazConsultaChave('1234567890123456789012345678901234567890123'); // 43 digitos
+        $this->tools->sefazConsultaChave('1234567890123456789012345678901234567890123'); // 43 dígitos
     }
 
     /**

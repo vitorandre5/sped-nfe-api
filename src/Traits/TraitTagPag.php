@@ -20,7 +20,7 @@ trait TraitTagPag
     /**
      * Grupo Pagamento Y pai A01
      * NOTA: Ajustado para NT2016_002_v1.30
-     * tag NFe/infNFe/pag (obrigatorio na NT2016_002_v1.30)
+     * tag NFe/infNFe/pag (obrigatório na NT2016_002_v1.30)
      * Obrigatório para 55 e 65
      * @param stdClass $std
      * @return DOMElement

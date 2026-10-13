@@ -9,7 +9,7 @@
 - Em caso de ERRO na NFCe, a mesma deverá ser corrigida para poder ser autorizada, e alguns dados da NFCe não poderão ser modificados de forma alguma, como:
   - chave da NFCe
   - dhEmis (data de emissão da NFCe)
-  - cNF (codigo de controle da NFCe de 8 digitos, que compõe a chave)
+  - cNF (código de controle da NFCe de 8 dígitos, que compõe a chave)
   - vNF (valor da NFCe)
   - VICMS (valor do ICMS)
   - todos os dados do destinatário (se existirem, não pode mudar uma virgula sequer)
@@ -62,7 +62,7 @@ Então temos que alterar esses itens de forma que o total calculado pela SEFAZ s
 
 Agora o xml da NFCe pode ser gerado e assinado novemente com apenas estas alterações (lembrando que existem outras tags que não podem ser alteradas de forma alguma).
 
-Esse xml ajustado pode ser então enviado para autorização na SEFAZ. encerrando a pendência de vinculo com o EPEC. E uma vez que a mesma foi autorizada pode ser imediatamente **cancelada** ou **substituida** pela NFCe emitida corretamente com outro numero.
+Esse xml ajustado pode ser então enviado para autorização na SEFAZ. encerrando a pendência de vinculo com o EPEC. E uma vez que a mesma foi autorizada pode ser imediatamente **cancelada** ou **substituida** pela NFCe emitida corretamente com outro número.
 
 ### OS EPEC sempre tem que ser encerrados com uma NFCe válida e com os dados fornecidos na EPEC, portanto:
 >## Todos os EPEC devem ser obrigatoriamente vinculados a uma NFCe autorizada.
@@ -101,7 +101,7 @@ try {
     $tools = new Tools($configJson, $cert);
     $tools->model(65); //OBRIGATÓRIO
 
-    $resp = $tools->sefazStatusEpecNfce(); //caso o cStat = 107 então o serviço está disponivel, qualquer outro resultado não ! 
+    $resp = $tools->sefazStatusEpecNfce(); //caso o cStat = 107 então o serviço está disponível, qualquer outro resultado não ! 
 
     header('Content-Type: application/xml');
     echo $resp;
@@ -163,7 +163,7 @@ try {
     //a resposta deve ser verificada para checar o cStat da mesma, para saber se o evento foi ou não autorizado
     $st = new Standardize();
     $std = $st->toStd($resp);
-    //como o envio de eventos é sincrono não é esperado codigo diferente de 128, se ocorrer foi algum erro
+    //como o envio de eventos é síncrono não é esperado código diferente de 128, se ocorrer foi algum erro
     if ($std->cStat == 128) {
         //o lote foi processado, nesse caso podemos verificar o resultado do processamento
         if ($std->retEvento->infEvento->cStat == 136) {

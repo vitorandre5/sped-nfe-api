@@ -13,7 +13,7 @@ Esses stdClass podem ser criados diretamente como demonstrado nos exemplos abaix
 ## *NOTA: Ajustado para NT 2020.007 User o novo método sefazAtorInteressado() em produção a partir de 05/04/2021.
 
 
-> Existe um provável ERRO nos XSDs PL_009_V4, fornecidos em 02/01/2019, onde estabelece um comprimento para o campo hashCSRT de 28 digitos base64Binary, **quando na verdade são gerados 30 digitos segundo esta formatação**.
+> Existe um provável ERRO nos XSDs PL_009_V4, fornecidos em 02/01/2019, onde estabelece um comprimento para o campo hashCSRT de 28 dígitos base64Binary, **quando na verdade são gerados 30 dígitos segundo esta formatação**.
 
 ```php
 //criando o stdClass a partir de um array
@@ -42,7 +42,7 @@ $nfe = new Make();
 ### function taginfNFe($std):DOMElement
 Node principal
 
-NOTA: **se o parametro $std->Id não for passado a chave será criada e inclusa e poderá ser recuperada no parâmetro chNFe da classe,**
+NOTA: **se o parâmetro $std->Id não for passado a chave será criada e inclusa e poderá ser recuperada no parâmetro chNFe da classe,**
 **De outra forma se a chave for passada no parâmetro $std->Id e estiver incorreta, um erro será inserido na proriedade errors.**
 
 | Parâmetro | Tipo | Descrição |
@@ -52,8 +52,8 @@ NOTA: **se o parametro $std->Id não for passado a chave será criada e inclusa 
 ```php
 $std = new stdClass();
 $std->versao = '4.00'; //versão do layout (string)
-$std->Id = 'NFe35150271780456000160550010000000021800700082'; //se o Id de 44 digitos não for passado será gerado automaticamente
-$std->pk_nItem = null; //deixe essa variavel sempre como NULL
+$std->Id = 'NFe35150271780456000160550010000000021800700082'; //se o Id de 44 dígitos não for passado será gerado automaticamente
+$std->pk_nItem = null; //deixe essa variável sempre como NULL
 
 $nfe->taginfNFe($std);
 
@@ -390,8 +390,8 @@ Node opcional com dados de Crédito Presumido, são permitidos até 4 registros 
 | :--- | :---: |:-----------------------------------------------------------------------|
 |item|inteiro| Número do item da NFe                                                 |
 |cCredPresumido|string|Código de Benefício Fiscal de Crédito Presumido na UF aplicado ao item |
-|pCredPresumido|numerico|Percentual do Crédito Presumido                                        |
-|vCredPresumido|numerico|Valor do Crédito Presumido                                             |
+|pCredPresumido|numérico|Percentual do Crédito Presumido                                        |
+|vCredPresumido|numérico|Valor do Crédito Presumido                                             |
 
 ```php
 $std = new \stdClass();
@@ -698,7 +698,7 @@ $nfe->tagOrigComb($std);
 ### function tagimposto($std):DOMElement
 Node inicial dos Tributos incidentes no Produto ou Serviço do item da NFe 
 
-| Parametro | Tipo | Descrição |
+| Parâmetro | Tipo | Descrição |
 | :--- | :---: | :--- |
 | $std | stcClass | contêm os dados dos campos, nomeados conforme manual |
 ```php
@@ -803,7 +803,7 @@ $nfe->tagICMSPart($std);
 > NOTA: Ajustado conforme NT 2018.005 e NT 2018.005_1.10
 Node Repasse de ICMS ST retido anteriormente em operações interestaduais com repasses através do Substituto Tributário
 
-| Parametro | Tipo | Descrição |
+| Parâmetro | Tipo | Descrição |
 | :--- | :---: | :--- |
 | $std | stcClass | contêm os dados dos campos, nomeados conforme manual |
 ```php
@@ -1275,7 +1275,7 @@ Node com as informações dos volumes transportados
 | $std | stdClass | contêm os dados dos campos, nomeados conforme manual |
 ```php
 $std = new stdClass();
-$std->item = 1; //indicativo do numero do volume
+$std->item = 1; //indicativo do número do volume
 $std->qVol = 2;
 $std->esp = 'caixa';
 $std->marca = 'OLX';
@@ -1294,7 +1294,7 @@ Node com a identificação dos lacres, referentes ao volume
 | $std | stdClass | contêm os dados dos campos, nomeados conforme manual |
 ```php
 $std = new stdClass();
-$std->item = 1; //indicativo do numero do volume
+$std->item = 1; //indicativo do número do volume
 $std->nLacre = 'ZZEX425365';
 
 $nfe->taglacres($std);
@@ -1440,7 +1440,7 @@ $nfe->tagobsCont($std);
 ### function tagobsFisco($std):DOMElement
 Campo de uso livre do Fisco. Informar o nome do campo no atributo xCampo e o conteúdo do campo no xTexto
 
-| Parametro | Tipo | Descrição |
+| Parâmetro | Tipo | Descrição |
 | :--- | :---: | :--- |
 | $std | stcClass | contêm os dados dos campos, nomeados conforme manual |
 
@@ -1615,7 +1615,7 @@ $erros = $nfe->getErrors();
 
 
 ### function getChave():string
-Este método retorna o numero da chave da NFe
+Este método retorna o número da chave da NFe
 
 ```php
 $chave = $nfe->getChave();

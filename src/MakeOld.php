@@ -2,7 +2,7 @@
 
 /**
  * Classe a construção do xml da NFe modelo 55 e modelo 65
- * Esta classe basica está estruturada para montar XML da NFe para o
+ * Esta classe básica está estruturada para montar XML da NFe para o
  * layout versão 4.00, os demais modelos serão derivados deste
  *
  * NOTA: Classe legada monolítica, substituída por Make.php que utiliza
@@ -634,7 +634,7 @@ class MakeOld
         if (method_exists(Keys::class, 'cNFIsValid')) {
             if (!Keys::cNFIsValid($std->cNF)) {
                 throw new InvalidArgumentException("O valor [{$std->cNF}] para cNF "
-                    . "é invalido, deve respeitar a NT2019.001");
+                    . "é inválido, deve respeitar a NT2019.001");
             }
         }
         $this->tpAmb = $std->tpAmb;
@@ -1507,84 +1507,84 @@ class MakeOld
             "xLgr",
             $std->xLgr,
             true,
-            $identificador . "Logradouro do Endereco do Cliente da Retirada"
+            $identificador . "Logradouro do Endereço do Cliente da Retirada"
         );
         $this->dom->addChild(
             $this->retirada,
             "nro",
             $std->nro,
             true,
-            $identificador . "Número do Endereco do Cliente da Retirada"
+            $identificador . "Número do Endereço do Cliente da Retirada"
         );
         $this->dom->addChild(
             $this->retirada,
             "xCpl",
             $std->xCpl,
             false,
-            $identificador . "Complemento do Endereco do Cliente da Retirada"
+            $identificador . "Complemento do Endereço do Cliente da Retirada"
         );
         $this->dom->addChild(
             $this->retirada,
             "xBairro",
             $std->xBairro,
             true,
-            $identificador . "Bairro do Endereco do Cliente da Retirada"
+            $identificador . "Bairro do Endereço do Cliente da Retirada"
         );
         $this->dom->addChild(
             $this->retirada,
             "cMun",
             $std->cMun,
             true,
-            $identificador . "Código do município do Endereco do Cliente da Retirada"
+            $identificador . "Código do município do Endereço do Cliente da Retirada"
         );
         $this->dom->addChild(
             $this->retirada,
             "xMun",
             $std->xMun,
             true,
-            $identificador . "Nome do município do Endereco do Cliente da Retirada"
+            $identificador . "Nome do município do Endereço do Cliente da Retirada"
         );
         $this->dom->addChild(
             $this->retirada,
             "UF",
             $std->UF,
             true,
-            $identificador . "Sigla da UF do Endereco do Cliente da Retirada"
+            $identificador . "Sigla da UF do Endereço do Cliente da Retirada"
         );
         $this->dom->addChild(
             $this->retirada,
             "CEP",
             $std->CEP,
             false,
-            $identificador . "CEP do Endereco do Cliente da Retirada"
+            $identificador . "CEP do Endereço do Cliente da Retirada"
         );
         $this->dom->addChild(
             $this->retirada,
             "cPais",
             $std->cPais,
             false,
-            $identificador . "Codigo do Pais do Endereco do Cliente da Retirada"
+            $identificador . "Código do País do Endereço do Cliente da Retirada"
         );
         $this->dom->addChild(
             $this->retirada,
             "xPais",
             $std->xPais,
             false,
-            $identificador . "Pais do Endereco do Cliente da Retirada"
+            $identificador . "País do Endereço do Cliente da Retirada"
         );
         $this->dom->addChild(
             $this->retirada,
             "fone",
             $std->fone,
             false,
-            $identificador . "Fone do Endereco do Cliente da Retirada"
+            $identificador . "Fone do Endereço do Cliente da Retirada"
         );
         $this->dom->addChild(
             $this->retirada,
             "email",
             $std->email,
             false,
-            $identificador . "Email do Endereco do Cliente da Retirada"
+            $identificador . "Email do Endereço do Cliente da Retirada"
         );
         $this->dom->addChild(
             $this->retirada,
@@ -1654,84 +1654,84 @@ class MakeOld
             "xLgr",
             $std->xLgr,
             true,
-            $identificador . "Logradouro do Endereco do Cliente da Entrega"
+            $identificador . "Logradouro do Endereço do Cliente da Entrega"
         );
         $this->dom->addChild(
             $this->entrega,
             "nro",
             $std->nro,
             true,
-            $identificador . "Número do Endereco do Cliente da Entrega"
+            $identificador . "Número do Endereço do Cliente da Entrega"
         );
         $this->dom->addChild(
             $this->entrega,
             "xCpl",
             $std->xCpl,
             false,
-            $identificador . "Complemento do Endereco do Cliente da Entrega"
+            $identificador . "Complemento do Endereço do Cliente da Entrega"
         );
         $this->dom->addChild(
             $this->entrega,
             "xBairro",
             $std->xBairro,
             true,
-            $identificador . "Bairro do Endereco do Cliente da Entrega"
+            $identificador . "Bairro do Endereço do Cliente da Entrega"
         );
         $this->dom->addChild(
             $this->entrega,
             "cMun",
             $std->cMun,
             true,
-            $identificador . "Código do município do Endereco do Cliente da Entrega"
+            $identificador . "Código do município do Endereço do Cliente da Entrega"
         );
         $this->dom->addChild(
             $this->entrega,
             "xMun",
             $std->xMun,
             true,
-            $identificador . "Nome do município do Endereco do Cliente da Entrega"
+            $identificador . "Nome do município do Endereço do Cliente da Entrega"
         );
         $this->dom->addChild(
             $this->entrega,
             "UF",
             $std->UF,
             true,
-            $identificador . "Sigla da UF do Endereco do Cliente da Entrega"
+            $identificador . "Sigla da UF do Endereço do Cliente da Entrega"
         );
         $this->dom->addChild(
             $this->entrega,
             "CEP",
             $std->CEP,
             false,
-            $identificador . "CEP do Endereco do Cliente da Entrega"
+            $identificador . "CEP do Endereço do Cliente da Entrega"
         );
         $this->dom->addChild(
             $this->entrega,
             "cPais",
             $std->cPais,
             false,
-            $identificador . "Codigo do Pais do Endereco do Cliente da Entrega"
+            $identificador . "Código do País do Endereço do Cliente da Entrega"
         );
         $this->dom->addChild(
             $this->entrega,
             "xPais",
             $std->xPais,
             false,
-            $identificador . "Pais do Endereco do Cliente da Entrega"
+            $identificador . "País do Endereço do Cliente da Entrega"
         );
         $this->dom->addChild(
             $this->entrega,
             "fone",
             $std->fone,
             false,
-            $identificador . "Fone do Endereco do Cliente da Entrega"
+            $identificador . "Fone do Endereço do Cliente da Entrega"
         );
         $this->dom->addChild(
             $this->entrega,
             "email",
             $std->email,
             false,
-            $identificador . "Email do Endereco do Cliente da Entrega"
+            $identificador . "Email do Endereço do Cliente da Entrega"
         );
         $this->dom->addChild(
             $this->entrega,
@@ -2206,7 +2206,7 @@ class MakeOld
             "CEST",
             Strings::onlyNumbers($std->CEST),
             true,
-            "$identificador [item $std->item] Numero CEST"
+            "$identificador [item $std->item] Número CEST"
         );
         //incluido no layout 4.00
         $this->dom->addChild(
@@ -2777,7 +2777,7 @@ class MakeOld
             "cProdANVISA",
             $std->cProdANVISA,
             false,
-            "$identificador [item $std->item] Numero ANVISA"
+            "$identificador [item $std->item] Número ANVISA"
         );
         $this->dom->addChild(
             $med,
@@ -7124,7 +7124,7 @@ class MakeOld
     /**
      * Grupo Pagamento Y pai A01
      * NOTA: Ajustado para NT2016_002_v1.30
-     * tag NFe/infNFe/pag (obrigatorio na NT2016_002_v1.30)
+     * tag NFe/infNFe/pag (obrigatório na NT2016_002_v1.30)
      * Obrigatório para 55 e 65
      */
     public function tagpag(stdClass $std): DOMElement
@@ -7191,7 +7191,7 @@ class MakeOld
             "xPag",
             !empty($std->xPag) ? $std->xPag : null,
             false,
-            "Descricao da Forma de pagamento"
+            "Descrição da Forma de pagamento"
         );
         $this->dom->addChild(
             $detPag,
@@ -8386,7 +8386,7 @@ class MakeOld
     }
 
     /**
-     * Remonta a chave da NFe de 44 digitos com base em seus dados
+     * Remonta a chave da NFe de 44 dígitos com base em seus dados
      * já contidos na NFE.
      * Isso é útil no caso da chave informada estar errada
      * se a chave estiver errada a mesma é substituida

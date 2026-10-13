@@ -28,7 +28,7 @@ O Fundo Estadual de Combate e Erradicação à Pobreza foi criado com base nos s
 
 A criação do Fundo Estadual de Combate e Erradicação à Pobreza com a Emenda Constitucional n° 31/2000, que inseriu o artigo 82 do Ato das Disposições Constitucionais Transitórias (ADCT) na Constituição Federal:
 
-> Art. 82. Os Estados, o Distrito Federal e os Municípios devem instituir Fundos de Combate á Pobreza, com os recursos de que trata este artigo e outros que vierem a destinar, devendo os referidos Fundos ser geridos por entidades que contem com a participação da sociedade civil.  
+> Art. 82. Os Estados, o Distrito Federal e os Municípios devem instituir Fundos de Combate à Pobreza, com os recursos de que trata este artigo e outros que vierem a destinar, devendo os referidos Fundos ser geridos por entidades que contem com a participação da sociedade civil.  
 
 > § 1º Para o financiamento dos Fundos Estaduais e Distrital, poderá ser criado adicional de até dois pontos percentuais na alíquota do Imposto sobre Circulação de Mercadorias e Serviços – ICMS, sobre os produtos e serviços supérfluos e nas condições definidas na lei complementar de que trata o art. 155,  
 > 

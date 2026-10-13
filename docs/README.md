@@ -20,7 +20,7 @@ Este pacote é um "framework especializado" destinado à geração e comunicaç�
 ## Objetivos
 
 - Fornecer uma base simples para construir e processar todas as mensagens do SPED NFe
-- Permitir facil integração com os aplicativos PHP
+- Permitir fácil integração com os aplicativos PHP
 - Simplicar operações complexas com o uso de certificados digitais e XML
 - Permitir a atualização das versões, perante as constantes mudanças e evolução do projeto da SEFAZ
 - Retirar a complexidade subjacente ao sistema SOAP da SEFAZ dos aplicativos

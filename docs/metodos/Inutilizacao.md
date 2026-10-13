@@ -1,4 +1,4 @@
-# INUTILIZAÇÃO DE FAIXA DE NUMEROS DE NFe
+# INUTILIZAÇÃO DE FAIXA DE NÚMEROS DE NFe
 
 **Função:** serviço destinado ao atendimento de solicitações de inutilização de numeração.
 
@@ -57,7 +57,7 @@ try {
 
 ```
 
-## Parametros
+## Parâmetros
 
 | Variável | Detalhamento  |
 | :---:  | :--- |
@@ -76,4 +76,4 @@ A consulta com sucesso poderá resultar:
 
 | cStat | xMotivo |
 | :---: | :--- | 
-| 102 | Inutilizacao de numero homologado |
+| 102 | Inutilização de número homologado |

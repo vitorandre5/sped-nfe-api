@@ -12,8 +12,8 @@ Esta classe valida os TXT com base nos seguintes parâmetros:
 
 1. todas as entidades no TXT (cada linha) deve terminar com pipe "|".
 2. não podem haver outros caracteres de controle além do Line Feed (LF ou \n) para terminar a linha (ex. CR ou TAB).
-3. as entidades devem existir no layout basico (vide acima).
-4. o número de campos de cada entidade deve ser exatamente o mesmo numero indicado na estrutura.
+3. as entidades devem existir no layout básico (vide acima).
+4. o número de campos de cada entidade deve ser exatamente o mesmo número indicado na estrutura.
 5. nos campos de dados não podem haver apenas espaços em branco.
 
 > NOTA: essa validação é intrínseca ao processo normal de conversão (ou seja já é realizada pela classe Convert). E deve ser usada apenas para algum tipo de pré-validação, se desejável.

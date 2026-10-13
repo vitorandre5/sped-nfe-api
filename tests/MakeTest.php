@@ -1097,11 +1097,11 @@ class MakeTest extends TestCase
     {
         $std = new \stdClass();
         $std->nReceituario = '1234567890ABCDEFGHIJ'; //Obrigatório se houver defencivo 1-20 caracteres, opcional caso contrario
-        $std->CPFRespTec = '12345678901'; //Obrigatório se houver defencivo 11 digitos, opcional caso contrario
+        $std->CPFRespTec = '12345678901'; //Obrigatório se houver defencivo 11 dígitos, opcional caso contrário
         //$std->tpGuia = '1'; //Obrigatório se houver guia 1-GTA, 2-TTA, 3-DTA, 4-ATV, 5-PTV, 6-GVT, 7-GF, opcional caso contrario
         //$std->UFGuia = 'MG'; //opcional
         //$std->serieGuia = 'A12345678'; //opcional 9 caracteres
-        //$std->nGuia = '123456789'; //Obrigatório se houver guia 9 digitos, opcional caso contrario
+        //$std->nGuia = '123456789'; //Obrigatório se houver guia 9 dígitos, opcional caso contrário
 
         $element = $this->make->tagAgropecuarioDefensivo($std);
         $this->validarCriacaoTag2($std, $element, 'defensivo', ['nReceituario', 'CPFRespTec']);
@@ -1111,11 +1111,11 @@ class MakeTest extends TestCase
     {
         $std = new \stdClass();
         //$std->nReceituario = '1234567890ABCDEFGHIJ'; //Obrigatório se houver defencivo 1-20 caracteres, opcional caso contrario
-        //$std->CPFRespTec = '12345678901'; //Obrigatório se houver defencivo 11 digitos, opcional caso contrario
+        //$std->CPFRespTec = '12345678901'; //Obrigatório se houver defencivo 11 dígitos, opcional caso contrário
         $std->tpGuia = '1'; //Obrigatório se houver guia 1-GTA, 2-TTA, 3-DTA, 4-ATV, 5-PTV, 6-GVT, 7-GF, opcional caso contrario
         $std->UFGuia = 'MG'; //opcional
         $std->serieGuia = 'A12345678'; //opcional 9 caracteres
-        $std->nGuia = '123456789'; //Obrigatório se houver guia 9 digitos, opcional caso contrario
+        $std->nGuia = '123456789'; //Obrigatório se houver guia 9 dígitos, opcional caso contrário
 
         $element = $this->make->tagAgropecuarioGuia($std);
         $this->validarCriacaoTag2($std, $element, 'guiaTransito', ['tpGuia']);

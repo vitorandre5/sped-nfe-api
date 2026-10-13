@@ -274,7 +274,7 @@ trait TraitCalculations
     }
 
     /**
-     * Remonta a chave da NFe de 44 digitos com base em seus dados
+     * Remonta a chave da NFe de 44 dígitos com base em seus dados
      * já contidos na NFE.
      * Isso é útil no caso da chave informada estar errada
      * se a chave estiver errada a mesma é substituida

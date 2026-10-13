@@ -81,7 +81,7 @@ try {
 
 ```
 
-## Parametros
+## Parâmetros
 
 | Variável | Detalhamento  |
 | :---:  | :--- |
@@ -90,9 +90,9 @@ try {
 | $certificado | Classe Certificate::class contendo o certificado digital(OBRIGATÓRIO)  |
 | $chNFe | Chave de 44 dígitos da NFe que se quer prorrogar (OBRIGATÓRIO) |
 | $nProt | Número do protocolo de autorização de uso (OBRIGATÓRIO) |
-| $itens | Array com os numeros do itens e a suas quantidades, os quais se deseja prorrogar o prazo de retorno de industrialização (OBRIGATÓRIO) |
+| $itens | Array com os números do itens e a suas quantidades, os quais se deseja prorrogar o prazo de retorno de industrialização (OBRIGATÓRIO) |
 | $tipo  | 1-prorrogação do 1o prazo ou 2-prorrogação do 2o prazo (OBRIGATÓRIO) |
-| $nSeqEvento | [Numero sequencial do evento](Seqeventos.md) (OBRIGATÓRIO) |
+| $nSeqEvento | [Número sequencial do evento](Seqeventos.md) (OBRIGATÓRIO) |
 
 ## Mensagens
 
@@ -164,7 +164,7 @@ try {
 
 ### RETORNO
 
-A variavel $response no exemplo conterá esse XML, ou algo semelhante.
+A variável $response no exemplo conterá esse XML, ou algo semelhante.
 
 ```xml
 
@@ -205,7 +205,7 @@ A consulta com sucesso poderá resultar:
 
 Caso não passe em alguma validação ou sejam encontrados problemas na comunicação, será SEMPRE retornado um EXCEPTION que deve ser capturado.
 
-Mas os erros não se restringem a esse tipo de falha. Além de falhas na fase de montagem da mensagem e na comunicação podem ser retornados erros relativos a analise pelas regras de negócios da SEFAZ nesse caso os erros deverão ser analisados no xml de retorno.
+Mas os erros não se restringem a esse tipo de falha. Além de falhas na fase de montagem da mensagem e na comunicação podem ser retornados erros relativos a análise pelas regras de negócios da SEFAZ nesse caso os erros deverão ser analisados no xml de retorno.
 
 ### Verificação do Certificado de Transmissão
 
@@ -251,8 +251,8 @@ Validação do Certificado de Transmissão
 | 588 | Rejeição: Não é permitida a presença de caracteres de edição no início/fim da mensagem ou entre as tags da mensagem |
 | 404 | Rejeição: Uso de prefixo de namespace não permitido |
 | 402 | Rejeição: XML da área de dados com codificação diferente de UTF-8 |
-| 491 | Rejeição: O tpEvento informado invalido |
-| 492 | Rejeição: O verEvento informado invalido |
+| 491 | Rejeição: O tpEvento informado inválido |
+| 492 | Rejeição: O verEvento informado inválido |
 | 493 | Rejeição: Evento não atende o Schema XML específico |
 | 290 | Rejeição: Certificado Assinatura inválido |
 | 291 | Rejeição: Certificado Assinatura Data Validade |

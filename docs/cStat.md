@@ -1,4 +1,4 @@
-# Codigos cStat nos retornos da SEFAZ
+# Códigos cStat nos retornos da SEFAZ
 
 ## 100 - SUCESSO
 **100 - Autorizado o uso da NF-e**
@@ -14,7 +14,7 @@
 **105 - Lote em processamento**
 ## 106 - REJEIÇÃO
 **106 - Lote não localizado**
-> Correção : *O numero de recibo não foi localizado, confira*
+> Correção : *O número de recibo não foi localizado, confira*
 
 
 ## 107 - SUCESSO
@@ -39,7 +39,7 @@
 ## 112 - SUCESSO
 **112 - Consulta cadastro com mais de uma ocorrência**
 ## 113 - REJEIÇÃO
-**113 - SVC em processo de desativação SVC será  desabilitada para a SEFAZ-XX em dd/mm/aa às hh:mm horas**
+**113 - SVC em processo de desativação SVC será́  desabilitada para a SEFAZ-XX em dd/mm/aa às hh:mm horas**
 > Correção : *Contingência indisponível*
 
 
@@ -77,7 +77,7 @@
 **155 - Cancelamento homologado fora de prazo**
 ## 201 - REJEIÇÃO
 **201 - Rejeição: Número máximo de numeração a inutilizar ultrapassou o limite**
-> Correção : *Não podem ser inutilizados tantos numeros*
+> Correção : *Não podem ser inutilizados tantos números*
 
 
 ## 202 - REJEIÇÃO
@@ -92,7 +92,7 @@
 
 ## 204 - REJEIÇÃO
 **204 - Duplicidade de NF-e [nRec:999999999999999]**
-> Correção : *Já existe outra NFe autorizada com esse mesmo numero*
+> Correção : *Já existe outra NFe autorizada com esse mesmo número*
 
 
 ## 205 - REJEIÇÃO
@@ -102,7 +102,7 @@
 
 ## 206 - REJEIÇÃO
 **206 - Rejeição: NF-e já está inutilizada na Base de dados da SEFAZ**
-> Correção : *Esse numero de NFe foi inutilizado anteriormente*
+> Correção : *Esse número de NFe foi inutilizado anteriormente*
 
 
 ## 207 - REJEIÇÃO
@@ -142,7 +142,7 @@
 
 ## 214 - REJEIÇÃO
 **214 - Rejeição: Tamanho da mensagem excedeu o limite estabelecido**
-> Correção : *O tamanho da mensagem é maior que o aceitável, reduza o numero de NFe ou de itens*
+> Correção : *O tamanho da mensagem é maior que o aceitável, reduza o número de NFe ou de itens*
 
 
 ## 215 - REJEIÇÃO
@@ -162,12 +162,12 @@
 
 ## 218 - REJEIÇÃO
 **218 - NF-e já está cancelada na base de dados da SEFAZ [nRec:999999999999999]**
-> Correção : *Não é possivel realizar mais operações com a NFE já cancelada*
+> Correção : *Não é possível realizar mais operações com a NFE já cancelada*
 
 
 ## 219 - REJEIÇÃO
 **219 - Rejeição: Circulação da NF-e verificada**
-> Correção : *O cancelamento não é mais possivel a circulação já foi identificada*
+> Correção : *O cancelamento não é mais possível a circulação já foi identificada*
 
 
 ## 220 - REJEIÇÃO
@@ -182,7 +182,7 @@
 
 ## 222 - REJEIÇÃO
 **222 - Rejeição: Protocolo de Autorização de Uso difere do cadastrado**
-> Correção : *O numero do protocolo indicado é diferente do registrado*
+> Correção : *O número do protocolo indicado é diferente do registrado*
 
 
 ## 223 - REJEIÇÃO
@@ -192,7 +192,7 @@
 
 ## 224 - REJEIÇÃO
 **224 - Rejeição: A faixa inicial é maior que a faixa final**
-> Correção : *Preste atenção aos numeros para inutilizar*
+> Correção : *Preste atenção aos números para inutilizar*
 
 
 ## 225 - REJEIÇÃO
@@ -247,12 +247,12 @@
 
 ## 235 - REJEIÇÃO
 **235 - Rejeição: Inscrição SUFRAMA inválida**
-> Correção : *Numero da SUFRAMA incorreto, correija*
+> Correção : *Número da SUFRAMA incorreto, correija*
 
 
 ## 236 - REJEIÇÃO
 **236 - Rejeição: Chave de Acesso com dígito verificador inválido**
-> Correção : *O digito verificar é calculado e está incorreto, informe o administrador*
+> Correção : *O dígito verificar é calculado e está incorreto, informe o administrador*
 
 
 ## 237 - REJEIÇÃO
@@ -262,7 +262,7 @@
 
 ## 238 - REJEIÇÃO
 **238 - Rejeição: Cabeçalho - Versão do arquivo XML superior a Versão vigente**
-> Correção : *O numero da versão está incorreto, informe o administrador*
+> Correção : *O número da versão está incorreto, informe o administrador*
 
 
 ## 239 - REJEIÇÃO
@@ -336,7 +336,7 @@
 
 
 ## 253 - REJEIÇÃO
-**253 - Rejeição: Digito Verificador da chave de acesso composta inválida**
+**253 - Rejeição: Dígito Verificador da chave de acesso composta inválida**
 > Correção : *A chave de acesso é de outra autorizadora*
 
 
@@ -406,12 +406,12 @@
 
 
 ## 267 - REJEIÇÃO
-**267 - Rejeição: NF Complementar referencia uma NF-e inexistente**
+**267 - Rejeição: NF Complementar referência uma NF-e inexistente**
 > Correção : *A chave de acesso é de outra autorizadora*
 
 
 ## 268 - REJEIÇÃO
-**268 - Rejeição: NF Complementar referencia outra NF-e Complementar**
+**268 - Rejeição: NF Complementar referência outra NF-e Complementar**
 > Correção : *A chave de acesso é de outra autorizadora*
 
 
@@ -616,7 +616,7 @@
 
 
 ## 320 - REJEIÇÃO
-**320 - Contranota de Produtor referencia somente NF de outro emitente**
+**320 - Contranota de Produtor referência somente NF de outro emitente**
 > Correção : *A chave de acesso é de outra autorizadora*
 
 
@@ -791,12 +791,12 @@
 
 
 ## 355 - REJEIÇÃO
-**355 - Rejeição: Informar o local de saída do Pais no caso da exportação**
+**355 - Rejeição: Informar o local de saída do País no caso da exportação**
 > Correção : *A chave de acesso é de outra autorizadora*
 
 
 ## 356 - REJEIÇÃO
-**356 - Rejeição: Informar o local de saída do Pais somente no caso da exportação**
+**356 - Rejeição: Informar o local de saída do País somente no caso da exportação**
 > Correção : *A chave de acesso é de outra autorizadora*
 
 
@@ -876,7 +876,7 @@
 
 
 ## 373 - REJEIÇÃO
-**373 - Descricao do primeiro item diferente de NOTA FISCAL EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL**
+**373 - Descrição do primeiro item diferente de NOTA FISCAL EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL**
 > Correção : *A chave de acesso é de outra autorizadora*
 
 
@@ -886,7 +886,7 @@
 
 
 ## 375 - REJEIÇÃO
-**375 - Informe no passo 1 a chave da NF-e referenciada.NF-e com CFOP 5929 (Lançamento relativo a Cupom Fiscal) referencia uma NFC-e [nItem:nnn]**
+**375 - Informe no passo 1 a chave da NF-e referenciada.NF-e com CFOP 5929 (Lançamento relativo a Cupom Fiscal) referência uma NFC-e [nItem:nnn]**
 > Correção : *A chave de acesso é de outra autorizadora*
 
 
@@ -1171,7 +1171,7 @@
 
 
 ## 479 - REJEIÇÃO
-**479 - Emissor em situação irregular perante o fisco**
+**479 - Emissor em situação irregular perante o fisco**
 > Correção : *A chave de acesso é de outra autorizadora*
 
 
@@ -1181,17 +1181,17 @@
 
 
 ## 481 - REJEIÇÃO
-**481 - UF da Chave de acesso diverge do código da UF informada**
+**481 - UF da Chave de acesso diverge do código da UF informada**
 > Correção : *A chave de acesso é de outra autorizadora*
 
 
 ## 482 - REJEIÇÃO
-**482 - AA da Chave de acesso inválida**
+**482 - AA da Chave de acesso inválida**
 > Correção : *A chave de acesso é de outra autorizadora*
 
 
 ## 483 - REJEIÇÃO
-**483 - MM da chave de acesso inválido**
+**483 - MM da chave de acesso inválido**
 > Correção : *A chave de acesso é de outra autorizadora*
 
 
@@ -1206,7 +1206,7 @@
 
 
 ## 486 - REJEIÇÃO
-**486 - DPEC não localizada para o número de registro de DPEC informado**
+**486 - DPEC não localizada para o número de registro de DPEC informado**
 > Correção : *A chave de acesso é de outra autorizadora*
 
 
@@ -1216,7 +1216,7 @@
 
 
 ## 488 - REJEIÇÃO
-**488 - Requisitante de Consulta não tem o mesmo CNPJ base do emissor da DPEC**
+**488 - Requisitante de Consulta não tem o mesmo CNPJ base do emissor da DPEC**
 > Correção : *A chave de acesso é de outra autorizadora*
 
 
@@ -1381,7 +1381,7 @@
 
 
 ## 526 - REJEIÇÃO
-**526 - Ano-Mes da Chave de Acesso com atraso superior a 6 meses em relacao ao Ano-Mes atual**
+**526 - Ano-Mes da Chave de Acesso com atraso superior a 6 meses em relação ao Ano-Mes atual**
 > Correção : *A chave de acesso é de outra autorizadora*
 
 
@@ -1716,7 +1716,7 @@
 
 
 ## 600 - REJEIÇÃO
-**600 - CSOSN incompativel na operacao com Nao Contribuinte**
+**600 - CSOSN incompativel na operação com Não Contribuinte**
 > Correção : *A chave de acesso é de outra autorizadora*
 
 
@@ -1996,12 +1996,12 @@
 
 
 ## 686 - REJEIÇÃO
-**686 - Rejeição: NF Complementar referencia uma NF-e cancelada**
+**686 - Rejeição: NF Complementar referência uma NF-e cancelada**
 > Correção : *A chave de acesso é de outra autorizadora*
 
 
 ## 687 - REJEIÇÃO
-**687 - Rejeição: NF Complementar referencia uma NF-e denegada**
+**687 - Rejeição: NF Complementar referência uma NF-e denegada**
 > Correção : *A chave de acesso é de outra autorizadora*
 
 
@@ -2026,7 +2026,7 @@
 
 
 ## 692 - REJEIÇÃO
-**692 - 692-Rejeição: Existe EPEC registrado para esta Série e Número [Chave EPEC: xxxxxxxxxxx]**
+**692 - 692-Rejeição: Existe EPEC registrado para esta Série e Número [Chave EPEC: xxxxxxxxxxx]**
 > Correção : *A chave de acesso é de outra autorizadora*
 
 
@@ -2036,7 +2036,7 @@
 
 
 ## 694 - REJEIÇÃO
-**694 - Peça orientação ao seu contador sobre a partilha de ICMS entre estados. No caso da operação ser com consumidor final (= 1 Sim), a UF do destinatário ser outra que a UF do emitente, e o tipo de contribuinte ser 9 - Não Contribuinte, que pode ou não possuir Inscrição Estadual no Cadastro de Contribuintes do ICMS, as informações de partilha de ICMS devem ser informadas no passo 3, como: pFCPUFDest, pICMSInter, pICMSInterPart, pICMSUFDest, vBCUFDest, vFCPUFDest, vICMSUFDest e vICMSUFRemet. Não informado o grupo de ICMS para a UF de destino [nItem:999]**
+**694 - Peça orientação ao seu contador sobre a partilha de ICMS entre estados. No caso da operação ser com consumidor final (= 1 Sim), a UF do destinatário ser outra que a UF do emitente, e o tipo de contribuinte ser 9 - Não Contribuinte, que pode ou não possuir Inscrição Estadual no Cadastro de Contribuintes do ICMS, as informações de partilha de ICMS devem ser informadas no passo 3, como: pFCPUFDest, pICMSInter, pICMSInterPart, pICMSUFDest, vBCUFDest, vFCPUFDest, vICMSUFDest e vICMSUFRemet. Não informado o grupo de ICMS para a UF de destino [nItem:999]**
 > Correção : *A chave de acesso é de outra autorizadora*
 
 
@@ -2046,7 +2046,7 @@
 
 
 ## 696 - REJEIÇÃO
-**696 - No passo 1, mude "Consumidor Final" para "1 - Sim"Operacao com nao contribuinte deve indicar operacao com consumidor final**
+**696 - No passo 1, mude "Consumidor Final" para "1 - Sim"Operação com não contribuinte deve indicar operação com consumidor final**
 > Correção : *A chave de acesso é de outra autorizadora*
 
 
@@ -2056,7 +2056,7 @@
 
 
 ## 698 - REJEIÇÃO
-**698 - Peça orientação ao seu contador sobre a partilha de ICMS entre estados. No caso da operação ser com consumidor final (= 1 Sim), a UF do destinatário ser outra que a UF do emitente, e o tipo de contribuinte ser 9 - Não Contribuinte, que pode ou não possuir Inscrição Estadual no Cadastro de Contribuintes do ICMS, as informações de partilha de ICMS devem ser informadas no passo 3, como: pFCPUFDest, pICMSInter, pICMSInterPart, pICMSUFDest, vBCUFDest, vFCPUFDest, vICMSUFDest e vICMSUFRemet. Alíquota interestadual do ICMS incompatível com as UF envolvidas na operação [nItem:999]**
+**698 - Peça orientação ao seu contador sobre a partilha de ICMS entre estados. No caso da operação ser com consumidor final (= 1 Sim), a UF do destinatário ser outra que a UF do emitente, e o tipo de contribuinte ser 9 - Não Contribuinte, que pode ou não possuir Inscrição Estadual no Cadastro de Contribuintes do ICMS, as informações de partilha de ICMS devem ser informadas no passo 3, como: pFCPUFDest, pICMSInter, pICMSInterPart, pICMSUFDest, vBCUFDest, vFCPUFDest, vICMSUFDest e vICMSUFRemet. Alíquota interestadual do ICMS incompatível com as UF envolvidas na operação [nItem:999]**
 > Correção : *A chave de acesso é de outra autorizadora*
 
 
@@ -2432,12 +2432,12 @@
 
 ## 776 - REJEIÇÃO
 **776 - Rejeição: Solicitada resposta síncrona para UF que não disponibiliza este atendimento (indSinc=1)**
-> Correção : *Não existe opereção sincrona, informe o administrador do sistema*
+> Correção : *Não existe opereção síncrona, informe o administrador do sistema*
 
 
 ## 777 - REJEIÇÃO
 **777 - Rejeição: Obrigatória a informação do NCM completo**
-> Correção : *NCM incompleto, esse numero deve ter 8 digitos*
+> Correção : *NCM incompleto, esse número deve ter 8 dígitos*
 
 
 ## 778 - REJEIÇÃO
@@ -2566,7 +2566,7 @@
 
 
 ## 817 - REJEIÇÃO
-**817 - Unidade Tributavel incompativel com o NCM informado na operacao com Comercio Exterior**
+**817 - Unidade Tributavel incompativel com o NCM informado na operação com Comercio Exterior**
 > Correção : *Confira o CSC e o CSCid*
 
 

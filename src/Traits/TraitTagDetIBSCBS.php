@@ -130,7 +130,7 @@ trait TraitTagDetIBSCBS
         $this->dom->addChild(
             $ibscbs,
             "indDoacao",
-            !empty($std->indDoacao) ? 1 : null, //somente aceita numero 1
+            !empty($std->indDoacao) ? 1 : null, //somente aceita número 1
             false,
             "$identificador Indica a natureza da operação de doação, orientando a apuração e a geração"
             . "de débitos ou estornos conforme o cenário (indDoacao)"

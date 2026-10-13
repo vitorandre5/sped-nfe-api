@@ -59,7 +59,7 @@ Os retornos podem ser
 
 > NOTA: Para obter a NFe será necessário manifestar a **Ciência da Operação**, caso contrario somente receberá os resumos e não as NFe completas.
 
-> O processo de busca deve ser executado em LOOP pois cada solicitação pode retornar no máximo 50 documentos cada, até que o numero do NSU recebido seja igual ao maxNSU disponível.
+> O processo de busca deve ser executado em LOOP pois cada solicitação pode retornar no máximo 50 documentos cada, até que o número do NSU recebido seja igual ao maxNSU disponível.
 
 > Para não exceder o limite de solicitações, é recomendável que exista um intervalo entre cada solicitação dentro do LOOP e que o intervalo entre as buscas seja otimizado. Se isso não for feito seu acesso poderá der BLOQUEADO.
 
@@ -89,11 +89,11 @@ $tools->model('55');
 //este serviço somente opera em ambiente de produção
 $tools->setEnvironment(1);
 
-//este numero deverá vir do banco de dados nas proximas buscas para reduzir 
+//este número deverá vir do banco de dados nas próximas buscas para reduzir 
 //a quantidade de documentos, e para não baixar várias vezes as mesmas coisas.
 $ultNSU = 0;
 $maxNSU = $ultNSU;
-$loopLimit = 12; //mantenha o numero de consultas abaixo de 20, cada consulta retorna até 50 documentos por vez
+$loopLimit = 12; //mantenha o número de consultas abaixo de 20, cada consulta retorna até 50 documentos por vez
 $iCount = 0;
 
 //executa a busca de DFe em loop
@@ -143,27 +143,27 @@ while ($ultNSU <= $maxNSU) {
         $content = gzdecode(base64_decode($doc->nodeValue));
         //identifica o tipo de documento
         $tipo = substr($schema, 0, 6);
-        //processar o conteudo do NSU, da forma que melhor lhe interessar
+        //processar o conteúdo do NSU, da forma que melhor lhe interessar
         //esse processamento depende do seu aplicativo
     }
     if ($ultNSU == $maxNSU) {
-       //quando o numero máximo de NSU foi atingido não existem mais dados a buscar
-       //nesse caso a proxima busca deve ser no minimo após mais uma hora
+       //quando o número máximo de NSU foi atingido não existem mais dados a buscar
+       //nesse caso a próxima busca deve ser no mínimo após mais uma hora
        break;
     }
     sleep(2);
 }
-//salve o ultNSU pesquisado em sua base pois a proxima consulta deverá iniciar a partir desse numero + 1
+//salve o ultNSU pesquisado em sua base pois a próxima consulta deverá iniciar a partir desse número + 1
 ```
 
-## Parametros
+## Parâmetros
 
 | Variável | Detalhamento  |
 | :---:  | :--- |
 | $configJson | String Json com os dados de configuração (OBRIGATÓRIO) |
 | $pfxcontent | String com o conteúdo do certificado PFX (OBRIGATÓRIO) |
-| $ultNSU | Último numero recebido no retorno |
-| $maxNSU | Maior numero de NSU na base de dados da SEFAZ (último registro) |
+| $ultNSU | Último número recebido no retorno |
+| $maxNSU | Maior número de NSU na base de dados da SEFAZ (último registro) |
 | $loopLimit | Limite de operações do LOOP (OBRIGATÓRIO) |
 
 
@@ -194,7 +194,7 @@ while ($ultNSU <= $maxNSU) {
 
 ### RETORNO
 
-A variavel $response no exemplo conterá esse XML, ou algo semelhante.
+A variável $response no exemplo conterá esse XML, ou algo semelhante.
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>

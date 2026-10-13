@@ -33,7 +33,7 @@ $arr = [
 //monta o config.json
 $configJson = json_encode($arr);
 
-//carrega o conteudo do certificado.
+//carrega o conteúdo do certificado.
 $content = file_get_contents('fixtures/expired_certificate.pfx');
 
 try {

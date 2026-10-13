@@ -31,7 +31,7 @@ class Config
         }
         $std = json_decode($content);
         if (!is_object($std)) {
-            throw DocumentsException::wrongDocument(8, "Não foi passado um json valido.");
+            throw DocumentsException::wrongDocument(8, "Não foi passado um json válido.");
         }
         self::validInputData($std);
         return $std;

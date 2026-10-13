@@ -9,12 +9,12 @@ Consulta todos os documentos (NFe, e eventos) emitidos contra determinando CNPJ 
 **Método:** NfeDistribuicaoDFe
 
 ## Descrição
-Permite consultar os documentos destinados em grupos usando o ultnsu, ou individualmente usando o numero único de NSU ou ainda a propria chave de acesso (44 digitos) do documento.
+Permite consultar os documentos destinados em grupos usando o ultnsu, ou individualmente usando o número único de NSU ou ainda a própria chave de acesso (44 dígitos) do documento.
 
 Para as buscas em grupo vide [DistDFe.md](DistDFe.md).
 
-> NOTA: funciona somente para modelo 55 (NFe), e existem regras muito restritivas para seu uso. As consultas individuais estão limitadas a apenas 20 consultas por hora e no caso da consulta de grupo usnado o ultimo NSU recebido, deve ser realizado um loop com até 20 consulta por hora.
-> NOTA: quando é mensionada a hora acima, significa que o INTERVALO entre as consultas deve ser de no mínimo UMA hora, terá de ser criado um controle interno no seu sistema para garantir esse intervalo minimo.
+> NOTA: funciona somente para modelo 55 (NFe), e existem regras muito restritivas para seu uso. As consultas individuais estão limitadas a apenas 20 consultas por hora e no caso da consulta de grupo usnado o último NSU recebido, deve ser realizado um loop com até 20 consulta por hora.
+> NOTA: quando é mensionada a hora acima, significa que o INTERVALO entre as consultas deve ser de no mínimo UMA hora, terá de ser criado um controle interno no seu sistema para garantir esse intervalo mínimo.
 
 **Disponibilidade:** Todas as unidades autorizadoras de NFe, fornecem os dados para a Receita Federal disponibilizar, mas esse processo ocorre em batch e não em tempo real portanto pode haver um delay entre a autorização da NFe e a disponibilização na Receita Federal.
 
@@ -46,7 +46,7 @@ try {
     $iest = '';
     $cpf = '';
     
-    //consulta individual por numero NSU
+    //consulta individual por número NSU
     $response = $tools->sefazDistDFe(0, 1234);
     
     //consulta individual por chave da acesso

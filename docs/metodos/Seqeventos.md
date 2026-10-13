@@ -1,15 +1,15 @@
 # Número sequencial de Eventos
 
-Sempre que um evento, qualquer que seja for gerado, será solicitado que um numero sequencial seja fornecido pelo emitente.
+Sempre que um evento, qualquer que seja for gerado, será solicitado que um número sequencial seja fornecido pelo emitente.
 
 Isso se deve ao fato que alguns eventos permitem multiplas ocorrências, notadamente:
 
 - [Carta de Correção - CCe](CartaCorrecao.md)
 - [EPP - Solicitação de Prorrogação](EPP.md)
 
-## Como gerar esse numero sequencial?
+## Como gerar esse número sequencial?
 
-O numero sequencial do evento será inicialmente sempre "1" e será incrementado (em uma unidade), sempre que houver um novo evento de mesmo tipo para uma mesma NFe.
+O número sequencial do evento será inicialmente sempre "1" e será incrementado (em uma unidade), sempre que houver um novo evento de mesmo tipo para uma mesma NFe.
 
 Por exemplo:
 
@@ -26,7 +26,7 @@ Caso seja necessária uma segunda carta de correção, então :
 | 1234 | 110110 | 1 | Erro de digitação no nome do produto |
 | 1234 | 110110 | **2** | Erro na informação adicional da NFe; Erro de digitação no nome do produto |
 
-> Portanto **deve existir** um controle sobre esses eventos, para cada NFe e se forem gerados eventos repetidos, esse numero de controle "sequencial" deverá ser incrementado.
+> Portanto **deve existir** um controle sobre esses eventos, para cada NFe e se forem gerados eventos repetidos, esse número de controle "sequencial" deverá ser incrementado.
 
 Agora vamos pedir uma prorrogação de prazo de isenção de ICMS, um EPP, sobre essa mesma nota de remessa para industrialização:
 

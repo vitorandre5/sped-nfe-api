@@ -4,7 +4,7 @@
 
 *NOTA: essas campos adicionais ainda são apenas OPCIONAIS, ou seja pode passar em branco*
 
-B|cUF|cNF|natOp|mod|serie|nNF|dhEmi|dhSaiEnt|tpNF|idDest|cMunFG|tpImp|tpEmis|cDV|tpAmb|finNFe|indFinal|indPres|**indIntermed**|procEmi|verProc|dhCont|xJust|
+B|cUF|cNF|natOp|mod|série|nNF|dhEmi|dhSaiEnt|tpNF|idDest|cMunFG|tpImp|tpEmis|cDV|tpAmb|finNFe|indFinal|indPres|**indIntermed**|procEmi|verProc|dhCont|xJust|
 
 YA|indPag|tPag|vPag|CNPJ|tBand|cAut|tpIntegra|**xPag**|
 

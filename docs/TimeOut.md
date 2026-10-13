@@ -24,13 +24,13 @@ Nesse caso, não temos como saber nem se a NFe foi ou não recebida pois não co
 Tente novamente, após alguns segundos. Nesse caso, quando a NFe for reenviada, pode ocorrer o seguinte:
 
 - envio ser aceito com retorno do recibo, vai em frente e esqueça o problema.
-- retorna o **ERRO 204 - Duplicidade de NF-e**, nesse caso o lote foi anteriormente aceito (antes de dar o "timeout") e a NFe foi processada e autorizada ou denegada. Nessa caso você deve fazer uma consulta usando a chave de 44 digitos da NFe, essa consulta irá te retornar os dados do protocolo da NFe (autorizado ou denegado), é só adicionar a NFe e prosseguir.
+- retorna o **ERRO 204 - Duplicidade de NF-e**, nesse caso o lote foi anteriormente aceito (antes de dar o "timeout") e a NFe foi processada e autorizada ou denegada. Nessa caso você deve fazer uma consulta usando a chave de 44 dígitos da NFe, essa consulta irá te retornar os dados do protocolo da NFe (autorizado ou denegado), é só adicionar a NFe e prosseguir.
 
 Mas se continua dando **"timeout"**, ai observe os comentários abaixo: 
 
-> Quando a falha é originada na SEFAZ, a própria Secretaria, ao perceber que irá demorar a retomar o serviço, habilita o SVC (AN ou RS) e posta isso em sua página, esse é o unico jeito seguro de saber que essa contingência está habilitada. Eles somente fazem isso depois de parar totalmente o serviço e sincronizar os dados com a Receita Federal e com o SEFAZ RS, para garantir que dois sistemas não operem simultaneamente, o que poderia causar duplicidades inconciliáveis posteriormente.
+> Quando a falha é originada na SEFAZ, a própria Secretaria, ao perceber que irá demorar a retomar o serviço, habilita o SVC (AN ou RS) e posta isso em sua página, esse é o único jeito seguro de saber que essa contingência está habilitada. Eles somente fazem isso depois de parar totalmente o serviço e sincronizar os dados com a Receita Federal e com o SEFAZ RS, para garantir que dois sistemas não operem simultaneamente, o que poderia causar duplicidades inconciliáveis posteriormente.
 
-> Nesse caso especifico usar o SVC (AN ou RS) **não é recomendável** sem que haja a consulta à página da SEFAZ, mas o seu sistema pode ser preparado para após um determinado numero de **timeout's** (e com a checagem de status) mudar *automaticamente* para a contigência SVC.
+> Nesse caso específico usar o SVC (AN ou RS) **não é recomendável** sem que haja a consulta à página da SEFAZ, mas o seu sistema pode ser preparado para após um determinado número de **timeout's** (e com a checagem de status) mudar *automaticamente* para a contigência SVC.
 
 > Se essa alteração for feita, sem a prévia consulta a página da SEFAZ, você pode receber uma rejeição informando que a contingência não foi habilitada pelo SEFAZ autorizador. Nesse caso deve continuar tentando e usando o status para tentar ver qual dos dois serviços retorna primeiro. Isso acaba requerendo uma lógica complexa e muito bem pensada para não fazer **bobagem**, CUIDADO com esses automatismos.
 
@@ -63,9 +63,9 @@ Nesse caso, não temos como saber nem se a NFe foi ou não recebida pois não co
 
 **O QUE FAZER ?**
 
-Incremente o numero e emita outra OFFLINE, e imprima a DANFE, a seguir cancele a nota a qual você não recebeu o recibo.
+Incremente o número e emita outra OFFLINE, e imprima a DANFE, a seguir cancele a nota a qual você não recebeu o recibo.
 
-Se nesse cancelamento retornar um erro informando que a nota não existe, inutilize o numero dela.
+Se nesse cancelamento retornar um erro informando que a nota não existe, inutilize o número dela.
 
 *Complicado né !!!*
 

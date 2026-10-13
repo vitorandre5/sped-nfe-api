@@ -42,7 +42,7 @@ try {
     $std = new \stdClass();
     //$std->verAplic = '1.2.3'; //opcional se declarado anteriormente - versão da aplicação que está gerando o evento
     $std->nSeqEvento = 1;
-    $std->chNFe = '12345678901234567890123456789012345678901234'; //chave de 44 digitos da nota do fornecedor
+    $std->chNFe = '12345678901234567890123456789012345678901234'; //chave de 44 dígitos da nota do fornecedor
     $std->imagem = 'kakakakakakakakak'; // aqui pode ser colocada uma imagem ou uma string que fará parte do hash
     $std->latitude = null;
     $std->longitude = null;

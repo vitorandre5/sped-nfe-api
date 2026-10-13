@@ -11,7 +11,7 @@ Biblioteca para geração e comunicação das NFe com as SEFAZ autorizadoras, e 
 - Nota Técnica 2021.003 v.1.40 Validação GTIN
 - Nota Técnica 2024.003 v.1.05 Informações de Produtos da Agricultura, Pecuária e Produção Florestal e Alteração de regra de validação
 - Nota Técnica 2023.001 v.1.60 Tributação Monofásica sobre Combustíveis
-- Nota Técnica 2025.001 v.1.00 Simplificação Operacional: NFC-e (QR-Code versão 3) (Envio sincrono NFe)
+- Nota Técnica 2025.001 v.1.00 Simplificação Operacional: NFC-e (QR-Code versão 3) (Envio síncrono NFe)
 - Nota Técnica 2025.002-RTC v.1.10 Reforma Tributária do Consumo – Adequações NF-e / NFC-e
 - Schema PL_010v1.10b de 09/06/2025
 - Nota Técnica 2025.002-RTC v.1.20 Reforma Tributária do Consumo – Adequações NF-e / NFC-e
@@ -41,7 +41,7 @@ Biblioteca para geração e comunicação das NFe com as SEFAZ autorizadoras, e 
 
 > Os estados de **CE**, **PR** e **SP** **NÃO ACEITAM EMISSÃO com eCPF**
 
-> AM e GO não foi possivel verificar por problemas na comunicação
+> AM e GO não foi possível verificar por problemas na comunicação
 
 > Todos os demais estados (aparentemente) já aceitam emissão por eCPF
 
@@ -89,7 +89,7 @@ composer require nfephp-org/sped-nfe:dev-master
 
 Para que este pacote possa funcionar são necessários os seguintes requisitos do PHP e outros pacotes dos quais esse depende.
 
-- PHP 7.x (minimo PHP 7.4 veja sempre nos badges) 
+- PHP 7.x (mínimo PHP 7.4 veja sempre nos badges) 
 - ext-curl
 - ext-dom
 - ext-json
@@ -138,7 +138,7 @@ $nfe = new Make();
 
 ## Documentation
 
-O processo de documentação ainda está no inicio, mas já existem alguns documentos úteis.
+O processo de documentação ainda está no início, mas já existem alguns documentos úteis.
 
 [Documentação](docs/Funcionalidades.md)
 
@@ -325,7 +325,7 @@ Para contribuir com correções de BUGS, melhoria no código, documentação, el
 ### Etapas para contribuir com Código
 
 1. Faça um fork do projeto em sua conta no GitHub
-2. Baixe a biblioteca na sua maquina de desenvolvimento a partir do seu próprio fork
+2. Baixe a biblioteca na sua máquina de desenvolvimento a partir do seu próprio fork
 3. Execute o composer install na raiz do projeto (prefira usar o PHP 8.2 ou 8.3)
 4. Crie uma relação com o projeto original usando o git, com isso criará um bloco denominado "upstream" com uma cópia do projeto original
 ```
@@ -339,7 +339,7 @@ git push
 ```
 6. Agora pode codar sobre sua cópia da biblioteca
 7. Ao terminar, sempre teste suas alterações para garantir o funcionamento, para isso recomendo criar uma pasta denominada "local" na raiz, e esta pasta não será enviada ao repositório, então poderá ter dados sensíveis.
-8. Sempre, antes de fazer envio ao seu repositório execute os comandos abaixo, a partir de raiz do projeto na sua maquina: 
+8. Sempre, antes de fazer envio ao seu repositório execute os comandos abaixo, a partir de raiz do projeto na sua máquina: 
 ```
 composer phpcbf
 composer phpcs

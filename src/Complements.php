@@ -257,7 +257,7 @@ class Complements
                     //205 NFe Denegada
                     //301 Uso denegado por irregularidade fiscal do emitente
                     //302 Uso denegado por irregularidade fiscal do destinatário
-                    //303 Uso Denegado Destinatario nao habilitado a operar na UF
+                    //303 Uso Denegado Destinatario não habilitado a operar na UF
                     $cstatpermit = ['100', '150', '110', '205', '301', '302', '303'];
                     if (!in_array($cStat, $cstatpermit)) {
                         throw DocumentsException::wrongDocument(4, "[$cStat] $xMotivo");
@@ -293,7 +293,7 @@ class Complements
         $ev->preserveWhiteSpace = false;
         $ev->formatOutput = false;
         $ev->loadXML($request);
-        //extrai numero do lote do envio
+        //extrai número do lote do envio
         $envLote = $ev->getElementsByTagName('idLote')->item(0)->nodeValue;
         //extrai tag evento do xml origem (solicitação)
         $event = $ev->getElementsByTagName('evento')->item(0);
@@ -303,7 +303,7 @@ class Complements
         $ret->preserveWhiteSpace = false;
         $ret->formatOutput = false;
         $ret->loadXML($response);
-        //extrai numero do lote da resposta
+        //extrai número do lote da resposta
         $resLote = $ret->getElementsByTagName('idLote')->item(0)->nodeValue;
         //extrai a rag retEvento da resposta (retorno da SEFAZ)
         $retEv = $ret->getElementsByTagName('retEvento')->item(0);

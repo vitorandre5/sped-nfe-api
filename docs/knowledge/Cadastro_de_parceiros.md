@@ -18,9 +18,9 @@ Com base nas regras do EFD ICMS, temos:
 |fantasia|nome fantasia do participante|varchar(100)|unique|
 |razao|razão social do participante|varchar(100)||
 |tipo|tipo de documento 1-CNPJ 2-CPF 3-extrangeiro|integer||
-|doc|documento numero do CNPJ ou CPF ou extrangeiro|varchar(14)||
-|ie|numero da inscrição estadual|varchar(15)||
-|im|numero da inscrição municipal|varchar(15)||
+|doc|documento número do CNPJ ou CPF ou extrangeiro|varchar(14)||
+|ie|número da inscrição estadual|varchar(15)||
+|im|número da inscrição municipal|varchar(15)||
 
 
 

@@ -134,7 +134,7 @@ final class CertificateService
 
     /**
      * Reempacota um certificado PFX usando openssl.
-     * Isso nao renova nem altera juridicamente o certificado.
+     * Isso não renova nem altera juridicamente o certificado.
      *
      * @return array<string, string>
      */

@@ -40,11 +40,11 @@ print_r($errors);
 
 O método estático *isValid()*, irá retornar um ARRAY contendo os erros encontrados ou um array VAZIO caso nenhum erro seja localizado.
 
-> NOTA: Esta analise é apenas feita sobre a estrutura do TXT e não sobre o conteúdo dos campos, portanto isso não irá impedir que **surjam erros** tentar converter ou ainda após a analise do XML pelo autorizador (SEFAZ).
+> NOTA: Esta análise é apenas feita sobre a estrutura do TXT e não sobre o conteúdo dos campos, portanto isso não irá impedir que **surjam erros** tentar converter ou ainda após a análise do XML pelo autorizador (SEFAZ).
 
 > IMPORTANTE: A estrutura tanto do XML como do TXT depende da versão do layout da SEFAZ, neste caso estamos indicando a estrutura da **versão 3.10 do layout**.
 
-O arquivo TXT sempre inicia com **NOTAFISCAL|numero de notas|**, onde o número de notas indica o total de NFes contidas nessa string. Esse campo ocorre apenas uma vez. 
+O arquivo TXT sempre inicia com **NOTAFISCAL|número de notas|**, onde o número de notas indica o total de NFes contidas nessa string. Esse campo ocorre apenas uma vez. 
 
 Cada nova NFe inicia com **A|versao|Id|pk_nItem|**, onde versão é a versão do layout usado (3.10 ou 4.00) e Id é a chave da NFe, ex. NFe35170349607369000156550010000022260003815585, pk_nItem não é usado normalmente.
 
@@ -59,11 +59,11 @@ Cada nova NFe inicia com **A|versao|Id|pk_nItem|**, onde versão é a versão do
 ## LINHA B *(removido o elemento indPag)*
 v3.10
 
-B|cUF|cNF|natOp|~~indPag~~|mod|serie|nNF|dhEmi|dhSaiEnt|tpNF|idDest|cMunFG|tpImp|tpEmis|cDV|tp Amb|finNFe|indFinal|indPres|procEmi|verProc|dhCont|xJust|
+B|cUF|cNF|natOp|~~indPag~~|mod|série|nNF|dhEmi|dhSaiEnt|tpNF|idDest|cMunFG|tpImp|tpEmis|cDV|tp Amb|finNFe|indFinal|indPres|procEmi|verProc|dhCont|xJust|
 
 v4.00
 
-B|cUF|cNF|natOp|mod|serie|nNF|dhEmi|dhSaiEnt|tpNF|idDest|cMunFG|tpImp|tpEmis|cDV|tpAmb|finNFe|indFinal|indPres|procEmi|verProc|dhCont|xJust|
+B|cUF|cNF|natOp|mod|série|nNF|dhEmi|dhSaiEnt|tpNF|idDest|cMunFG|tpImp|tpEmis|cDV|tpAmb|finNFe|indFinal|indPres|procEmi|verProc|dhCont|xJust|
 
 ## LINHA I *(incluido o elemento cBenef)*
 

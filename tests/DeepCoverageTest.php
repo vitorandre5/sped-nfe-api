@@ -866,7 +866,7 @@ class DeepCoverageTest extends NFeTestCase
         $std = new stdClass();
         $std->evento = [];
         $evt = new stdClass();
-        $evt->tpEvento = 210240; // Nao Realizada
+        $evt->tpEvento = 210240; // Não Realizada
         $evt->chNFe = '35220605730928000145550010000048661583302923';
         $evt->nSeqEvento = 1;
         $evt->xJust = 'Operacao nao realizada conforme combinado';

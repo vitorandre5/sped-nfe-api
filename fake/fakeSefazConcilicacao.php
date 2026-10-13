@@ -41,7 +41,7 @@ try {
     $std = new \stdClass();
     //$std->verAplic = '1.2.3'; //opcional se declarado anteriormente - versão da aplicação que está gerando o evento
     $std->nSeqEvento = 1;
-    $std->chNFe = '12345678901234567890123456789012345678901234'; //chave de 44 digitos da nota do fornecedor
+    $std->chNFe = '12345678901234567890123456789012345678901234'; //chave de 44 dígitos da nota do fornecedor
     $std->detPag[0] = new \stdClass();
     $std->detPag[0]->indPag = null; //opcional 0-Pagamento à Vista;  1-Pagamento à Prazo
     $std->detPag[0]->tPag = '04'; //Obrigatório forma de pagamento

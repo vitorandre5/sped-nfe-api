@@ -12,7 +12,7 @@ Verifica a condição de operação dos serviços em uma autorizadora ou ambient
 
 É importante salientar que muitas vezes esta consulta retorna como serviço em operação normal, quando na verdade a autorizadora está passando por alguma dificuldade operacional.
 
-Quando ocorrem os [TimeOuts](../TimeOut.md) é recomendável que seja consultada a pagina da Receita [Consulta de Disponibilidade - produção](http://www.nfe.fazenda.gov.br/portal/disponibilidade.aspx?versao=0.00&tipoConteudo=Skeuqr8PQBY=), e mesmo essa pagina nem sempre está atualizada com os problemas da rede.
+Quando ocorrem os [TimeOuts](../TimeOut.md) é recomendável que seja consultada a página da Receita [Consulta de Disponibilidade - produção](http://www.nfe.fazenda.gov.br/portal/disponibilidade.aspx?versao=0.00&tipoConteudo=Skeuqr8PQBY=), e mesmo essa página nem sempre está atualizada com os problemas da rede.
 
 > NOTA: Somente faça essa consulta no máximo com intervalos de 3 minutos, sob pena de ser BLOQUEADO, por excesso de consumo.
 
@@ -41,7 +41,7 @@ try {
     $uf = 'SP';
     $tpAmb = 2;
     $response = $tools->sefazStatus($uf, $tpAmb);
-    //este método não requer parametros, são opcionais, se nenhum parametro for 
+    //este método não requer parâmetros, são opcionais, se nenhum parâmetro for 
     //passado serão usados os contidos no $configJson
     //$response = $tools->sefazStatus();
 
@@ -63,7 +63,7 @@ try {
 
 ```
 
-## Parametros
+## Parâmetros
 
 | Variável | Detalhamento  |
 | :---:  | :--- |
@@ -100,7 +100,7 @@ try {
 ```
 ### RETORNO
 
-A variavel $response no exemplo conterá esse XML, ou algo semelhante.
+A variável $response no exemplo conterá esse XML, ou algo semelhante.
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -203,7 +203,7 @@ A consulta com sucesso poderá resultar:
 
 Caso não passe em alguma validação ou sejam encontrados problemas na comunicação, será SEMPRE retornado um EXCEPTION que deve ser capturado.
 
-Mas os erros não se restringem a esse tipo de falha. Além de falhas na fase de montagem da mensagem e na comunicação podem ser retornados erros relativos a analise pelas regras de negócios da SEFAZ nesse caso os erros deverão ser analisados no xml de retorno.
+Mas os erros não se restringem a esse tipo de falha. Além de falhas na fase de montagem da mensagem e na comunicação podem ser retornados erros relativos a análise pelas regras de negócios da SEFAZ nesse caso os erros deverão ser analisados no xml de retorno.
 
 ### Verificação do Certificado de Transmissão
 

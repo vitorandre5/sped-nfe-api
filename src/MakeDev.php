@@ -1036,7 +1036,7 @@ final class MakeDev
             return;
         }
         if (count($this->aForDia) > 31) {
-            $this->errors[] = 'A tag forDia (produção diária de cana) pode ter até 31 dias no maximo.';
+            $this->errors[] = 'A tag forDia (produção diária de cana) pode ter até 31 dias no máximo.';
         }
         if (empty($this->infNFe)) {
             $this->errors[] = 'Falta a tag "infNFe"';

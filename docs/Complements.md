@@ -2,10 +2,10 @@
 
 Esta classe possibilita a inclusão dos protocolos de autorização, denegação ou cancelamento aos documentos eletrônicos.
 
-Devem ser protocolados os seguintes documentos, para terem validade juridica:
+Devem ser protocolados os seguintes documentos, para terem validade jurídica:
 
 - Nota Fiscal (NFe ou NFCe)
-- Solicitação de Inutilização de faixa de numeros de notas que foram "pulados"
+- Solicitação de Inutilização de faixa de números de notas que foram "pulados"
 - Eventos (cancelamentos, cartas de correção, EPP, ECPP, etc.)
 
 Adicionalmente, esta classe também permite a inclusão de TAGs especiais referentes a requisitos de montadoras como o da ANFAVEA.
@@ -18,13 +18,13 @@ E também permite a *"marcação"* de NFe como cancelada, **este não é um requ
 
 Este método realiza a junção do protocolo de autorização com a requisição original, criando um documento VÁLIDO. Este método é utilizado para notas Aprovadas e Denegadas.
 
-Escopo: Publico
+Escopo: Público
 
 Modo: Estático
 
 Retorna: String
 
-| Parametro | Tipo | Descrição |
+| Parâmetro | Tipo | Descrição |
 | :---  | :---: | :--- |
 | $request | string | XML correspondente a solicitação ex. NFe assinada, pedido de Inutilização, etc. |
 | $response | string | XML de resposta da SEFAZ retornado pelos metodos chamadores |
@@ -61,11 +61,11 @@ try {
 
 Este médodo adiciona um conjunto de informações auxiliares estabelecidos por entidades de classe para facilitar o reconhecimento do documento pelos sistemas ERP dessas empresas.
 
-Escopo: Publico
+Escopo: Público
 Modo: Estático
 Retorna: String
 
-| Parametro | Tipo | Descrição |
+| Parâmetro | Tipo | Descrição |
 | :---  | :---: | :--- |
 
 
@@ -97,11 +97,11 @@ Este método apenas marca a NFe como cancelada. Isso não é um item obrigatóri
 
 > NOTA: essa operação não é de forma alguma estabelecida pela legislação, mas trata-se apenas de uma questão puramente operacional. 
 
-Escopo: Publico
+Escopo: Público
 Modo: Estático
 Retorna: String
 
-| Parametro | Tipo | Descrição |
+| Parâmetro | Tipo | Descrição |
 | :---  | :---: | :--- |
 
 

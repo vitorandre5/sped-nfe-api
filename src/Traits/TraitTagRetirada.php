@@ -70,84 +70,84 @@ trait TraitTagRetirada
             "xLgr",
             $std->xLgr,
             true,
-            $identificador . "Logradouro do Endereco do Cliente da Retirada"
+            $identificador . "Logradouro do Endereço do Cliente da Retirada"
         );
         $this->dom->addChild(
             $this->retirada,
             "nro",
             $std->nro,
             true,
-            $identificador . "Número do Endereco do Cliente da Retirada"
+            $identificador . "Número do Endereço do Cliente da Retirada"
         );
         $this->dom->addChild(
             $this->retirada,
             "xCpl",
             $std->xCpl,
             false,
-            $identificador . "Complemento do Endereco do Cliente da Retirada"
+            $identificador . "Complemento do Endereço do Cliente da Retirada"
         );
         $this->dom->addChild(
             $this->retirada,
             "xBairro",
             $std->xBairro,
             true,
-            $identificador . "Bairro do Endereco do Cliente da Retirada"
+            $identificador . "Bairro do Endereço do Cliente da Retirada"
         );
         $this->dom->addChild(
             $this->retirada,
             "cMun",
             $std->cMun,
             true,
-            $identificador . "Código do município do Endereco do Cliente da Retirada"
+            $identificador . "Código do município do Endereço do Cliente da Retirada"
         );
         $this->dom->addChild(
             $this->retirada,
             "xMun",
             $std->xMun,
             true,
-            $identificador . "Nome do município do Endereco do Cliente da Retirada"
+            $identificador . "Nome do município do Endereço do Cliente da Retirada"
         );
         $this->dom->addChild(
             $this->retirada,
             "UF",
             $std->UF,
             true,
-            $identificador . "Sigla da UF do Endereco do Cliente da Retirada"
+            $identificador . "Sigla da UF do Endereço do Cliente da Retirada"
         );
         $this->dom->addChild(
             $this->retirada,
             "CEP",
             $std->CEP,
             false,
-            $identificador . "CEP do Endereco do Cliente da Retirada"
+            $identificador . "CEP do Endereço do Cliente da Retirada"
         );
         $this->dom->addChild(
             $this->retirada,
             "cPais",
             $std->cPais,
             false,
-            $identificador . "Codigo do Pais do Endereco do Cliente da Retirada"
+            $identificador . "Código do País do Endereço do Cliente da Retirada"
         );
         $this->dom->addChild(
             $this->retirada,
             "xPais",
             $std->xPais,
             false,
-            $identificador . "Pais do Endereco do Cliente da Retirada"
+            $identificador . "País do Endereço do Cliente da Retirada"
         );
         $this->dom->addChild(
             $this->retirada,
             "fone",
             $std->fone,
             false,
-            $identificador . "Fone do Endereco do Cliente da Retirada"
+            $identificador . "Fone do Endereço do Cliente da Retirada"
         );
         $this->dom->addChild(
             $this->retirada,
             "email",
             $std->email,
             false,
-            $identificador . "Email do Endereco do Cliente da Retirada"
+            $identificador . "Email do Endereço do Cliente da Retirada"
         );
         $this->dom->addChild(
             $this->retirada,

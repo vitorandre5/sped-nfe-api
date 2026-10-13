@@ -25,21 +25,21 @@ try {
 
     //############################## TAG <ide> OBRIGATÓRIA #########################################################
     $ide = [
-        'cUF' => 12, //OBRIGATÒRIO numero da UF
-        'cNF' => null, //opcional 8 digitos max, será preenchido automaticamente com zeros a esquerda
+        'cUF' => 12, //OBRIGATÒRIO número da UF
+        'cNF' => null, //opcional 8 dígitos max, será preenchido automaticamente com zeros a esquerda
         //se deixado com null, será inserido um valor aleatório de acordo com as regras da SEFAZ
-        //se forem informados mais de 8 digitos o valor será truncado para 8 digitos
+        //se forem informados mais de 8 dígitos o valor será truncado para 8 dígitos
         'natOp' => 'REMESSA P/ INDUSTRIALIZAÇÃO', //OBRIGATÒRIO max 60 caracteres
         'mod' => 55, //OBRIGATÒRIO modelo 55 ou 65
         'serie' => 1, //OBRIGATÒRIO série normal 0-889 SCAN 900-999
-        'nNF' => 100, //OBRIGATÒRIO até 9 digitos
+        'nNF' => 100, //OBRIGATÒRIO até 9 dígitos
         'dhEmi' => null, //opcional se deixado com null, será inserida a data e hora atual para a UF
         'dhSaiEnt' => null, //opcional
         //CUIDADO ao inserir deve corresponder a data e hora correta para a UF e deve ser maior ou igual a dhEmi
         'tpNF' => 1, //OBRIGATÒRIO 0-entrada; 1-saída
         'idDest' => 3, //OBRIGATÒRIO 1-Interna;2-Interestadual;3-Exterior
-        'cMunFG' => 2111300, //OBRIGATÒRIO 7 digitos IBGE Código do Município de Ocorrência do Fato Gerador
-        'cMunFGIBS' => 2111300, //opcional 7 digitos IBGE apenas PL_010 em diante
+        'cMunFG' => 2111300, //OBRIGATÒRIO 7 dígitos IBGE Código do Município de Ocorrência do Fato Gerador
+        'cMunFGIBS' => 2111300, //opcional 7 dígitos IBGE apenas PL_010 em diante
         //cMunFGIBS somente deve ser preenchido quando indPres = 5 (Operação presencial, fora do estabelecimento),
         //e não tiver endereço do destinatário (tag <enderDest>) ou local de entrega (tag <entrega>).
         'tpImp' => 1, //OBRIGATÒRIO
@@ -58,7 +58,7 @@ try {
         //6 - Contingência SVC - AN
         //7 - Contingência SVC - RS
         //9 - Contingência off-line NFC-e
-        'cDV' => null, //opcional 1 digito
+        'cDV' => null, //opcional 1 dígito
         //será calculado e inserido automaticamente, substituindo o cDV incorreto informado
         'tpAmb' => 2, //OBRIGATÒRIO 1-produçao 2-homologação
         'finNFe' => 1, //OBRIGATÒRIO
@@ -267,13 +267,13 @@ try {
         'nro' => 'sem numero', //OBRIGATÓRIO 1 a 60 caracteres
         'xCpl' => 'fundos', //opcional 1 a 60 caracteres
         'xBairro' => 'Fim do mundo', //OBRIGATÓRIO 2 a 60 caracteres
-        'cMun' => 3512345, //OBRIGATÓRIO 7 digitos
+        'cMun' => 3512345, //OBRIGATÓRIO 7 dígitos
         'xMun' => 'São Vito', //OBRIGATÓRIO 2 a 60 caracteres
         'UF' => 'SP', //OBRIGATÓRIO 2 caracteres
-        'CEP' => '00000000', //opcional 8 digitos
-        'cPais' => 1058, //opcional 1 à 4 digitos
+        'CEP' => '00000000', //opcional 8 dígitos
+        'cPais' => 1058, //opcional 1 à 4 dígitos
         'xPais' => 'Brasil', //opcional 2 a 60 caracteres
-        'fone' => '1111111111', //opcional de 6 a 14 digitos
+        'fone' => '1111111111', //opcional de 6 a 14 dígitos
         'email' => 'eu@mail.com' //opcional 1 a 60 caracteres
     ];
     $tret = $mk->tagretirada((object)$ret);
@@ -289,20 +289,20 @@ try {
         'nro' => '1', //OBRIGATÓRIO 1 a 60 caracteres
         'xCpl' => 'frente', //opcional 1 a 60 caracteres
         'xBairro' => 'Fim do mundo', //OBRIGATÓRIO 2 a 60 caracteres
-        'cMun' => 3512345, //OBRIGATÓRIO 7 digitos
+        'cMun' => 3512345, //OBRIGATÓRIO 7 dígitos
         'xMun' => 'São Vito', //OBRIGATÓRIO 2 a 60 caracteres
         'UF' => 'SP', //OBRIGATÓRIO 2 caracteres
-        'CEP' => '00000000', //opcional 8 digitos
-        'cPais' => 1058, //opcional 1 à 4 digitos
+        'CEP' => '00000000', //opcional 8 dígitos
+        'cPais' => 1058, //opcional 1 à 4 dígitos
         'xPais' => 'Brasil', //opcional 2 a 60 caracteres
-        'fone' => '222222', //opcional de 6 a 14 digitos
+        'fone' => '222222', //opcional de 6 a 14 dígitos
         'email' => 'ele@mail.com' //opcional 1 a 60 caracteres
     ];
     $tent = $mk->tagentrega((object)$ent);
 
 
     //############################## TAG <autXML> opcional #######################
-    //autXML OPCIONAL até 10 ocorrências no maximo
+    //autXML OPCIONAL até 10 ocorrências no máximo
     $aut = [
         'CNPJ' => '01234123456789',
         'CPF' => '12345678901'
@@ -317,19 +317,19 @@ try {
 
 
     //############################## TAG <prod> OBRIGATÓRIA #####################################################
-    //até 990 ocorrências no maximo
+    //até 990 ocorrências no máximo
     //prod OBRIGATÓRIA
     $std = new stdClass();
-    $std->item = 1; //OBRIGATÓRIO referencia ao item da NFe 1 a 990
+    $std->item = 1; //OBRIGATÓRIO referência ao item da NFe 1 a 990
     $std->cProd = '23qq'; //OBRIGATÓRIO de 1 à 60 caracteres
     $std->cEAN = "SEM GTIN";//OBRIGATÓRIO SEM GTIN|[0-9]{0}|[0-9]{8}|[0-9]{12,14}
     $std->cBarra = "SEM GTIN";//opcional de 3 à 30 caracteres
     $std->xProd = 'SERVICO'; //OBRIGATÓRIO 1 a 120 caracteres
     $std->NCM = 99; //OBRIGATÓRIO [0-9]{2}|[0-9]{8}
-    $std->CEST = '1234567'; //opcional usado apenas para produtos com ST 7 digitos
+    $std->CEST = '1234567'; //opcional usado apenas para produtos com ST 7 dígitos
     $std->indEscala = 'S'; //opcional usado junto com CEST, S-escala relevante N-escala NÃO relevante
     $std->CNPJFab = '12345678901234'; //opcional usado junto com CEST e qunado indEscala = N
-    $std->cBenef = 'ab222222'; //opcional codigo beneficio fiscal ([!-ÿ]{8}|[!-ÿ]{10}|SEM CBENEF)?
+    $std->cBenef = 'ab222222'; //opcional código benefício fiscal ([!-ÿ]{8}|[!-ÿ]{10}|SEM CBENEF)?
     $std->EXTIPI = '01';
     $std->CFOP = 5933;
     $std->uCom = 'UN';
@@ -358,7 +358,7 @@ try {
     //############################## TAG <prod/infAdProd> opcional #################################################
     //Informações adicionais do produto (norma referenciada, informações complementares, etc)
     $inf = [
-        'item' => 1, //OBRIGATÓRIO referencia ao item da NFe 1 a 990
+        'item' => 1, //OBRIGATÓRIO referência ao item da NFe 1 a 990
         'infAdProd' => 'Informação especifica sobre o item do produto' //OBRIGATÓRIO de 1 a 500 caracteres
     ];
     $mk->taginfAdProd((object) $inf);
@@ -366,7 +366,7 @@ try {
     //############################## TAG <prod/infAdProd/obsItem> opcional #################################################
     //Grupo de observações de uso livre (para o item da NF-e)
     $obs = [
-        'item' => 1, //OBRIGATÓRIO referencia ao item da NFe 1 a 990
+        'item' => 1, //OBRIGATÓRIO referência ao item da NFe 1 a 990
         'obsCont_xCampo' => 'nome', //opcional nome do campo de 1 a 20 caracteres
         'obsCont_xTexto' => 'informação', //opcional informação do campo de 1 a 60 caracteres
         'obsFisco_xCampo' => 'nome', //opcional nome do campo de 1 a 20 caracteres
@@ -377,7 +377,7 @@ try {
     //############################## TAG <det/DFeReferenciado> opcional ##############################################
     //Documento Fiscal Eletrônico Referenciado
     $ref = [
-        'item' => 1, //OBRIGATÓRIO referencia ao item da NFe 1 a 990
+        'item' => 1, //OBRIGATÓRIO referência ao item da NFe 1 a 990
         'chaveAcesso' => '12345678901234567890123456789012345678901234', //OBRIGATÓRIO Chave de acesso do DF-e referenciado
         'nIem' => 2, //opcional Número do item do documento referenciado.
     ];
@@ -404,13 +404,13 @@ try {
     //Nomenclatura de Valor aduaneiro e Estatístico podem ocorrer até no máximo 8 repetições
     //nve OPCIONAL
     $std = [
-        'item' => 1, //OBRIGATÓRIO referencia ao item da NFe
+        'item' => 1, //OBRIGATÓRIO referência ao item da NFe
         'NVE' => 'AZ3456' //OBRIGATÓRIO [A-Z]{2}[0-9]{4}
     ];
     $mk->tagnve((object)$std);
     //nve OPCIONAL
     $std = [
-        'item' => 1,  //OBRIGATÓRIO referencia ao item da NFe
+        'item' => 1,  //OBRIGATÓRIO referência ao item da NFe
         'NVE' => 'AA4777'  //OBRIGATÓRIO [A-Z]{2}[0-9]{4}
     ];
     $mk->tagnve((object)$std);
@@ -419,7 +419,7 @@ try {
     //Delcaração de Importação podem ter até 100 DI por item da NFe
     //DI OPCIONAL
     $std = new stdClass();
-    $std->item = 1; //OBRIGATÓRIO referencia ao item da NFe
+    $std->item = 1; //OBRIGATÓRIO referência ao item da NFe
     $std->nDI = '123049'; //OBRIGATÓRIO  Número do Documento de Importação (DI, DSI, DIRE, DUImp) de 1 à 15 caracteres
     $std->dDI = '2018-04-22'; //OBRIGATÓRIO Data de registro da DI/DSI/DA (AAAA-MM-DD)
     $std->xLocDesemb = 'SANTOS'; //OBRIGATÓRIO Local do desembaraço aduaneiro de 1 à 60 caracteres
@@ -435,7 +435,7 @@ try {
     //7-Rodoviaria;
     //8-Conduto;
     //9-Meios Proprios;
-    //10-Entrada/Saida Ficta;
+    //10-Entrada/Saída Ficta;
     //11-Courier;
     //12-Em maos;
     //13-Por reboque
@@ -455,8 +455,8 @@ try {
     //Adições da DI OBRIGATÓRIA se existir a DI até 999 adi para cada DI
     //adi OPCIONAL
     $std = new \stdClass();
-    $std->item = 1; //OBRIGATÓRIO referencia ao item da NFe
-    $std->nDI = '123049'; //OBRIGATÓRIO referencia à DI
+    $std->item = 1; //OBRIGATÓRIO referência ao item da NFe
+    $std->nDI = '123049'; //OBRIGATÓRIO referência à DI
     $std->nAdicao = 1; //opcional Número da Adição [1-9]{1}[0-9]{0,2}
     $std->nSeqAdic = 1; //OBRIGATÓRIO Número seqüencial do item [1-9]{1}[0-9]{0,4}
     $std->cFabricante = 'ZZZZZZ'; //OBRIGATÓRIO Código do fabricante estrangeiro de 1 à 60 caracteres
@@ -466,8 +466,8 @@ try {
 
     //adi OPCIONAL
     $std = new \stdClass();
-    $std->item = 1; //OBRIGATÓRIO referencia ao item da NFe
-    $std->nDI = '123049'; //OBRIGATÓRIO referencia à DI
+    $std->item = 1; //OBRIGATÓRIO referência ao item da NFe
+    $std->nDI = '123049'; //OBRIGATÓRIO referência à DI
     $std->nAdicao = 2; //opcional Número da Adição [1-9]{1}[0-9]{0,2}
     $std->nSeqAdic = 2; //OBRIGATÓRIO Número seqüencial do item [1-9]{1}[0-9]{0,4}
     $std->cFabricante = 'ZZZZZZ'; //OBRIGATÓRIO Código do fabricante estrangeiro de 1 à 60 caracteres
@@ -479,7 +479,7 @@ try {
     //Detalhe da exportação até 500 ocorrências
     //detexport OPCIONAL
     $std = new \stdClass();
-    $std->item = 1; //OBRIGATÓRIO referencia ao item da NFe
+    $std->item = 1; //OBRIGATÓRIO referência ao item da NFe
     $std->nDraw = '029309'; //opcional Número do ato concessório de Drawback de 1 à 20 caracteres
     $std->nRE = '123456789012'; //opcional Registro de exportação [0-9]{0,12}
     $std->chNFe = '12345678901234567890123456789012345678901234'; //opcional Chave de acesso da NF-e recebida
@@ -506,7 +506,7 @@ try {
     //############################## TAG <prod/veicProd> opcional #####################################################
     //Veículos novos
     $veic = [
-        'item' => 1, //OBRIGATÓRIO referencia ao item da NFe
+        'item' => 1, //OBRIGATÓRIO referência ao item da NFe
         'tpOp' => 1, //OBRIGATÓRIO Tipo da operação
         //0 Outros
         // 1 Venda concessionária,
@@ -584,7 +584,7 @@ try {
     //############################## TAG <prod/med> opcional #####################################################
     //Detalhamento de Medicamentos e de matérias-primas farmacêuticas
     $std = new stdClass();
-    $std->item = 1; //OBRIGATÓRIO referencia ao item da NFe
+    $std->item = 1; //OBRIGATÓRIO referência ao item da NFe
     $std->cProdANVISA = 'AAB0492321110'; //OBRIGATÓRIO Utilizar o número do registro ANVISA
     // ou preencher com o literal “ISENTO”
     $std->xMotivoIsencao = ''; //opcional de 1 à 255 caracteres
@@ -596,7 +596,7 @@ try {
     //############################## TAG <prod/arma> opcional #####################################################
     //Detalhamento de Armamento
     $arma = [
-        'item' => 1, //OBRIGATÓRIO referencia ao item da NFe
+        'item' => 1, //OBRIGATÓRIO referência ao item da NFe
         'tpArma' => 1, //OBRIGATÓRIO Indicador do tipo de arma de fogo (0 - Uso permitido; 1 - Uso restrito)
         'nSerie' => 'abc-2039', //OBRIGATÓRIO Número de série da arma de 1 à 15 caracteres
         'nCano' => 'abc-z1111', //OBRIGATÓRIO Número de série do cano de 1 à 15 caracteres
@@ -609,7 +609,7 @@ try {
     //############################## TAG <prod/comb> opcional #####################################################
     //Informar apenas para operações com combustíveis líquidos
     $comb = [
-        'item' => 1, //OBRIGATÓRIO referencia ao item da NFe
+        'item' => 1, //OBRIGATÓRIO referência ao item da NFe
         'cProdANP' => 123456789, //OBRIGATÓRIO Código de produto da ANP. codificação de produtos do SIMP
         // vide (http://www.anp.gov.br) [0-9]{9}
         'descANP' => 'jskjlskjljlksjlksjlksjlkjlkjsk', //OBRIGATÓRIO Descrição do Produto conforme ANP.
@@ -642,10 +642,10 @@ try {
     //############################## TAG <prod/comb/encerrante> opcional ##############################################
     //Informações do grupo de encerrante
     $enc = [
-        'item' => 1, //OBRIGATÓRIO referencia ao item da NFe
-        'nBico' => 12, //OBRIGATÓRIO Numero de identificação do Bico utilizado no abastecimento [0-9]{1,3}
-        'nBomba' => 2, //opcional Numero de identificação da bomba ao qual o bico está interligado [0-9]{1,3}
-        'nTanque' => 4, //OBRIGATÓRIO  Numero de identificação do tanque ao qual o bico está interligado [0-9]{1,3}
+        'item' => 1, //OBRIGATÓRIO referência ao item da NFe
+        'nBico' => 12, //OBRIGATÓRIO Número de identificação do Bico utilizado no abastecimento [0-9]{1,3}
+        'nBomba' => 2, //opcional Número de identificação da bomba ao qual o bico está interligado [0-9]{1,3}
+        'nTanque' => 4, //OBRIGATÓRIO  Número de identificação do tanque ao qual o bico está interligado [0-9]{1,3}
         'vEncIni' => '12123456', //OBRIGATÓRIO Valor do Encerrante no ínicio do abastecimento 0|0\.[0-9]{3}|[1-9]{1}[0-9]{0,11}(\.[0-9]{3})?
         'vEncFin' => '12345678', //OBRIGATÓRIO Valor do Encerrante no final do abastecimento  0|0\.[0-9]{3}|[1-9]{1}[0-9]{0,11}(\.[0-9]{3})?
     ];
@@ -654,7 +654,7 @@ try {
     //############################## TAG <prod/comb/origComb> opcional ##############################################
     //Grupo indicador da origem do combustível de 0 até 30 ocorrencias
     $g1 = [
-        'item' => 1,  //OBRIGATÓRIO referencia ao item da NFe
+        'item' => 1,  //OBRIGATÓRIO referência ao item da NFe
         'indImport' => 0, //OBRIGATÓRIO Indicador de importação
             // 0 Nacional;
             // 1 Importado;
@@ -664,7 +664,7 @@ try {
     //$mk->tagorigComb((object) $g1);
 
     $g2 = [
-        'item' => 1,  //OBRIGATÓRIO referencia ao item da NFe
+        'item' => 1,  //OBRIGATÓRIO referência ao item da NFe
         'indImport' => 1, //OBRIGATÓRIO Indicador de importação
             // 0 Nacional;
             // 1 Importado;
@@ -674,14 +674,14 @@ try {
     //$mk->tagorigComb((object) $g2);
 
     $rc = [
-        'item' => 1, //OBRIGATÓRIO referencia ao item da NFe
+        'item' => 1, //OBRIGATÓRIO referência ao item da NFe
         'nRECOPI' => '01234567890123456789' //OBRIGATÓRIO Número do RECOPI [0-9]{20}
     ];
     //$mk->tagRECOPI((object) $rc);
 
     //############################## TAG <det/imposto> OBRIGATÓRIA #####################################################
     $std = new stdClass();
-    $std->item = 1; //OBRIGATÓRIO referencia ao item da NFe
+    $std->item = 1; //OBRIGATÓRIO referência ao item da NFe
     $std->vTotTrib = 100; //opcional Valor estimado total de impostos federais, estaduais e municipais 2 decimais
     $mk->tagimposto($std);
 
@@ -816,7 +816,7 @@ try {
     //############################## TAG <det/imposto/ICMSUFDest> opcional #############################################
     //Grupo a ser informado nas vendas interestarduais para consumidor final, não contribuinte de ICMS
     $ufd = [
-        'item' => 1, //OBRIGATÓRIO referencia ao item da NFe
+        'item' => 1, //OBRIGATÓRIO referência ao item da NFe
         'vBCUFDest' => 200, //OBRIGATÓRIO Valor da Base de Cálculo do ICMS na UF do destinatário 2 decimais
         'vBCFCPUFDest' => 200, //opcional Valor da Base de Cálculo do FCP na UF do destinatário. 2 decimais
         'pFCPUFDest' => 2, //opcional Percentual adicional inserido na alíquota interna da UF
@@ -833,11 +833,11 @@ try {
 
     //############################## TAG <det/imposto/IPI> opcional ####################################################
     $ipi = [
-        'item' => 1, //OBRIGATÓRIO referencia ao item da NFe
+        'item' => 1, //OBRIGATÓRIO referência ao item da NFe
         'CNPJProd' => '12345678901234', //opcional CNPJ do produtor da mercadoria, quando diferente do emitente.
             // Somente para os casos de exportação direta ou indireta.
         'cSelo' => 'PICABOO', //opcional Código do selo de controle do IPI de 1 60 caracteres
-        'qSelo' => 9999999999, //opcional Quantidade de selo de controle do IPI até 12 digitos
+        'qSelo' => 9999999999, //opcional Quantidade de selo de controle do IPI até 12 dígitos
         'cEnq' => '108', //OBRIGATÓRIO Código de Enquadramento Legal do IPI (tabela a ser criada pela RFB) de 1 a 3 caracteres
         'CST' => '00', //OBRIGATÓRIO
             //IPITrib
@@ -868,7 +868,7 @@ try {
     //############################## TAG <det/imposto/II> opcional #####################################################
     //Dados do Imposto de Importação
     $ii = [
-        'item' => 1, //OBRIGATÓRIO referencia ao item da NFe
+        'item' => 1, //OBRIGATÓRIO referência ao item da NFe
         'vBC' => 100.22, //OBRIGATÓRIO Base da BC do Imposto de Importação 2 decimais
         'vDespAdu' => 21.87, //OBRIGATÓRIO  Valor das despesas aduaneiras 2 decimais
         'vII' => 10.01, //OBRIGATÓRIO Valor do Imposto de Importação 2 decimais
@@ -878,7 +878,7 @@ try {
 
     //############################## TAG <det/imposto/ISSQN> opcional #################################################
     $iqn = [
-        'item' => 1,  //OBRIGATÓRIO referencia ao item da NFe
+        'item' => 1,  //OBRIGATÓRIO referência ao item da NFe
         'vBC' => 200.00, //OBRIGATÓRIO Valor da BC do ISSQN 2 decimais
         'vAliq' => 5, //OBRIGATÓRIO Alíquota do ISSQN até 4 decimais
         'vISSQN' => 10, //OBRIGATÓRIO Valor da do ISSQN 2 decimais
@@ -902,7 +902,7 @@ try {
             //7-Exig.Susp. ADM
         'cServico' => '1ABRT82828', //opcional Código do serviço prestado dentro do município de 1 a 20 caracteres
         'cMun' => '1234567',  //opcional Código do Município de Incidência do Imposto
-        'cPais' => '105',  //opcional Código de Pais de 1 a 4 digitos
+        'cPais' => '105',  //opcional Código de País de 1 a 4 dígitos
         'nProcesso' => 'ABC10000001992981',  //opcional Número do Processo administrativo ou judicial
             // de suspenção do processo até 30 caracteres
         'indIncentivo' => 2 //OBRIGATÓRIO Indicador de Incentivo Fiscal. 1=Sim; 2=Não
@@ -913,7 +913,7 @@ try {
     //############################## TAG <det/imposto/PIS> opcional ###################################################
     //choice PISAliq ou PISQtde ou PISNT ou PISOutr
     $std = new stdClass();
-    $std->item = 1; //OBRIGATÓRIO referencia ao item da NFe
+    $std->item = 1; //OBRIGATÓRIO referência ao item da NFe
     $std->CST = '03';  //OBRIGATÓRIO Código de Situação Tributária do PIS
         //PISAliq
             //01 – Operação Tributável - Base de Cálculo = Valor da Operação Alíquota Normal (Cumulativo/Não Cumulativo)
@@ -960,7 +960,7 @@ try {
 
     //############################## TAG <det/imposto/PISST> opcional #################################################
     $pst = [
-        'item' => 1, //OBRIGATÓRIO referencia ao item da NFe
+        'item' => 1, //OBRIGATÓRIO referência ao item da NFe
         'vPIS' => 20.22, //OBRIGATÓRIO
         'vBC' => 389.98, //opcional
         'pPIS' => 4.33, //opcional
@@ -973,7 +973,7 @@ try {
     //############################## TAG <det/imposto/COFINS> opcional ################################################
     //COFINS
     $std = new stdClass();
-    $std->item = 1; //OBRIGATÓRIO referencia ao item da NFe
+    $std->item = 1; //OBRIGATÓRIO referência ao item da NFe
     $std->CST = '99';
     $std->vBC = 10000;
     $std->pCOFINS = 7;
@@ -984,7 +984,7 @@ try {
 
     //############################## TAG <det/imposto/COFINSST> opcional ##############################################
     $cst = [
-        'item' => 1, //OBRIGATÓRIO referencia ao item da NFe
+        'item' => 1, //OBRIGATÓRIO referência ao item da NFe
         'vBC' => 2000.33, //OBRIGATÓRIO Valor da BC do COFINS ST 2 decimais
         'vCOFINS' => 14.22, //OBRIGATÓRIO
         'pCOFINS' => 7.1111, //opcional Alíquota do COFINS ST(em percentual) até 4 decimais
@@ -998,9 +998,9 @@ try {
 
     //############################## TAG <det/imposto/IS> opcional ####################################################
     $is = [
-        'item' => 1, //OBRIGATÓRIO referencia ao item da NFe
-        'CSTIS' => '123', //OBRIGATÓRIO Código Situação Tributária do Imposto Seletivo 3 digitos
-        'cClassTribIS' => '111111', //OBRIGATÓRIO Código de Classificação Tributária do IBS e da CBS 6 digitos
+        'item' => 1, //OBRIGATÓRIO referência ao item da NFe
+        'CSTIS' => '123', //OBRIGATÓRIO Código Situação Tributária do Imposto Seletivo 3 dígitos
+        'cClassTribIS' => '111111', //OBRIGATÓRIO Código de Classificação Tributária do IBS e da CBS 6 dígitos
         'vBCIS' => 200.00, //OBRIGATÓRIO Valor do BC 2 decimais
         'pIS' => 33.3333, //OBRIGATÓRIO Alíquota do Imposto Seletivo (percentual) até 4 decimais
         'pISEspec' => 45, //opcional Alíquota do Imposto Seletivo (por valor)  até 4 decimais
@@ -1013,8 +1013,8 @@ try {
 
     //############################## TAG <det/imposto/IBCCBS> opcional ################################################
     $ibs = [
-        'item' => 1, //OBRIGATÓRIO referencia ao item da NFe
-        'CST' => '000', //OBRIGATÓRIO CST IBS/CBS 3 digitos
+        'item' => 1, //OBRIGATÓRIO referência ao item da NFe
+        'CST' => '000', //OBRIGATÓRIO CST IBS/CBS 3 dígitos
             // 000 - Tributação integral
             // 010 - Tributação com alíquotas uniformes - operações setor financeiro
             // 011 - Tributação com alíquotas uniformes reduzidas em 60% ou 30%
@@ -1058,8 +1058,8 @@ try {
 
     //############################## TAG <det/imposto/IBSCBS/gIBSCBS/gTribRegular> opcional ###########################
     $reg = [
-        'item' => 1, //OBRIGATÓRIO referencia ao item da NFe
-        'CSTReg' => '123', //OBRIGATÓRIO Código de Situação Tributária do IBS e CBS 3 digitos
+        'item' => 1, //OBRIGATÓRIO referência ao item da NFe
+        'CSTReg' => '123', //OBRIGATÓRIO Código de Situação Tributária do IBS e CBS 3 dígitos
         'cClassTribReg' => '111111', //OBRIGATÓRIO Código de Classificação Tributária do IBS e CBS 6
         'pAliqEfetRegIBSUF' => 10.1234, //OBRIGATÓRIO Valor da alíquota do IBS da UF 3v2-4
         'vTribRegIBSUF' => 100, //OBRIGATÓRIO Valor do Tributo do IBS da UF 13v2
@@ -1072,7 +1072,7 @@ try {
 
     //############################## TAG <det/imposto/IBSCBS/gIBSCBS/gIBSCredPres> opcional ###########################
     $cred = [
-        'item' => 1, //OBRIGATÓRIO referencia ao item da NFe
+        'item' => 1, //OBRIGATÓRIO referência ao item da NFe
         'cCredPres' => '11', //OBRIGATÓRIO Código de Classificação do Crédito Presumido 2 caracteres
         'pCredPres' => 2.3234, //OBRIGATÓRIO Percentual do Crédito Presumido 3v2-4
         'vCredPres' => 22.30, //OBRIGATÓRIO Valor do Crédito Presumido 13v2
@@ -1082,7 +1082,7 @@ try {
 
     //############################## TAG <det/imposto/IBSCBS/gIBSCBS/gCBSCredPres> opcional ###########################
     $cred = [
-        'item' => 1, //OBRIGATÓRIO referencia ao item da NFe
+        'item' => 1, //OBRIGATÓRIO referência ao item da NFe
         'cCredPres' => '11', //OBRIGATÓRIO Código de Classificação do Crédito Presumido 2 caracteres
         'pCredPres' => 2.1111, //OBRIGATÓRIO Percentual do Crédito Presumido 3v2-4
         'vCredPres' => 12.34, //OBRIGATÓRIO Valor do Crédito Presumido 13v2
@@ -1093,7 +1093,7 @@ try {
     //############################## TAG <det/imposto/IBSCBS/gIBSCBSMono> opcional ####################################
     //Grupo de Informações do IBS e CBS em operações com imposto monofásico
     $mono = [
-        'item', //OBRIGATÓRIO referencia ao item da NFe
+        'item', //OBRIGATÓRIO referência ao item da NFe
         'qBCMono', //OBRIGATÓRIO
         'adRemIBS', //OBRIGATÓRIO
         'adRemCBS', //OBRIGATÓRIO
@@ -1151,7 +1151,7 @@ try {
     //Informação do Imposto devolvido
     //O motivo da devolução deverá ser informado pela empresa no campo de Informações Adicionais do Produto (tag:infAdProd).
     $idev = [
-        'item' => 1, //OBRIGATÓRIO referencia ao item da NFe
+        'item' => 1, //OBRIGATÓRIO referência ao item da NFe
         'pDevol' => 85.00, //OBRIGATRÓRIO Percentual da mercadoria devolvida 2 devimais max = 100.00
         'vIPIDevol' => 0.00 ////OBRIGATRÓRIO Valor do IPI devolvido 2 decimais
     ];
@@ -1205,7 +1205,7 @@ try {
     $veic = $mk->tagveictransp((object)$std);
 
     //############################## TAG <transp/reboque> opcional #####################################################
-    //reboque OPCIONAL até 5 registros no maximo
+    //reboque OPCIONAL até 5 registros no máximo
     $std = new \stdClass();
     $std->placa = 'ABC0011';
     $std->UF = 'RJ';
@@ -1271,9 +1271,9 @@ try {
     //bloco fat (FATURA)
     $fat = [
         'nFat' => 'FAT. 1234567', //opcional 1 a 60 caracteres
-        'vOrig' => 1455.95, //opcional numero com até 2 casas decimais
-        'vDesc' => 5.95, //opcional numero com até 2 casas decimais
-        'vLiq' => 1450.00 //opcional numero com até 2 casas decimais
+        'vOrig' => 1455.95, //opcional número com até 2 casas decimais
+        'vDesc' => 5.95, //opcional número com até 2 casas decimais
+        'vLiq' => 1450.00 //opcional número com até 2 casas decimais
     ];
     $tfat = $mk->tagfat((object)$fat);
 
@@ -1282,7 +1282,7 @@ try {
     //para não conflitar com o bloco tagfat, este bloco só é carregado quando for indPag = 1
     //nDup opcional string 1 a 60 caracteres
     //dVenc opcional data de vencimento no formato AAAA-MM-DD
-    //vDup OBRIGATÓRIO numero com até 2 decimais
+    //vDup OBRIGATÓRIO número com até 2 decimais
     $dups = [
         ['nDup' => '001', 'dVenc' => '2018-08-22', 'vDup' => 52.69],
         ['nDup' => '002', 'dVenc' => '2018-09-22', 'vDup' => 52.72],
@@ -1321,7 +1321,7 @@ try {
         //90 Sem pagamento
         //99 Outros
         'xPag' => null, //opcional 2 a 60 caracteres NOTA: obrigatório se tPag = 99
-        'vPag' => 22.66, //OBRIGATÓRIO numero com até 2 decimais
+        'vPag' => 22.66, //OBRIGATÓRIO número com até 2 decimais
         'dPag' => '2018-08-22', //opcional data de pagamento no formato AAAA-MM-DD
         //dados de Grupo de Cartões, PIX, Boletos e outros Pagamentos Eletrônicos
         //TODOS OS CAMPOS ABAIXO SOMENTE DEVEM SER DECLARADOS CASO NECESSÁRIO
@@ -1511,7 +1511,7 @@ try {
             // 7 - Guia Florestal (DOF, SisFlora - PA e MT, SIAM - MG)
         'UFGuia' => 'SP', //OBRIGATÓRIO 2 caracteres
         'serieGuia' => 'CC0001', //opcional Série da Guia de 1 a 9 caracteres
-        'nGuia' => 12 //OBRIGATÓRIO de 1 a 9 digitos
+        'nGuia' => 12 //OBRIGATÓRIO de 1 a 9 dígitos
     ];
     //$agro = $mk->tagAgropecuarioGuia((object)$agro);
 

@@ -34,7 +34,7 @@ A CCe, se for aceita, deve ser protocolada com a resposta da SEFAZ, e ser armaze
 
 Esse documento protocolado também DEVE ser enviado aos destinatários (comprador, transportador, etc.)
 
-Podem existir várias CCe para uma unica NFe, então o "nSeqEvento" deve ser incrementado, a cada nova CCe, para uma mesma NFe.
+Podem existir várias CCe para uma única NFe, então o "nSeqEvento" deve ser incrementado, a cada nova CCe, para uma mesma NFe.
 
 > ATENÇÃO: Os erros reportados na Carta de Correção, são incrementais também, ou seja a segunda CCe deve também incluir os erros reportados na primeira CCe e assim por diante.
 
@@ -102,7 +102,7 @@ try {
 
 ```
 
-## Parametros
+## Parâmetros
 
 | Variável | Detalhamento  |
 | :---:  | :--- |
@@ -176,7 +176,7 @@ try {
 
 ### RETORNO
 
-A variavel $response no exemplo conterá esse XML, ou algo semelhante.
+A variável $response no exemplo conterá esse XML, ou algo semelhante.
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -369,7 +369,7 @@ Já na seção do retorno do evento "\<retEvento\>" :
 
 Caso não passe em alguma validação ou sejam encontrados problemas na comunicação, será SEMPRE retornado um EXCEPTION que deve ser capturado.
 
-Mas os erros não se restringem a esse tipo de falha. Além de falhas na fase de montagem da mensagem e na comunicação podem ser retornados erros relativos a analise pelas regras de negócios da SEFAZ nesse caso os erros deverão ser analisados no xml de retorno.
+Mas os erros não se restringem a esse tipo de falha. Além de falhas na fase de montagem da mensagem e na comunicação podem ser retornados erros relativos a análise pelas regras de negócios da SEFAZ nesse caso os erros deverão ser analisados no xml de retorno.
 
 ### Verificação do Certificado de Transmissão
 

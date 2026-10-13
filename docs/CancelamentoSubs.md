@@ -20,7 +20,7 @@ Normalmente acontece assim:
 - Devido a algum problema ou indisponibilidade, não é possível obter o retorno se aquela NFCe foi ou não autorizada (deu timeout, caiu a conexão, SEFAZ fora do ar, internet indisponível).
 - Sendo necessária realizar a venda, a empresa envia outra NFCe representando a mesma operação, porém agora em contingência Offline (NFCe 2).
 - Quando o problema é resolvido, é verificado que a NFCe 1 havia sido autorizada pela a Sefaz. Porém a NFCe 2 também foi emitida (em contingência) e tem valor legal. Portanto existem 2 notas (NFCe 1 e NFCe 2) acobertando a mesma venda
-- Mas se já se passaram muitos minutos, pode ser que o cancelamento normal da NFCe 1, não seja mais possivel (que é o que acontece em regra geral).
+- Mas se já se passaram muitos minutos, pode ser que o cancelamento normal da NFCe 1, não seja mais possível (que é o que acontece em regra geral).
 - Neste caso, a empresa deve emitir um Cancelamento por Substituição cancelando a NFCe 1 e referenciando que a NFCe 2 foi emitida em seu lugar e é o documento de posse do consumidor.
 
 ### Prazos para os Cancelamentos

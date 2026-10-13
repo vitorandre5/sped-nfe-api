@@ -752,7 +752,7 @@ trait TraitEventsRTC
     }
 
     /**
-     * Resolve variavel verAplic
+     * Resolve variável verAplic
      * @param string|null $verAplic
      * @return string
      */

@@ -1,6 +1,6 @@
 ## CFOP Código Fiscal de Operações e de Prestações
 
-Esse codigo é indicado em cada item nas emissões de notas fiscais, declarações, guias e escrituração de livros. 
+Esse código é indicado em cada item nas emissões de notas fiscais, declarações, guias e escrituração de livros. 
 
 Basicamente, este código define se uma nota fiscal recolhe ou não impostos, o movimento de estoque e financeiro.
 

@@ -45,7 +45,7 @@ class Webservices
             throw new \RuntimeException('Falhou autorizador, parece vazio');
         }
         if (empty($this->std->$auto)) {
-            throw new \RuntimeException("Nao existem webservices cadastrados para [$sigla] no modelo [$modelo]");
+            throw new \RuntimeException("Não existem webservices cadastrados para [$sigla] no modelo [$modelo]");
         }
         $ambiente = $amb == 1 ? 'producao' : 'homologacao';
         $svw = $this->std->$auto->$ambiente;
@@ -78,7 +78,7 @@ class Webservices
         $autfile       = realpath(__DIR__ . '/../../storage/autorizadores.json');
         $autorizadores = json_decode(file_get_contents($autfile), true);
         if (!key_exists($sigla, $autorizadores[$modelo])) {
-            throw new \RuntimeException("Nao existe autorizador [$sigla] para os webservices do modelo [$modelo]");
+            throw new \RuntimeException("Não existe autorizador [$sigla] para os webservices do modelo [$modelo]");
         }
 
         return $autorizadores[$modelo][$sigla];

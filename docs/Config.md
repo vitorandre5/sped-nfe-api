@@ -54,13 +54,13 @@ $json = json_encode($config);
 
 | Campo | Descrição | Uso |
 | :---- | :---- | :---- |
-| atualizacao | Datetime da última atualização dos dados | Apenas uma referência. Não tem utilidade real |
+| atualização | Datetime da última atualização dos dados | Apenas uma referência. Não tem utilidade real |
 | tpAmb | Tipo de Ambiente 1-Produção ou 2-Homologação | Estabelece o ambiente base com o qual a API irá operar |
 | razaosocial | Nome completo do usuário | Será usado em algumas classes. (Pouca relevância em Tools::class) |
 | siglaUF | Sigla da unidade da Federação do usuário | Fundamental para direcionar todas a chamadas aos webservices |
-| cnpj | Numero do CNPJ do usuário | Fundamental para várias operações e validações |
+| cnpj | Número do CNPJ do usuário | Fundamental para várias operações e validações |
 | schemes | Nome da pasta onde estão os schemas | Fundamental para as validações das mensagens com a versão correta do layout |
-| versao | Numero de versão do layout | Fundamental para a localização correta dos arquivos XSD |
+| versao | Número de versão do layout | Fundamental para a localização correta dos arquivos XSD |
 | tokenIBPT | Token de segurança fornecido pelo IBPT | Necessário se desejar buscar os impostos no IBPT |
 | CSC | Token de segurança fornecido pela SEFAZ para NFCe | Necessário para TODAS as operações com NFCe |
 | CSCid | Id do Token de segurança fornecido pela SEFAZ para NFCe | Necessário para TODAS as operações com NFCe |

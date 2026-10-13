@@ -2,7 +2,7 @@
 
 NOTA: Alteração esperada para 2022, tando no CRT como nos CST com a extinção dos COSN
 
-> Este conteúdo é aplicavel apenas as empresas cujo CRT (codigo de regime triburário) igual a 3 (Regime Normal) ou em casos especiais como por exemplo uma DEVOLUÇÃO de mercadoria de uma Empresa classificada nos codigos 1 ou 2  (Simples Nacional), para uma empresa do Regime Normal que forneceu as mercadorias, para fins de retornos dos impostos declarados pela empresa fornecedora.
+> Este conteúdo é aplicavel apenas as empresas cujo CRT (código de regime triburário) igual a 3 (Regime Normal) ou em casos especiais como por exemplo uma DEVOLUÇÃO de mercadoria de uma Empresa classificada nos códigos 1 ou 2  (Simples Nacional), para uma empresa do Regime Normal que forneceu as mercadorias, para fins de retornos dos impostos declarados pela empresa fornecedora.
 > O Regime Normal, engloba empresas que declaram por "LUCRO REAL" ou por "LUCRO PRESUMIDO".
 
 ### ICMS

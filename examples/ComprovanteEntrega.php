@@ -32,7 +32,7 @@ $arr = [
 //monta o config.json
 $configJson = json_encode($arr);
 
-//carrega o conteudo do certificado.
+//carrega o conteúdo do certificado.
 $content = file_get_contents('fixtures/expired_certificate.pfx');
 
 try {
@@ -46,12 +46,12 @@ try {
     $tools->loadSoapClass($soap);
 
     $std = new \stdClass();
-    $std->chNFe = '12345678901234567890123456789012345678901234'; //chave de 44 digitos da nota do fornecedor
+    $std->chNFe = '12345678901234567890123456789012345678901234'; //chave de 44 dígitos da nota do fornecedor
     $std->imagem = 'kakakakakakakakak'; // aqui pode ser colocada uma imagem ou uma string que fará parte do hash
     $std->nSeqEvento = 1;
     $std->verAplic = '1.2.3'; //versão da aplicação que está gerando o evento
     $std->data_recebimento = '2021-04-25T10:34:13-03:00'; //data de recebimento
-    $std->documento_recebedor = '12345678901'; //numero do documento do recebedor
+    $std->documento_recebedor = '12345678901'; //número do documento do recebedor
     $std->nome_recebedor = 'Jose da Silva';
     //$std->latitude = -23.61849;
     //$std->longitude = -46.60987;

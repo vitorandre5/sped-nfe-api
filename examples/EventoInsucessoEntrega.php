@@ -33,7 +33,7 @@ $arr = [
 //monta o config.json
 $configJson = json_encode($arr);
 
-//carrega o conteudo do certificado.
+//carrega o conteúdo do certificado.
 $content = file_get_contents('fixtures/expired_certificate.pfx');
 
 try {
@@ -49,10 +49,10 @@ try {
     $std = new \stdClass();
     $std->cancelar = true; //não é um evento de Cancelamento de Insucesso de Entrega
     $std->protocolo = '123456789012345';
-    $std->chNFe = '35200714403043000122550010000056591412970518'; //chave de 44 digitos da nota do fornecedor
+    $std->chNFe = '35200714403043000122550010000056591412970518'; //chave de 44 dígitos da nota do fornecedor
     $std->verAplic = '1.2.3'; //versão da aplicação que está gerando o evento
-    $std->nSeqEvento = 1; //numero sequencial do evento, incrementar ao incluir outros ou remover
-    $std->data_tentativa = '2024-05-30T13:22:50-03:00'; //data da ultima tentativa de entrega
+    $std->nSeqEvento = 1; //número sequencial do evento, incrementar ao incluir outros ou remover
+    $std->data_tentativa = '2024-05-30T13:22:50-03:00'; //data da última tentativa de entrega
     $std->tentativas = 3;
     $std->tipo_motivo = 4;
     //Motivo do insucesso:

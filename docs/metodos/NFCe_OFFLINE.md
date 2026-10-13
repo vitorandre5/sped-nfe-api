@@ -138,7 +138,7 @@
 
 //Volumes
     $std = new stdClass();
-    $std->item = 1; //indicativo do numero do volume
+    $std->item = 1; //indicativo do número do volume
     $std->qVol = 1;
     $std->esp = 'rolo';
     $std->marca = null;

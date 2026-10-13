@@ -29,12 +29,12 @@ try {
 }    
 ```
 
-## Parametros
+## Parâmetros
 
 | Variável | Detalhamento  |
 | :---:  | :--- |
 | $configJson | string json de configuração |
-| $content | conteudo do certificado A1 (pfx) |
+| $content | conteúdo do certificado A1 (pfx) |
 | $password | senha do certificado A1 (pfx) |
 | $xml | String contendo o xml de uma NFe |
 

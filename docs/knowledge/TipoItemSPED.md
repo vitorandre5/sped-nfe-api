@@ -25,7 +25,7 @@ Por exemplo, em linhas gerais, materiais de uso e consumo não concedem direito 
 
 Determinados produtos, por exemplo, podem mudar totalmente a tributação da NF-e dependendo do destino que o seu cliente dará ao seu produto.
 
-Além disso, as operações de entrada, saida e transformações (resultados de operações industriais ou de manipulação em atacadistas) deverão também serem reportados pelo SPED (EFD ICMS IPI e pelo EFD Contribuições).
+Além disso, as operações de entrada, saída e transformações (resultados de operações industriais ou de manipulação em atacadistas) deverão também serem reportados pelo SPED (EFD ICMS IPI e pelo EFD Contribuições).
 
 ### 00 - Mercadoria para Revenda
 

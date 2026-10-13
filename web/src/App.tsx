@@ -210,7 +210,7 @@ function App() {
     if (next && new Date(next).getTime() > Date.now()) {
       return 'Sincronização automática programada'
     }
-    return latestRun || syncCursors.some((item) => item.last_run_at) ? 'Pronta para nova consulta' : 'Ainda nao sincronizada'
+    return latestRun || syncCursors.some((item) => item.last_run_at) ? 'Pronta para nova consulta' : 'Ainda não sincronizada'
   }, [syncCursors, latestRun])
 
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['documents', organizationId] })
@@ -478,7 +478,7 @@ function CompanyDialog({ organizationId, onClose, onSaved, onNotice }: { organiz
     event.preventDefault(); if (!supabase) return
     if (registryLoading) { onNotice({ tone: 'info', text: 'Aguarde a consulta pública terminar; se estiver indisponível, o cadastro manual será liberado.' }); return }
     const normalized = normalizeTaxId(cnpj)
-    if (!/^[A-Z0-9]{12}[0-9]{2}$/.test(normalized)) { onNotice({ tone: 'error', text: 'Informe CNPJ com 14 caracteres validos.' }); return }
+    if (!/^[A-Z0-9]{12}[0-9]{2}$/.test(normalized)) { onNotice({ tone: 'error', text: 'Informe CNPJ com 14 caracteres válidos.' }); return }
     setWorking(true)
     try {
       const { error } = await supabase.from('companies').insert({

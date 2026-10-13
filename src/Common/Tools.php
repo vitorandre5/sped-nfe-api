@@ -230,7 +230,7 @@ class Tools
 
     /**
      * Return J or F from existing type in ASN.1 certificate
-     * J - pessoa juridica (CNPJ)
+     * J - pessoa jurídica (CNPJ)
      * F - pessoa física (CPF)
      */
     public function getTypeOfPersonFromCertificate(): string
@@ -493,9 +493,9 @@ class Tools
         $stdServ = $webs->get($sigla, $tpAmb, $this->modelo);
         if (empty($stdServ->$service->url)) {
             if ($sigla === 'SVCRS' || $sigla === 'SVCAN') {
-                throw new \RuntimeException("Servico [$service] indisponivel na Contingencia [$sigla]");
+                throw new \RuntimeException("Serviço [$service] indisponível na Contingôncia [$sigla]");
             } else {
-                throw new \RuntimeException("Servico [$service] indisponivel UF [$uf] ou modelo [$this->modelo]");
+                throw new \RuntimeException("Serviço [$service] indisponível UF [$uf] ou modelo [$this->modelo]");
             }
         }
         //NT 2024.002 1.00 Maio/2024, comentário P08 elemento cOrgao

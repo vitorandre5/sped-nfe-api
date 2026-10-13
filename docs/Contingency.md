@@ -2,7 +2,7 @@
 
 Em condições normais as NFe emitidas tem a propriedade &lt;tpEmis&gt; com o valor igual a 1-Emissão normal.
 
-Quando a conexão via internet com a SEFAZ autorizadora não é possivel, existem alternativas para permitir a emissão dos documentos mesmo nessas condições.
+Quando a conexão via internet com a SEFAZ autorizadora não é possível, existem alternativas para permitir a emissão dos documentos mesmo nessas condições.
 
 Ao ativar qualquer contigência o XML da NFe deve ser remontado ou modificado e assinado novamente com as seguintes alterações:
 - &lt;tpEmis&gt; indicar o número do modo de contingência utilizado
@@ -101,11 +101,11 @@ Este processo envia o EPEC para o ambiente nacional da NFe.
 
 ### EPEC NFCe (mod 65)
 
-Este processo envia o EPEC para o webservice de registro de EPEC especifico para NFCe, exclusivamente no estado de São Paulo.
+Este processo envia o EPEC para o webservice de registro de EPEC específico para NFCe, exclusivamente no estado de São Paulo.
 
 > NOTA: não existe EPEC para NFCe em outros estados, neles deve ser usada a contingência OFFLINE
 
-Este modo de contingência é diferente dos demais por que na verdade irá enviar um evento especifico para o webservices de Registro de Eventos do Ambiente Nacional. Normalmente usa-se esse tipo de contingência em caso da SEFAZ autorizadora estar fora do ar, bem como o Serviço Virtual de Contingência também, e isso é uma situação muito rara de ocorrer.
+Este modo de contingência é diferente dos demais por que na verdade irá enviar um evento específico para o webservices de Registro de Eventos do Ambiente Nacional. Normalmente usa-se esse tipo de contingência em caso da SEFAZ autorizadora estar fora do ar, bem como o Serviço Virtual de Contingência também, e isso é uma situação muito rara de ocorrer.
 
 > IMPORTANTE: a emissão de um evento EPEC cria a pendência do envio de uma nota que seja autorizada ou denegada dentro do limite de 7 dias para que seja vinculada ao EPEC, caso contrario, se algum evento EPEC não for vinculado ao uma NFe/NFCe, o emitente ficará **bloqueado e não mais porderá enviar eventos EPEC**. 
 
@@ -136,7 +136,7 @@ Como deve ser feito o processo no seu sistema:
 ```php
 
 $cert = Certificate::readPfx(file_get_contents('certificado.pfx'), 'senha');
-//recarrega a contingencia que foi enteriormente ativada e gravada em cache
+//recarrega a contingência que foi enteriormente ativada e gravada em cache
 $cont = null;
 if (!empty($json_contingencia_do_cache)) {
     $cont = new Contingency($json_contingencia_do_cache);
@@ -145,10 +145,10 @@ if (!empty($json_contingencia_do_cache)) {
 $tools = new Tools($configJson, $cert, $cont);
 $tools->model(55); 
 ```
-5. ou carregue diretamente a proriedade publica da classe $tools->contingency 
+5. ou carregue diretamente a proriedade pública da classe $tools->contingency 
 ```php
 $cert = Certificate::readPfx(file_get_contents('certificado.pfx'), 'senha');
-//recarrega a contingencia que foi enteriormente ativada e gravada em cache
+//recarrega a contingência que foi enteriormente ativada e gravada em cache
 $cont = null;
 if (!empty($json_contingencia_do_cache)) {
     $cont = new Contingency($json_contingencia_do_cache);
@@ -236,7 +236,7 @@ public $type;
 public $motive;
 
 @var string
-> Motivo da entrada em contingência, texto com no minimo 15 caracteres e no máximo 255.
+> Motivo da entrada em contingência, texto com no mínimo 15 caracteres e no máximo 255.
 
 > NOTA: somente são aceitos caracteres UTF-8 e não devem ser usados simbolos.
 
@@ -249,36 +249,36 @@ public $timestamp;
 public $tpEmis;
 
 @var int
-> Codigo numerico que representa os tipos de contingência acima indicados. Esse codigo fará parte na montagem as NFe no campo &lt;tpEmis&gt;.
+> Código numérico que representa os tipos de contingência acima indicados. Esse código fará parte na montagem as NFe no campo &lt;tpEmis&gt;.
 
 
 ## Métodos
 
-Construtor, caso seja passado o parametro, uma string JSON, a condição de contingência contida nessa string será registrada na classe.
+Construtor, caso seja passado o parâmetro, uma string JSON, a condição de contingência contida nessa string será registrada na classe.
 Caso nada seja passado a classe irá considerar condição de emissão normal.
 ```php
 $cont = new Contingency($string_Json_Contingencia);
 ```
 
-Essa é outra forma de passar o parametro (string JSON) para a classe.
+Essa é outra forma de passar o parâmetro (string JSON) para a classe.
 ```php
 $cont = (new Contingency())->load($string_Json_Contingencia);
 ```
 
 Esse método ativa o modo de continência da classe.
-Os parametros são:
+Os parâmetros são:
 ```php
 $sigla = 'SP'; //a sigla do estado do emitente da NFe
-$motivo = 'SEFAZ SP fora do ar por problemas técnicos'; //motivo da entrada em contingencia de 15 a 256 caracteres UTF-8
-$tipo = ''; //não é necessario de forma geral 
+$motivo = 'SEFAZ SP fora do ar por problemas técnicos'; //motivo da entrada em contingência de 15 a 256 caracteres UTF-8
+$tipo = ''; //não é necessário de forma geral 
 $cont = (new Contingency())->activate($sigla, $motivo, $tipo);
 ```
 
 Esse método desativa o modo de contingência e retorna uma string json com os valores padrões.
 ```php
 $sigla = 'SP'; //a sigla do estado do emitente da NFe
-$motivo = 'SEFAZ SP fora do ar por problemas técnicos'; //motivo da entrada em contingencia de 15 a 256 caracteres UTF-8
-$tipo = ''; //não é necessario de forma geral
+$motivo = 'SEFAZ SP fora do ar por problemas técnicos'; //motivo da entrada em contingência de 15 a 256 caracteres UTF-8
+$tipo = ''; //não é necessário de forma geral
 $cont = new Contingency();
 $status_json_contingencia_ativada = $cont->activate($sigla, $motivo, $tipo);
 

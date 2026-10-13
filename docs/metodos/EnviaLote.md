@@ -27,7 +27,7 @@ try {
         return "[$std->cStat] $std->xMotivo";
     }
     $recibo = $std->infRec->nRec;
-    //esse recibo deve ser guardado para a proxima operação que é a consulta do recibo
+    //esse recibo deve ser guardado para a próxima operação que é a consulta do recibo
     header('Content-type: text/xml; charset=UTF-8');
     echo $resp;
 } catch (\Exception $e) {
@@ -38,7 +38,7 @@ try {
 
 # IMPORTANTE: Envio de lote em Contingência SVC-AN ou SVC-RS
 
-Quando em modo de contigência SVC alguns parametros da NFe devem ser alterados para indicar esse emissão em contigência.
+Quando em modo de contigência SVC alguns parâmetros da NFe devem ser alterados para indicar esse emissão em contigência.
 
 A API irá prover essas alterações automaticamente, mas isso cria um problema, pois o XML da NFe é alterado, portanto será diferente do original que foi criado para ambiente normal, e isso irá impossibilitar a junção com o protocolo de autorização pois os DIGEST do documento original será diferente do documento efetivamente enviado à SEFAZ em modo de contingência.
 

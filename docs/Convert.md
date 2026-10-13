@@ -10,7 +10,7 @@ A estrutura do txt, está indicada no documento [EstruturaTxt](EstruturaTxt.md) 
 
 public static function toXML($txt)
 
-## Parametros
+## Parâmetros
 
 | Variável | Detalhamento  |
 | :---:  | :--- |
@@ -59,7 +59,7 @@ try {
 
 ## Exceptions e Erros
 
-O TXT passado como parametro, será VALIDADO, com referência as [regras estabelecidas](EstruturaTxt.md), antes de sua conversão.
+O TXT passado como parâmetro, será VALIDADO, com referência as [regras estabelecidas](EstruturaTxt.md), antes de sua conversão.
 
 Se alguma falha for detectada será disparada uma Exception com o motivo.
 

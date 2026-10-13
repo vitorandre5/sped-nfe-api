@@ -70,84 +70,84 @@ trait TraitTagEntrega
             "xLgr",
             $std->xLgr,
             true,
-            $identificador . "Logradouro do Endereco do Cliente da Entrega"
+            $identificador . "Logradouro do Endereço do Cliente da Entrega"
         );
         $this->dom->addChild(
             $this->entrega,
             "nro",
             $std->nro,
             true,
-            $identificador . "Número do Endereco do Cliente da Entrega"
+            $identificador . "Número do Endereço do Cliente da Entrega"
         );
         $this->dom->addChild(
             $this->entrega,
             "xCpl",
             $std->xCpl,
             false,
-            $identificador . "Complemento do Endereco do Cliente da Entrega"
+            $identificador . "Complemento do Endereço do Cliente da Entrega"
         );
         $this->dom->addChild(
             $this->entrega,
             "xBairro",
             $std->xBairro,
             true,
-            $identificador . "Bairro do Endereco do Cliente da Entrega"
+            $identificador . "Bairro do Endereço do Cliente da Entrega"
         );
         $this->dom->addChild(
             $this->entrega,
             "cMun",
             $std->cMun,
             true,
-            $identificador . "Código do município do Endereco do Cliente da Entrega"
+            $identificador . "Código do município do Endereço do Cliente da Entrega"
         );
         $this->dom->addChild(
             $this->entrega,
             "xMun",
             $std->xMun,
             true,
-            $identificador . "Nome do município do Endereco do Cliente da Entrega"
+            $identificador . "Nome do município do Endereço do Cliente da Entrega"
         );
         $this->dom->addChild(
             $this->entrega,
             "UF",
             $std->UF,
             true,
-            $identificador . "Sigla da UF do Endereco do Cliente da Entrega"
+            $identificador . "Sigla da UF do Endereço do Cliente da Entrega"
         );
         $this->dom->addChild(
             $this->entrega,
             "CEP",
             $std->CEP,
             false,
-            $identificador . "CEP do Endereco do Cliente da Entrega"
+            $identificador . "CEP do Endereço do Cliente da Entrega"
         );
         $this->dom->addChild(
             $this->entrega,
             "cPais",
             $std->cPais,
             false,
-            $identificador . "Codigo do Pais do Endereco do Cliente da Entrega"
+            $identificador . "Código do País do Endereço do Cliente da Entrega"
         );
         $this->dom->addChild(
             $this->entrega,
             "xPais",
             $std->xPais,
             false,
-            $identificador . "Pais do Endereco do Cliente da Entrega"
+            $identificador . "País do Endereço do Cliente da Entrega"
         );
         $this->dom->addChild(
             $this->entrega,
             "fone",
             $std->fone,
             false,
-            $identificador . "Fone do Endereco do Cliente da Entrega"
+            $identificador . "Fone do Endereço do Cliente da Entrega"
         );
         $this->dom->addChild(
             $this->entrega,
             "email",
             $std->email,
             false,
-            $identificador . "Email do Endereco do Cliente da Entrega"
+            $identificador . "Email do Endereço do Cliente da Entrega"
         );
         $this->dom->addChild(
             $this->entrega,

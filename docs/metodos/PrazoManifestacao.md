@@ -13,7 +13,7 @@ Como regra geral os eventos poderão ser registrados em até 90 (noventa) dias, 
 
 Depois de registrado algum dos eventos em uma NF-e, as retificações só poderão ser realizadas em até 30 (trinta) dias, contados da primeira manifestação.
 
-## Obrigatoriedade especificas e Prazos a Nível Federal
+## Obrigatoriedade específicas e Prazos a Nível Federal
 É obrigatório o registro da “Confirmação da Operação” e/ou “Operação não Realizada” e/ou “Desconhecimento da Operação” pelo destinatário toda NF-e que atenda um dos critérios abaixo:
 
 *I – Exija o preenchimento do Grupo Detalhamento Específico de Combustíveis, nos casos de circulação de mercadoria destinada a:* 
@@ -57,12 +57,12 @@ Depois de registrado algum dos eventos em uma NF-e, as retificações só poder�
 Considerando as premissas acima, segue obrigatoriedade e prazos estabelecidos pelos em cada estado até o momento.
 
 > ### Acre (AC)
-> Não tem obrigatoriedade especifica no estado. Segue apenas a legislação federal.
+> Não tem obrigatoriedade específica no estado. Segue apenas a legislação federal.
 > 
 > Para mais detalhes veja Art. 258-V do RICMS (DECRETO 008/98).
 
 > ### Amapá (AP)
-> Não tem obrigatoriedade especifica no estado. Segue apenas a legislação federal.
+> Não tem obrigatoriedade específica no estado. Segue apenas a legislação federal.
 > 
 > Para mais detalhes veja ANEXO XIII-B do RICMS (DECRETO 2269/98).
 
@@ -93,22 +93,22 @@ Considerando as premissas acima, segue obrigatoriedade e prazos estabelecidos pe
 > Para mais detalhes veja Art. 90, Inciso 14 do RICMS (DECRETO Nº 13.780/12).
 
 > ### Ceará (CE)
-> Não tem obrigatoriedade especifica no estado. Segue apenas a legislação federal.
+> Não tem obrigatoriedade específica no estado. Segue apenas a legislação federal.
 > 
 > O  RICMS(DECRETO 24.569/97) não está atualizado conforme legislação federal AJUSTE SINIEF 007/05.
 
 > ### Distrito Federal (DF)
-> Não tem obrigatoriedade especifica no estado. Segue apenas a legislação federal.
+> Não tem obrigatoriedade específica no estado. Segue apenas a legislação federal.
 > 
 > Para mais detalhes veja Art. 19-A da PORTARIA 403 / 2009.
 
 > ### Espírito Santo (ES)
-> Não tem obrigatoriedade especifica no estado. Segue apenas a legislação federal.
+> Não tem obrigatoriedade específica no estado. Segue apenas a legislação federal.
 > 
 > Para mais detalhes veja TÍTULO III, Seção II-A , Art. 543-P-A do RICMS (DECRETO 1.090-R/02).
 
 > ### Goiás (GO)
-> Não tem obrigatoriedade especifica no estado. Segue apenas a legislação federal.
+> Não tem obrigatoriedade específica no estado. Segue apenas a legislação federal.
 > 
 > Para mais detalhes veja Art. 167-Q  do RCTE (DECRETO 4.852/97).
 
@@ -142,44 +142,44 @@ Considerando as premissas acima, segue obrigatoriedade e prazos estabelecidos pe
 > Para mais detalhes veja Subseção VII do RICMS (DECRETO 19.714/03).
 
 > ### Mato Grosso (MT)
-> Não tem obrigatoriedade especifica no estado. Segue apenas a legislação federal.
+> Não tem obrigatoriedade específica no estado. Segue apenas a legislação federal.
 > 
 > Para mais detalhes veja o anexo único da Portaria 163/2007-SEFAZ.
 
 > ### Mato Grosso do Sul (MS)
-> Não tem obrigatoriedade especifica no estado. Segue apenas a legislação federal.
+> Não tem obrigatoriedade específica no estado. Segue apenas a legislação federal.
 > 
 > Para mais detalhes veja o Sub-anexo XII ao Anexo XV do Regulamento de ICMS.
 
 > ### Minas Gerais (MG)
-> Não tem obrigatoriedade especifica no estado. Segue apenas a legislação federal.
+> Não tem obrigatoriedade específica no estado. Segue apenas a legislação federal.
 > 
 > Para mais detalhes veja Art. 11-K do Anexo V do RICMS (DECRETO 43.080/02).
 
 > ### Pará (PA)
-> Não tem obrigatoriedade especifica no estado. Segue apenas a legislação federal.
+> Não tem obrigatoriedade específica no estado. Segue apenas a legislação federal.
 > 
 > Para mais detalhes veja Art. 182-RB do RICMS (DECRETO 4.676/01).
 
 > ### Paraíba (PB)
-> Não tem obrigatoriedade especifica no estado. Segue apenas a legislação federal.
+> Não tem obrigatoriedade específica no estado. Segue apenas a legislação federal.
 > 
 > Para mais detalhes veja Anexo 117 do RICMS (DECRETO 18.930/97).
 
 > ### Paraná (PR)
-> Não tem obrigatoriedade especifica no estado. Segue apenas a legislação federal.
+> Não tem obrigatoriedade específica no estado. Segue apenas a legislação federal.
 > 
 > Para mais detalhes veja Art. 16-A do RICMS (DECRETO 6.080/12).
 
 > ### Pernambuco (PE)
-> Não tem obrigatoriedade especifica no estado. Segue apenas a legislação federal.
+> Não tem obrigatoriedade específica no estado. Segue apenas a legislação federal.
 > 
 > Mais detalhes, acesse o site sobre este assunto no estado.
 > 
-> Nota : Não existe nenhuma referencia a Manifestação do Destinatário no RICMS (DECRETO 14.876/91).
+> Nota : Não existe nenhuma referência a Manifestação do Destinatário no RICMS (DECRETO 14.876/91).
 
 > ### Piauí (PI)
-> Não tem obrigatoriedade especifica no estado. Segue apenas a legislação federal.
+> Não tem obrigatoriedade específica no estado. Segue apenas a legislação federal.
 > 
 > Para mais detalhes veja o Anexo CCLXXXI – A do RICMS (DECRETO 13.500/08).
  
@@ -209,12 +209,12 @@ Considerando as premissas acima, segue obrigatoriedade e prazos estabelecidos pe
 > Prazos :  Foi estabelecido os mesmos prazos da obrigatoriedade federal conforme a Instrução Normativa DRP Nº 045/98, Título I, Capítulo XI, Seção 20.0, Item 20.11
 
 > ### Rondônia (RO)
-> Não tem obrigatoriedade especifica no estado. Segue apenas a legislação federal.
+> Não tem obrigatoriedade específica no estado. Segue apenas a legislação federal.
 > 
 > Para mais detalhes veja Art. 196-P4 do RICMS (DECRETO 8321/08).
 
 > ### Roraima (RR)
-> Não tem obrigatoriedade especifica no estado. Segue apenas a legislação federal.
+> Não tem obrigatoriedade específica no estado. Segue apenas a legislação federal.
 > 
 > Para mais detalhes veja Art. 186-PC do RICMS (DECRETO 4.335/01).
 
@@ -229,16 +229,16 @@ Considerando as premissas acima, segue obrigatoriedade e prazos estabelecidos pe
 > Para Mais detalhes, acesse o Anexo 11 do RICMS(DECRETO 2.870/01).
 
 > ### Sergipe (SE)
-> Não tem obrigatoriedade especifica no estado. Segue apenas a legislação federal.
+> Não tem obrigatoriedade específica no estado. Segue apenas a legislação federal.
 > 
 > Para mais detalhes veja Anexo LXXXVIII do RICMS (DECRETO 21.400/02).
 
 > ### São Paulo (SP)
-> Não tem obrigatoriedade especifica no estado. Segue apenas a legislação federal.
+> Não tem obrigatoriedade específica no estado. Segue apenas a legislação federal.
 > 
 > Para mais detalhes veja Anexo IV da Portaria CAT 162/08.
 
 > ### Tocantins (TO)
-> Não tem obrigatoriedade especifica no estado. Segue apenas a legislação federal.
+> Não tem obrigatoriedade específica no estado. Segue apenas a legislação federal.
 > 
 > Para mais detalhes veja Art. 153-K do RICMS (DECRETO 2.912/06).
