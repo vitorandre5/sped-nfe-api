@@ -33,6 +33,15 @@ final class DanfeService
 
         $root = $document->documentElement?->localName;
         $normalizedType = strtolower($documentType);
+        if (in_array($normalizedType, ['nfe55', 'nfe55_hom'], true) && $root === 'resNFe') {
+            throw new FiscalException(
+                'A SEFAZ disponibilizou apenas o resumo desta NF-e. O DANFE exige o XML completo; este sistema não envia manifestação fiscal automaticamente. Faça a manifestação adequada para solicitar o XML completo.',
+                'NFE_SUMMARY_ONLY',
+                [],
+                422
+            );
+        }
+
         if (in_array($normalizedType, ['nfe55', 'nfe55_hom'], true) && in_array($root, ['NFe', 'nfeProc'], true)) {
             $className = \NFePHP\DA\NFe\Danfe::class;
         } elseif (in_array($normalizedType, ['nfse', 'nfse_hom'], true) && $root === 'NFSe') {
