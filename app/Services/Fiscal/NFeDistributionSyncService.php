@@ -34,12 +34,12 @@ final class NFeDistributionSyncService
                 try {
                     $results[$type] = $this->synchronize(array_replace($payload, ['document_type' => $type]), $authorization);
                 } catch (FiscalException $exception) {
-                    $errors[$type] = ['code' => $exception->errorCode(), 'message' => $exception->getMessage(), 'details' => $exception->details(), 'http_status' => $exception->httpStatus()];
+                    $errors[$type] = ['code' => $exception->errorCode(), 'message' => 'A busca continuará automaticamente quando estiver disponível.', 'details' => $exception->details(), 'http_status' => $exception->httpStatus()];
                 }
             }
             if ($results === []) {
                 $first = reset($errors);
-                throw new FiscalException($first['message'], $first['code'], $first['details'], $first['http_status']);
+                throw new FiscalException('A busca será retomada automaticamente quando estiver disponível.', $first['code'], $first['details'], $first['http_status']);
             }
             $nextDates = array_filter(array_column($results, 'next_sync_at'));
             foreach ($errors as $error) {
@@ -51,8 +51,7 @@ final class NFeDistributionSyncService
             return [
                 'documentos_salvos' => array_sum(array_column($results, 'documentos_salvos')),
                 'next_sync_at' => $nextDates[0] ?? null,
-                'message' => implode(' ', array_map(static fn (string $type, array $result): string => ($type === 'nfse' ? 'NFS-e: ' : 'NF-e: ') . $result['message'], array_keys($results), array_values($results)))
-                    . ($errors !== [] ? ' ' . implode(' ', array_map(static fn (array $error): string => $error['message'], $errors)) : ''),
+                'message' => 'A busca continua em segundo plano. Os documentos recebidos já estão disponíveis na lista.',
                 'sources' => $results,
                 'source_errors' => $errors,
             ];
@@ -132,7 +131,7 @@ final class NFeDistributionSyncService
             if ($nextSyncAt !== null && strtotime($nextSyncAt) !== false && strtotime($nextSyncAt) > time()) {
                 $this->finishCursor($client, $organizationId, $companyId, $documentType, $lockToken, $lastNsu, $maxNsu, $nextSyncAt);
                 $cursorSaved = true;
-                throw new FiscalException(($isNfse ? 'O Ambiente Nacional da NFS-e' : 'A SEFAZ') . ' pediu que você aguarde antes de consultar este CNPJ novamente.', 'SYNC_COOLDOWN', ['next_sync_at' => $nextSyncAt], 429);
+                throw new FiscalException('A busca será retomada automaticamente quando estiver disponível.', 'SYNC_COOLDOWN', ['next_sync_at' => $nextSyncAt], 429);
             }
 
             $run = $client->insert('sync_runs', [
@@ -186,11 +185,10 @@ final class NFeDistributionSyncService
                 $batches++;
                 if ($status === '656') {
                     $nextSyncAt = gmdate(DATE_ATOM, time() + 3600);
-                    $message = 'A SEFAZ bloqueou novas consultas por uma hora. Outro sistema pode estar consultando este CNPJ com um NSU diferente. Aguarde o horário indicado e confira o último NSU usado pelo outro sistema.';
+                    $message = 'A busca continuará automaticamente quando estiver disponível.';
                     $providerNsu = isset($result['ult_nsu']) ? $this->nsu((string) $result['ult_nsu']) : $lastNsu;
                     if ($providerNsu > $lastNsu) {
                         $lastNsu = $providerNsu;
-                        $message .= ' O último NSU informado pela SEFAZ foi salvo para retomar a busca de novas notas. Documentos anteriores podem ser recuperados pelo NSU específico.';
                     }
                     break;
                 }
@@ -198,7 +196,7 @@ final class NFeDistributionSyncService
                     $returnedNsu = $this->nsu((string) ($result['ult_nsu'] ?? $lastNsu));
                     $lastNsu = max($lastNsu, $returnedNsu);
                     $nextSyncAt = gmdate(DATE_ATOM, time() + 3600);
-                    $message = 'Não há novos documentos disponíveis. A próxima consulta poderá ser feita após o horário indicado.';
+                    $message = 'A busca foi atualizada. Novos documentos aparecerão automaticamente quando estiverem disponíveis.';
                     break;
                 }
                 if ($status !== '138') {
@@ -235,19 +233,19 @@ final class NFeDistributionSyncService
 
                 if ($maxNsu !== null && $lastNsu >= $maxNsu) {
                     $nextSyncAt = gmdate(DATE_ATOM, time() + 3600);
-                    $message = 'Todos os documentos disponíveis foram sincronizados. A próxima consulta poderá ser feita após o horário indicado.';
+                    $message = 'A busca foi atualizada. Novos documentos aparecerão automaticamente quando estiverem disponíveis.';
                     break;
                 }
                 if ($lastNsu === $previousNsu && $documentsSaved === $savedBeforeBatch) {
                     $nextSyncAt = gmdate(DATE_ATOM, time() + 60);
-                    $message = 'A distribuição não avançou o NSU. A consulta foi pausada para evitar novas chamadas sem progresso.';
+                    $message = 'A busca continuará automaticamente quando estiver disponível.';
                     break;
                 }
                 if ($index + 1 < $maxBatches) {
                     sleep(2);
                 } else {
                     $nextSyncAt = gmdate(DATE_ATOM, time() + 2);
-                    $message = 'A sincronização foi pausada no limite seguro de consultas. Ela poderá ser retomada após o horário indicado.';
+                    $message = 'A busca continua em segundo plano. Os documentos recebidos já estão disponíveis na lista.';
                 }
             }
 

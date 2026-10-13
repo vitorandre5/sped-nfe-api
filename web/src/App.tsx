@@ -47,6 +47,12 @@ const formatDate = (value: string | null) => value
   : '—'
 const shortKey = (value: string | null) => value ? `${value.slice(0, 6)}…${value.slice(-4)}` : 'Resumo DF-e'
 const documentLabel = (type: string) => type === 'nfse' ? 'NFS-e' : type === 'cte57' ? 'CT-e' : 'NF-e'
+const syncFailureMessage = (code?: string) => {
+  if (code === 'AUTH_REQUIRED') return 'Sua sessão expirou. Entre novamente para continuar.'
+  if (code?.startsWith('CERTIFICATE_')) return 'Não foi possível validar o certificado A1. Confira o arquivo e a senha.'
+  if (code === 'SYNC_COOLDOWN' || code === 'SYNC_ALREADY_RUNNING') return 'A busca continuará automaticamente quando estiver disponível.'
+  return 'Não foi possível atualizar os documentos agora. A busca continuará automaticamente quando estiver disponível.'
+}
 
 function App() {
   const [session, setSession] = useState<Session | null>(null)
@@ -149,9 +155,9 @@ function App() {
           headers: { Authorization: `Bearer ${sessionData.session.access_token}` },
           body: form,
         })
-        const result = await response.json() as { success?: boolean; message?: string; details?: { next_sync_at?: string | null }; data?: { message?: string; documentos_salvos?: number; next_sync_at?: string | null } }
+        const result = await response.json() as { success?: boolean; code?: string; details?: { next_sync_at?: string | null }; data?: { message?: string; documentos_salvos?: number; next_sync_at?: string | null } }
         if (!response.ok || !result.success || !result.data) {
-          const error = new Error(result.message ?? 'A sincronização automática falhou.') as Error & { nextSyncAt?: string | null }
+          const error = new Error(syncFailureMessage(result.code)) as Error & { nextSyncAt?: string | null }
           error.nextSyncAt = result.details?.next_sync_at
           throw error
         }
@@ -168,10 +174,10 @@ function App() {
           if ('Notification' in window && Notification.permission === 'granted') new Notification('Fiscal · novas notas', { body: text })
         }
       } catch (error) {
-        setNotice({ tone: 'error', text: error instanceof Error ? error.message : 'Falha na sincronização automática.' })
+        setNotice({ tone: 'info', text: error instanceof Error ? error.message : 'A busca continuará automaticamente quando estiver disponível.' })
         const nextSyncAt = error instanceof Error && 'nextSyncAt' in error && typeof error.nextSyncAt === 'string'
           ? error.nextSyncAt
-          : new Date(Date.now() + 15 * 60 * 1000).toISOString()
+          : new Date(Date.now() + 60 * 60 * 1000).toISOString()
         setAutoSync((current) => current.map((item) => item.companyId === due.companyId && item.documentType === due.documentType
           ? { ...item, nextSyncAt }
           : item))
@@ -236,6 +242,7 @@ function App() {
       if (error) throw error
       return { rows: (data ?? []) as FiscalDocument[], total: count ?? 0 }
     },
+    refetchInterval: busy || autoSync.length > 0 ? 3000 : false,
   })
 
   const documents = documentResult.rows
@@ -251,7 +258,7 @@ function App() {
     const next = syncCursors.map((item) => item.next_sync_at).filter((value): value is string => Boolean(value))
       .sort((a, b) => b.localeCompare(a))[0]
     if (next && new Date(next).getTime() > Date.now()) {
-      return `Aguardando liberacao ate ${new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(next))}`
+      return 'Sincronização automática programada'
     }
     return latestRun || syncCursors.some((item) => item.last_run_at) ? 'Pronta para nova consulta' : 'Ainda nao sincronizada'
   }, [syncCursors, latestRun])
@@ -569,19 +576,20 @@ function SyncDialog({ companies, initialCompanyId, organizationId, onClose, onNo
         headers: { Authorization: `Bearer ${sessionData.session.access_token}` },
         body: form,
       })
-      const result = await response.json() as { success?: boolean; message?: string; data?: { message?: string; documentos_salvos?: number; next_sync_at?: string | null; sources?: Partial<Record<'nfe55' | 'nfse', { next_sync_at?: string | null }>>; source_errors?: Partial<Record<'nfe55' | 'nfse', { details?: { next_sync_at?: string | null } }>> } }
-      if (!response.ok || !result.success || !result.data) throw new Error(result.message ?? 'Nao foi possivel concluir a sincronizacao.')
+      const result = await response.json() as { success?: boolean; code?: string; details?: { next_sync_at?: string | null }; data?: { message?: string; documentos_salvos?: number; next_sync_at?: string | null; sources?: Partial<Record<'nfe55' | 'nfse', { next_sync_at?: string | null }>>; source_errors?: Partial<Record<'nfe55' | 'nfse', { details?: { next_sync_at?: string | null } }>> } }
+      if (!response.ok || !result.success || !result.data) throw new Error(syncFailureMessage(result.code))
       const count = result.data.documentos_salvos ?? 0
-      const next = result.data.next_sync_at ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(result.data.next_sync_at)) : null
-      onNotice({ tone: 'success', text: `${result.data.message ?? 'Sincronizacao concluida.'} ${count} documento${count === 1 ? '' : 's'} recebido${count === 1 ? '' : 's'}${next ? ` Proxima consulta a partir de ${next}.` : ''}` })
+      onNotice({ tone: 'success', text: count > 0
+        ? `${count} documento${count === 1 ? '' : 's'} recebido${count === 1 ? '' : 's'}. A busca continua em segundo plano.`
+        : 'Sincronização iniciada. Os documentos aparecerão nesta página conforme forem recebidos.' })
       for (const documentType of ['nfe55', 'nfse'] as const) {
         const source = result.data.sources?.[documentType]
         const sourceError = result.data.source_errors?.[documentType]
-        if (source || sourceError) onEnableAuto({ documentType, companyId: company.id, file, password, nextSyncAt: source?.next_sync_at ?? sourceError?.details?.next_sync_at ?? new Date(Date.now() + 15 * 60 * 1000).toISOString() })
+        if (source || sourceError) onEnableAuto({ documentType, companyId: company.id, file, password, nextSyncAt: source?.next_sync_at ?? sourceError?.details?.next_sync_at ?? result.data.next_sync_at ?? new Date(Date.now() + 60 * 60 * 1000).toISOString() })
       }
       onDone()
     } catch (error) {
-      onNotice({ tone: 'error', text: error instanceof Error ? error.message : 'Falha ao sincronizar os documentos.' })
+      onNotice({ tone: 'info', text: error instanceof Error ? error.message : 'A busca continuará automaticamente quando estiver disponível.' })
     } finally {
       setWorking(false); onBusy(false); setPhase(''); setPassword(''); setFile(null)
       if (certificateInput.current) certificateInput.current.value = ''
