@@ -14,10 +14,13 @@ final class NFeDistributionSyncService
 
     private FiscalDocumentXmlParser $parser;
 
-    public function __construct(NFeService $nfeService, FiscalDocumentXmlParser $parser)
+    private CompanyCertificateVault $certificateVault;
+
+    public function __construct(NFeService $nfeService, FiscalDocumentXmlParser $parser, CompanyCertificateVault $certificateVault)
     {
         $this->nfeService = $nfeService;
         $this->parser = $parser;
+        $this->certificateVault = $certificateVault;
     }
 
     /**
@@ -78,7 +81,7 @@ final class NFeDistributionSyncService
         $companyRows = $client->select('companies', [
             'id' => $companyId,
             'organization_id' => $organizationId,
-        ], 'id,organization_id,cnpj,state,name');
+        ], 'id,organization_id,cnpj,state,name,certificate_expires_at');
         if ($companyRows === []) {
             throw new FiscalException('A empresa não pertence à sua organização.', 'COMPANY_NOT_ACCESSIBLE', [], 403);
         }
@@ -150,8 +153,11 @@ final class NFeDistributionSyncService
             $certificate = is_array($payload['certificado'] ?? null) ? $payload['certificado'] : [];
             $certificatePath = (string) ($certificate['path'] ?? '');
             $certificatePassword = (string) ($certificate['password'] ?? '');
-            if ($certificatePath === '' || $certificatePassword === '') {
-                throw new FiscalException('Envie o certificado A1 e sua senha para iniciar a sincronização.', 'CERTIFICATE_REQUIRED', [], 422);
+            $storedCertificate = $certificatePath === '' || $certificatePassword === ''
+                ? $this->certificateVault->load($client, $organizationId, $companyId)
+                : null;
+            if ($storedCertificate !== null) {
+                $certificate = $storedCertificate;
             }
 
             $fiscalPayload = [
@@ -161,8 +167,9 @@ final class NFeDistributionSyncService
                     'endereco' => ['UF' => $state],
                 ],
                 'certificado' => [
-                    'path' => $certificatePath,
-                    'password' => $certificatePassword,
+                    'path' => $certificatePath !== '' ? $certificatePath : null,
+                    'base64' => $certificate['base64'] ?? null,
+                    'password' => $certificatePassword !== '' ? $certificatePassword : ($certificate['password'] ?? ''),
                 ],
             ];
             $nextSyncAt = null;

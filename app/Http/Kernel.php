@@ -11,6 +11,7 @@ use App\Controllers\NFCeController;
 use App\Controllers\NFeController;
 use App\Exceptions\FiscalException;
 use App\Services\Fiscal\CertificateService;
+use App\Services\Fiscal\CompanyCertificateVault;
 use App\Services\Fiscal\CnpjRegistryService;
 use App\Services\Fiscal\CompanyContextResolver;
 use App\Services\Fiscal\DanfeService;
@@ -223,11 +224,13 @@ final class Kernel
         $danfeService = new DanfeService();
         $sefazService = new SefazService($contextResolver, $certificateService, $adapter, $danfeService);
         $nfeService = new NFeService($sefazService);
+        $certificateVault = new CompanyCertificateVault();
         $syncService = new \App\Services\Fiscal\NFeDistributionSyncService(
             $nfeService,
-            new \App\Services\Fiscal\FiscalDocumentXmlParser()
+            new \App\Services\Fiscal\FiscalDocumentXmlParser(),
+            $certificateVault
         );
-        $nfeController = new NFeController($nfeService, $syncService);
+        $nfeController = new NFeController($nfeService, $syncService, $certificateVault);
         $nfceController = new NFCeController(new NFCeService($sefazService));
 
         $health = static function (Request $request): JsonResponse {

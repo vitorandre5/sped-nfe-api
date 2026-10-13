@@ -1482,3 +1482,27 @@ thead th:last-child,tbody td:last-child {
     transition-duration:.01ms!important
   }
 }
+.company-certificate {
+  font-size:10px;
+  font-weight:600
+}
+.company-certificate.valid,.certificate-status.valid {
+  color:#45835a
+}
+.company-certificate.expired,.certificate-status.expired {
+  color:#b33b35
+}
+.company-certificate.missing,.certificate-status.missing {
+  color:#a27829
+}
+.certificate-status {
+  border-radius:8px;
+  padding:10px 12px;
+  background:#f5f8f5
+}
+.certificate-status.expired {
+  background:#fff2f0
+}
+.certificate-status.missing {
+  background:#fff9eb
+}

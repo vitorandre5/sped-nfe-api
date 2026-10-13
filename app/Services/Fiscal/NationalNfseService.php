@@ -13,10 +13,13 @@ final class NationalNfseService
     {
         $context = (new CompanyContextResolver())->resolve($payload, 55, false);
         (new CertificateService())->assertAvailable($context);
-        $certificate = (new CertificateService())->readPfx(
-            (string) file_get_contents($context['certificado']['path']),
-            (string) $context['certificado']['password']
-        );
+        $certificateContent = !empty($context['certificado']['base64'])
+            ? base64_decode((string) $context['certificado']['base64'], true)
+            : file_get_contents((string) $context['certificado']['path']);
+        if (!is_string($certificateContent) || $certificateContent === '') {
+            throw new FiscalException('Não foi possível abrir o certificado A1.', 'CERTIFICATE_READ_FAILED', [], 422);
+        }
+        $certificate = (new CertificateService())->readPfx($certificateContent, (string) $context['certificado']['password']);
         if ($certificate->isExpired()) {
             throw new FiscalException('O certificado A1 está vencido.', 'CERTIFICATE_EXPIRED', [], 422);
         }

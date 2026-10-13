@@ -14,6 +14,8 @@ export type Company = {
   created_at: string
   cnpj_registry_data?: Record<string, unknown>
   cnpj_registry_fetched_at?: string | null
+  certificate_expires_at?: string | null
+  certificate_uploaded_at?: string | null
 }
 
 export type FiscalDocument = {

@@ -14,7 +14,7 @@ import type { Company, FiscalDocument } from './lib/supabase'
 type Membership = { organization_id: string; role: string; organizations: { name: string } | null }
 type Page = 'documents' | 'companies' | 'settings'
 type Notice = { tone: 'success' | 'error' | 'info'; text: string } | null
-type AutoSync = { documentType: 'nfe55' | 'nfse'; companyId: string; file: File; password: string; nextSyncAt: string | null }
+type AutoSync = { documentType: 'nfe55' | 'nfse'; companyId: string; nextSyncAt: string | null }
 type CnpjRegistryProfile = Record<string, unknown>
 
 const ALLOW_SIGNUP = import.meta.env.VITE_ALLOW_SIGNUP !== 'false'
@@ -45,10 +45,19 @@ const formatMoney = (value: number | null) => value == null
 const formatDate = (value: string | null) => value
   ? new Intl.DateTimeFormat('pt-BR').format(new Date(value))
   : '—'
+const certificateExpired = (company: Company) => Boolean(company.certificate_expires_at && new Date(company.certificate_expires_at).getTime() < Date.now())
+const certificateStatus = (company: Company) => !company.certificate_expires_at
+  ? 'Certificado A1 não cadastrado'
+  : certificateExpired(company)
+    ? `Certificado A1 expirado em ${formatDate(company.certificate_expires_at)}`
+    : `Certificado A1 válido até ${formatDate(company.certificate_expires_at)}`
 const shortKey = (value: string | null) => value ? `${value.slice(0, 6)}…${value.slice(-4)}` : 'Resumo DF-e'
 const documentLabel = (type: string) => type === 'nfse' ? 'NFS-e' : type === 'cte57' ? 'CT-e' : 'NF-e'
 const syncFailureMessage = (code?: string) => {
   if (code === 'AUTH_REQUIRED') return 'Sua sessão expirou. Entre novamente para continuar.'
+  if (code === 'CERTIFICATE_EXPIRED') return 'O certificado A1 desta empresa está expirado. Envie um certificado renovado para continuar.'
+  if (code === 'CERTIFICATE_STORAGE_NOT_FOUND') return 'Esta empresa ainda não tem um A1 salvo. Envie o certificado para associá-lo à conta.'
+  if (code === 'CERTIFICATE_ENCRYPTION_KEY_REQUIRED') return 'O armazenamento seguro de certificados ainda não foi configurado no servidor.'
   if (code?.startsWith('CERTIFICATE_')) return 'Não foi possível validar o certificado A1. Confira o arquivo e a senha.'
   if (code === 'SYNC_COOLDOWN' || code === 'SYNC_ALREADY_RUNNING') return 'A busca continuará automaticamente quando estiver disponível.'
   return 'Não foi possível atualizar os documentos agora. A busca continuará automaticamente quando estiver disponível.'
@@ -146,14 +155,10 @@ function App() {
       try {
         const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
         if (sessionError || !sessionData.session?.access_token) throw new Error('Entre novamente para retomar a sincronização automática.')
-        const form = new FormData()
-        form.set('payload', JSON.stringify({ organization_id: organizationId, company_id: due.companyId, document_type: due.documentType }))
-        form.set('certificado', due.file, 'certificado.pfx')
-        form.set('certificado_password', due.password)
         const response = await fetch('/api/nfe/sincronizar', {
           method: 'POST',
-          headers: { Authorization: `Bearer ${sessionData.session.access_token}` },
-          body: form,
+          headers: { Authorization: `Bearer ${sessionData.session.access_token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ organization_id: organizationId, company_id: due.companyId, document_type: due.documentType }),
         })
         const result = await response.json() as { success?: boolean; code?: string; details?: { next_sync_at?: string | null }; data?: { message?: string; documentos_salvos?: number; next_sync_at?: string | null } }
         if (!response.ok || !result.success || !result.data) {
@@ -556,47 +561,98 @@ function SyncDialog({ companies, initialCompanyId, organizationId, onClose, onNo
   const [password, setPassword] = useState('')
   const [working, setWorking] = useState(false)
   const [phase, setPhase] = useState('')
+  const [certificateMetadata, setCertificateMetadata] = useState<{ expiresAt: string; uploadedAt: string } | null>(null)
   const certificateInput = useRef<HTMLInputElement>(null)
   const company = companies.find((item) => item.id === companyId)
+  const displayedCompany = company && certificateMetadata
+    ? { ...company, certificate_expires_at: certificateMetadata.expiresAt, certificate_uploaded_at: certificateMetadata.uploadedAt }
+    : company
 
   const sync = async (event: FormEvent) => {
-    event.preventDefault(); if (!supabase || !company || !file) return
-    if (!file.name.toLowerCase().endsWith('.pfx') && !file.name.toLowerCase().endsWith('.p12')) { onNotice({ tone: 'error', text: 'Selecione um certificado A1 .pfx ou .p12.' }); return }
-    setWorking(true); onBusy(true); setPhase('Validando sessao e preparando consulta segura...')
+    event.preventDefault()
+    if (!supabase || !company) return
+    if (!company.certificate_uploaded_at && !file) {
+      onNotice({ tone: 'error', text: 'Envie o certificado A1 desta empresa para iniciar a consulta.' })
+      return
+    }
+    if (file && !file.name.toLowerCase().endsWith('.pfx') && !file.name.toLowerCase().endsWith('.p12')) {
+      onNotice({ tone: 'error', text: 'Selecione um certificado A1 .pfx ou .p12.' })
+      return
+    }
+    if (file && !password) {
+      onNotice({ tone: 'error', text: 'Informe a senha do certificado A1 enviado.' })
+      return
+    }
+    setWorking(true)
+    onBusy(true)
+    setPhase(file ? 'Validando e protegendo o certificado...' : 'Validando sessão e preparando consulta...')
     try {
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
-      if (sessionError || !sessionData.session?.access_token) throw new Error('Entre novamente para sincronizar documentos.')
-      const form = new FormData()
-      form.set('payload', JSON.stringify({ organization_id: organizationId, company_id: company.id, document_type: 'all' }))
-      form.set('certificado', file, 'certificado.pfx')
-      form.set('certificado_password', password)
-      setPhase('Consultando a distribuicao oficial e salvando documentos...')
+      const accessToken = sessionData.session?.access_token
+      if (sessionError || !accessToken) throw new Error('Entre novamente para sincronizar documentos.')
+
+      if (file) {
+        const certificateForm = new FormData()
+        certificateForm.set('payload', JSON.stringify({ organization_id: organizationId, company_id: company.id }))
+        certificateForm.set('certificado', file, file.name)
+        certificateForm.set('certificado_password', password)
+        const certificateResponse = await fetch('/api/nfe/certificado/salvar', {
+          method: 'POST',
+          headers: { Authorization: 'Bearer ' + accessToken },
+          body: certificateForm,
+        })
+        const certificateResult = await certificateResponse.json() as { success?: boolean; code?: string; data?: { expires_at?: string } }
+        if (!certificateResponse.ok || !certificateResult.success) throw new Error(syncFailureMessage(certificateResult.code))
+        if (certificateResult.data?.expires_at) setCertificateMetadata({ expiresAt: certificateResult.data.expires_at, uploadedAt: new Date().toISOString() })
+      }
+
+      setPhase('Consultando NF-e e NFS-e e salvando os documentos...')
       const response = await fetch('/api/nfe/sincronizar', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${sessionData.session.access_token}` },
-        body: form,
+        headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ organization_id: organizationId, company_id: company.id, document_type: 'all' }),
       })
-      const result = await response.json() as { success?: boolean; code?: string; details?: { next_sync_at?: string | null }; data?: { message?: string; documentos_salvos?: number; next_sync_at?: string | null; sources?: Partial<Record<'nfe55' | 'nfse', { next_sync_at?: string | null }>>; source_errors?: Partial<Record<'nfe55' | 'nfse', { details?: { next_sync_at?: string | null } }>> } }
+      const result = await response.json() as { success?: boolean; code?: string; data?: { documentos_salvos?: number; next_sync_at?: string | null; sources?: Partial<Record<'nfe55' | 'nfse', { next_sync_at?: string | null }>>; source_errors?: Partial<Record<'nfe55' | 'nfse', { details?: { next_sync_at?: string | null } }>> }
       if (!response.ok || !result.success || !result.data) throw new Error(syncFailureMessage(result.code))
       const count = result.data.documentos_salvos ?? 0
       onNotice({ tone: 'success', text: count > 0
-        ? `${count} documento${count === 1 ? '' : 's'} recebido${count === 1 ? '' : 's'}. A busca continua em segundo plano.`
+        ? count + ' documento' + (count === 1 ? '' : 's') + ' recebido' + (count === 1 ? '' : 's') + '. A busca continua em segundo plano.'
         : 'Sincronização iniciada. Os documentos aparecerão nesta página conforme forem recebidos.' })
       for (const documentType of ['nfe55', 'nfse'] as const) {
         const source = result.data.sources?.[documentType]
         const sourceError = result.data.source_errors?.[documentType]
-        if (source || sourceError) onEnableAuto({ documentType, companyId: company.id, file, password, nextSyncAt: source?.next_sync_at ?? sourceError?.details?.next_sync_at ?? result.data.next_sync_at ?? new Date(Date.now() + 60 * 60 * 1000).toISOString() })
+        if (source || sourceError) onEnableAuto({
+          documentType,
+          companyId: company.id,
+          nextSyncAt: source?.next_sync_at ?? sourceError?.details?.next_sync_at ?? result.data.next_sync_at ?? new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+        })
       }
       onDone()
     } catch (error) {
-      onNotice({ tone: 'info', text: error instanceof Error ? error.message : 'A busca continuará automaticamente quando estiver disponível.' })
+      onNotice({ tone: 'error', text: error instanceof Error ? error.message : 'Não foi possível iniciar a consulta.' })
     } finally {
-      setWorking(false); onBusy(false); setPhase(''); setPassword(''); setFile(null)
+      setWorking(false)
+      onBusy(false)
+      setPhase('')
+      setPassword('')
+      setFile(null)
       if (certificateInput.current) certificateInput.current.value = ''
     }
   }
 
-  return <Modal title="Sincronizar notas" description="A consulta abrange NF-e e NFS-e, sem escolha manual." onClose={onClose}><form className="dialog-form" onSubmit={sync}><div className="dialog-note"><ShieldCheck size={16}/>Buscamos NF-e na SEFAZ e notas de serviço no Ambiente Nacional da NFS-e, sem duplicar documentos.</div><label className="field-label">Empresa<select value={companyId} onChange={(event) => setCompanyId(event.target.value)} required><option value="">Selecione a empresa</option>{companies.map((item) => <option key={item.id} value={item.id}>{item.name} - {formatCnpj(item.cnpj)}</option>)}</select></label><label className="field-label">Certificado digital A1<input ref={certificateInput} type="file" accept=".pfx,.p12,application/x-pkcs12" onChange={(event) => setFile(event.target.files?.[0] ?? null)} required/><small>O arquivo vai diretamente para a API fiscal e nao fica salvo no navegador.</small></label><label className="field-label">Senha do certificado<input type="password" autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} required/></label><small>As duas consultas continuam em segundo plano nesta sessao ate alcancarem o ultimo documento disponivel. O certificado e a senha ficam somente na memoria desta sessao.</small><div className="dialog-note"><ShieldCheck size={16}/>Cada servico respeita seu intervalo oficial. Nenhuma manifestacao fiscal e enviada automaticamente.</div>{working && <div className="sync-progress"><span className="spinner"/>{phase}</div>}<div className="dialog-actions"><button type="button" className="button button-secondary" onClick={onClose} disabled={working}>Cancelar</button><button className="button button-primary" disabled={working || !file || !companyId}>{working ? "Sincronizando..." : "Iniciar consulta"}<ArrowRight size={16}/></button></div></form></Modal>
+  return <Modal title="Sincronizar notas" description="A consulta abrange NF-e e NFS-e, sem escolha manual." onClose={onClose}>
+    <form className="dialog-form" onSubmit={sync}>
+      <div className="dialog-note"><ShieldCheck size={16}/>Buscamos NF-e na SEFAZ e notas de serviço no Ambiente Nacional da NFS-e, sem duplicar documentos.</div>
+      <label className="field-label">Empresa<select value={companyId} onChange={(event) => setCompanyId(event.target.value)} required><option value="">Selecione a empresa</option>{companies.map((item) => <option key={item.id} value={item.id}>{item.name} - {formatCnpj(item.cnpj)}</option>)}</select></label>
+      {displayedCompany && <div className={'dialog-note certificate-status ' + (certificateExpired(displayedCompany) ? 'expired' : displayedCompany.certificate_expires_at ? 'valid' : 'missing')} role="status"><ShieldCheck size={16}/><span>{certificateStatus(displayedCompany)}</span></div>}
+      <label className="field-label">{displayedCompany?.certificate_uploaded_at ? 'Substituir certificado A1 (opcional)' : 'Certificado digital A1'}<input ref={certificateInput} type="file" accept=".pfx,.p12,application/x-pkcs12" onChange={(event) => setFile(event.target.files?.[0] ?? null)} required={!displayedCompany?.certificate_uploaded_at}/><small>Ao enviar, o A1 ficará associado a esta empresa e será criptografado no servidor. Não será necessário enviá-lo nas próximas consultas.</small></label>
+      {file && <label className="field-label">Senha do certificado<input type="password" autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} required/></label>}
+      <small>As consultas continuam em segundo plano usando o certificado salvo. A senha é guardada junto do arquivo, criptografada no servidor.</small>
+      <div className="dialog-note"><ShieldCheck size={16}/>Cada serviço respeita seu intervalo oficial. Nenhuma manifestação fiscal é enviada automaticamente.</div>
+      {working && <div className="sync-progress"><span className="spinner"/>{phase}</div>}
+      <div className="dialog-actions"><button type="button" className="button button-secondary" onClick={onClose} disabled={working}>Cancelar</button><button className="button button-primary" disabled={working || !companyId || (!file && !displayedCompany?.certificate_uploaded_at)}>{working ? 'Sincronizando...' : 'Iniciar consulta'}<ArrowRight size={16}/></button></div>
+    </form>
+  </Modal>
 }
 
 function DocumentTable({ documents, downloadMenuId, onPreview, onToggleDownload, onDownload }: { documents: FiscalDocument[]; downloadMenuId: string | null; onPreview: (document: FiscalDocument) => void; onToggleDownload: (id: string) => void; onDownload: (document: FiscalDocument, format: 'xml' | 'pdf') => void }) {
@@ -651,7 +707,7 @@ function EmptyDocuments({ hasCompanies, onAddCompany, onSync }: { hasCompanies: 
 }
 
 function CompaniesPage({ companies, loading, onAdd, onSync }: { companies: Company[]; loading: boolean; onAdd: () => void; onSync: (id: string) => void }) {
-  return <><section className="page-heading"><div><div className="eyebrow"><span className="eyebrow-line"/> ORGANIZAÇÃO</div><h1>Empresas</h1><p>Gerencie os CNPJs conectados à sua busca fiscal.</p></div><button className="button button-primary" onClick={onAdd}><Plus size={17}/>Adicionar empresa</button></section><section className="companies-card"><div className="results-heading"><div><h2>Empresas cadastradas</h2><p>{companies.length} CNPJ{companies.length === 1 ? '' : 's'} nesta organização</p></div></div>{loading ? <div className="loading-state"><div className="spinner"/><span>Carregando empresas…</span></div> : companies.length ? <div className="company-list">{companies.map((company) => <article className="company-row" key={company.id}><div className="company-symbol"><Building2 size={19}/></div><div className="company-details"><strong>{company.name}</strong><span>{formatCnpj(company.cnpj)}<i/> {company.state}</span></div><div className="company-connector"><span className="connector-dot"/>NF-e 55</div><button className="button button-secondary button-small" onClick={() => onSync(company.id)}><RefreshCw size={14}/>Sincronizar</button></article>)}</div> : <EmptyDocuments hasCompanies={false} onAddCompany={onAdd} onSync={onAdd}/>}</section><footer className="content-footer"><span>O escopo de cada consulta respeita o CNPJ cadastrado.</span><span><span className="footer-dot"/> Serviço conectado</span></footer></>
+  return <><section className="page-heading"><div><div className="eyebrow"><span className="eyebrow-line"/> ORGANIZAÇÃO</div><h1>Empresas</h1><p>Gerencie os CNPJs conectados à sua busca fiscal.</p></div><button className="button button-primary" onClick={onAdd}><Plus size={17}/>Adicionar empresa</button></section><section className="companies-card"><div className="results-heading"><div><h2>Empresas cadastradas</h2><p>{companies.length} CNPJ{companies.length === 1 ? '' : 's'} nesta organização</p></div></div>{loading ? <div className="loading-state"><div className="spinner"/><span>Carregando empresas…</span></div> : companies.length ? <div className="company-list">{companies.map((company) => <article className="company-row" key={company.id}><div className="company-symbol"><Building2 size={19}/></div><div className="company-details"><strong>{company.name}</strong><span>{formatCnpj(company.cnpj)}<i/> {company.state}</span><small className={"company-certificate " + (certificateExpired(company) ? "expired" : company.certificate_expires_at ? "valid" : "missing")}>{certificateStatus(company)}</small></div><div className="company-connector"><span className="connector-dot"/>NF-e 55</div><button className="button button-secondary button-small" onClick={() => onSync(company.id)}><RefreshCw size={14}/>{company.certificate_uploaded_at ? "Sincronizar / trocar A1" : "Adicionar A1"}</button></article>)}</div> : <EmptyDocuments hasCompanies={false} onAddCompany={onAdd} onSync={onAdd}/>}</section><footer className="content-footer"><span>O escopo de cada consulta respeita o CNPJ cadastrado.</span><span><span className="footer-dot"/> Serviço conectado</span></footer></>
 }
 
 function Modal({ title, description, onClose, children, className = '' }: { title: string; description: string; onClose: () => void; children: ReactNode; className?: string }) {

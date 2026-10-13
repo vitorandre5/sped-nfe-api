@@ -9,6 +9,7 @@ use App\Http\JsonResponse;
 use App\Http\Request;
 use App\Services\Fiscal\NFeDistributionSyncService;
 use App\Services\Fiscal\NFeService;
+use App\Services\Fiscal\CompanyCertificateVault;
 
 final class NFeController
 {
@@ -16,10 +17,21 @@ final class NFeController
 
     private NFeDistributionSyncService $syncService;
 
-    public function __construct(NFeService $service, NFeDistributionSyncService $syncService)
+    private CompanyCertificateVault $certificateVault;
+
+    public function __construct(NFeService $service, NFeDistributionSyncService $syncService, CompanyCertificateVault $certificateVault)
     {
         $this->service = $service;
         $this->syncService = $syncService;
+        $this->certificateVault = $certificateVault;
+    }
+
+    public function salvarCertificado(Request $request): JsonResponse
+    {
+        return $this->success('Certificado A1 associado à empresa.', $this->certificateVault->save(
+            $request->body(),
+            (string) $request->header('authorization', '')
+        ));
     }
 
     public function validarCertificado(Request $request): JsonResponse

@@ -33,6 +33,8 @@ No Coolify, mantenha manualmente apenas as variáveis listadas abaixo. Entradas 
 - `redis-bd` (legado): as variáveis do antigo Compose permanecem apenas para rollback; não exclua o recurso nem o volume antigo durante esta migração.
 - `fiscal.web`: `SERVICE_PASSWORD_64_APIPROXY`, `NFE_TPAMB`, `NFE_RAZAO_SOCIAL`, `NFE_CNPJ`, `NFE_SIGLA_UF`, `NFE_SCHEMES`, `NFE_VERSAO`, `NFE_VERAPLIC` e `SUPABASE_API_URL=https://supabase-fiscal.oc2.freeddns.org`. Use `FISCAL_SUPABASE_ANON_KEY` para a chave anon do Supabase. As senhas dos usuários são administradas diretamente no Supabase; a aplicação não exige troca no primeiro login. O modo `2` é homologação.
 
+Para persistir certificados A1, configure também `FISCAL_CERTIFICATE_ENCRYPTION_KEY` somente no serviço da API `fiscal.web`. Gere uma chave aleatória de 32 bytes codificada em Base64 e mantenha-a em um gerenciador de segredos/variáveis do Coolify. A API usa AES-256-GCM para criptografar o PFX e a senha antes de enviá-los ao bucket privado `fiscal-certificates`; essa chave precisa ser preservada em backups seguros, pois sem ela os certificados salvos não podem ser lidos. A migration `20261013000200_company_certificate_vault.sql` cria o bucket e os campos de validade.
+
 Os segredos ficam no Coolify e não devem ser copiados para `.env.example`. A URL e a chave anon do Supabase são embutidas no build da interface; ao alterá-las, reconstrua `fiscal.web`.
 
 ## Ordem de implantação

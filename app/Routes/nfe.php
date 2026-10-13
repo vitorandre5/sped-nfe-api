@@ -7,6 +7,7 @@ use App\Http\Router;
 
 return static function (Router $router, NFeController $controller): void {
     $router->post('/api/nfe/certificado/validar', [$controller, 'validarCertificado']);
+    $router->post('/api/nfe/certificado/salvar', [$controller, 'salvarCertificado']);
     $router->post('/api/nfe/distribuir', [$controller, 'distribuir']);
     $router->post('/api/nfe/sincronizar', [$controller, 'sincronizar']);
     $router->post('/api/nfe/criar', [$controller, 'criar']);

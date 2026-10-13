@@ -130,6 +130,34 @@ final class SupabaseApiClient
         );
     }
 
+    public function uploadCertificate(string $path, string $encryptedContent): void
+    {
+        $segments = array_map('rawurlencode', explode('/', trim($path, '/')));
+        $this->request(
+            'POST',
+            '/storage/v1/object/fiscal-certificates/' . implode('/', $segments),
+            $encryptedContent,
+            ['Content-Type: application/octet-stream', 'x-upsert: true'],
+            false
+        );
+    }
+
+    public function downloadCertificate(string $path): string
+    {
+        $segments = array_map('rawurlencode', explode('/', trim($path, '/')));
+        $content = $this->request(
+            'GET',
+            '/storage/v1/object/fiscal-certificates/' . implode('/', $segments),
+            null,
+            [],
+            false
+        );
+        if (!is_string($content) || $content === '') {
+            throw new FiscalException('Certificado salvo não encontrado. Envie o A1 novamente.', 'CERTIFICATE_STORAGE_NOT_FOUND', [], 422);
+        }
+        return $content;
+    }
+
     /**
      * @param array<string, string> $extraHeaders
      * @return mixed
@@ -199,6 +227,10 @@ final class SupabaseApiClient
 
         if ($response === '') {
             return null;
+        }
+
+        if (!$jsonBody) {
+            return $response;
         }
 
         $decoded = json_decode($response, true);
