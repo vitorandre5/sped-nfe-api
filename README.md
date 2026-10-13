@@ -151,8 +151,8 @@ Minas Gerais, para organizar empresas e consultar documentos recebidos de NF-e
 modelo 55. Ela usa Supabase local para contas, dados e
 XMLs privados; os certificados A1 são enviados somente durante a consulta e não
 são gravados no projeto. O primeiro clique consulta um lote da SEFAZ. O cursor é
-salvo para a próxima execução, respeitando o intervalo de uma hora indicado pelo
-Ambiente Nacional. CT-e, NFS-e e sincronização automática ficam fora desta primeira
+salvo para a próxima execução, respeitando uma espera de 1 hora e 5 minutos após
+uma resposta sem documentos ou por consumo indevido. CT-e, NFS-e e sincronização automática ficam fora desta primeira
 entrega.
 
 No PowerShell, na raiz do repositório:
@@ -276,8 +276,8 @@ O mesmo padrão funciona nas demais rotas que exigem certificado.
 `POST /api/nfe/distribuir` consulta **um lote** do Ambiente Nacional a partir de
 `ult_nsu`. A resposta devolve os XMLs descompactados, o próximo cursor em
 `ult_nsu` e o limite atual em `max_nsu`. Salve o cursor e faça a próxima consulta
-somente depois do intervalo determinado pela SEFAZ (ao terminar os documentos,
-no mínimo uma hora).
+somente depois do intervalo determinado pela SEFAZ (após cStat 137 ou 656, aguarde
+1 hora e 5 minutos para incluir uma margem sobre a janela mínima de uma hora).
 
 O serviço não permite filtrar por data, não recupera NF-e emitidas pela própria
 empresa e não atende NFC-e (modelo 65). A SEFAZ mantém os documentos para

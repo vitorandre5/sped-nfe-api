@@ -10,6 +10,8 @@ use Throwable;
 
 final class NFeDistributionSyncService
 {
+    private const SEFAZ_COOLDOWN_SECONDS = 3900;
+
     private NFeService $nfeService;
 
     private FiscalDocumentXmlParser $parser;
@@ -197,7 +199,7 @@ final class NFeDistributionSyncService
             }
             if ($sefazBlocked) {
                 $status = '656';
-                $nextSyncAt = gmdate(DATE_ATOM, time() + 3600);
+                $nextSyncAt = gmdate(DATE_ATOM, time() + self::SEFAZ_COOLDOWN_SECONDS);
             }
 
             for ($index = 0; !$sefazBlocked && $index < $maxBatches; $index++) {
@@ -216,7 +218,7 @@ final class NFeDistributionSyncService
                 $status = (string) ($result['cStat'] ?? '');
                 $batches++;
                 if ($status === '656') {
-                    $nextSyncAt = gmdate(DATE_ATOM, time() + 3600);
+                    $nextSyncAt = gmdate(DATE_ATOM, time() + self::SEFAZ_COOLDOWN_SECONDS);
                     $message = 'A busca continuará automaticamente quando estiver disponível.';
                     $providerNsu = isset($result['ult_nsu']) ? $this->nsu((string) $result['ult_nsu']) : $lastNsu;
                     if ($providerNsu > $lastNsu) {
@@ -227,7 +229,7 @@ final class NFeDistributionSyncService
                 if ($status === '137') {
                     $returnedNsu = $this->nsu((string) ($result['ult_nsu'] ?? $lastNsu));
                     $lastNsu = max($lastNsu, $returnedNsu);
-                    $nextSyncAt = gmdate(DATE_ATOM, time() + 3600);
+                    $nextSyncAt = gmdate(DATE_ATOM, time() + self::SEFAZ_COOLDOWN_SECONDS);
                     $message = 'A busca foi atualizada. Novos documentos aparecerão automaticamente quando estiverem disponíveis.';
                     break;
                 }
@@ -257,7 +259,7 @@ final class NFeDistributionSyncService
 
                 if ($sefazBlocked && $specificNsu !== null) {
                     $status = '656';
-                    $nextSyncAt = gmdate(DATE_ATOM, time() + 3600);
+                    $nextSyncAt = gmdate(DATE_ATOM, time() + self::SEFAZ_COOLDOWN_SECONDS);
                     $message = 'A busca continuará automaticamente quando estiver disponível.';
                     break;
                 }
@@ -277,13 +279,13 @@ final class NFeDistributionSyncService
 
                 if ($sefazBlocked) {
                     $status = '656';
-                    $nextSyncAt = gmdate(DATE_ATOM, time() + 3600);
+                    $nextSyncAt = gmdate(DATE_ATOM, time() + self::SEFAZ_COOLDOWN_SECONDS);
                     $message = 'A busca continuará automaticamente quando estiver disponível.';
                     break;
                 }
 
                 if ($maxNsu !== null && $lastNsu >= $maxNsu) {
-                    $nextSyncAt = gmdate(DATE_ATOM, time() + 3600);
+                    $nextSyncAt = gmdate(DATE_ATOM, time() + self::SEFAZ_COOLDOWN_SECONDS);
                     $message = 'A busca foi atualizada. Novos documentos aparecerão automaticamente quando estiverem disponíveis.';
                     break;
                 }
@@ -635,7 +637,7 @@ final class NFeDistributionSyncService
                 break;
             }
             $lastAttempt = strtotime((string) ($row['download_attempted_at'] ?? ''));
-            if ($lastAttempt !== false && $lastAttempt > time() - 3600) {
+            if ($lastAttempt !== false && $lastAttempt > time() - self::SEFAZ_COOLDOWN_SECONDS) {
                 continue;
             }
             $this->downloadManifestedNfe(
@@ -680,7 +682,7 @@ final class NFeDistributionSyncService
         }
         if (($existing['status'] ?? null) === 'registered') {
             $lastDownloadAttempt = strtotime((string) ($existing['download_attempted_at'] ?? ''));
-            return $lastDownloadAttempt === false || $lastDownloadAttempt <= time() - 3600;
+            return $lastDownloadAttempt === false || $lastDownloadAttempt <= time() - self::SEFAZ_COOLDOWN_SECONDS;
         }
 
         $now = gmdate(DATE_ATOM);
@@ -698,7 +700,7 @@ final class NFeDistributionSyncService
         }
 
         $lastAttempt = strtotime((string) ($existing['event_attempted_at'] ?? ''));
-        if (($lastAttempt !== false && $lastAttempt > time() - 3600) || $manifestationRequests >= 18) {
+        if (($lastAttempt !== false && $lastAttempt > time() - self::SEFAZ_COOLDOWN_SECONDS) || $manifestationRequests >= 18) {
             return false;
         }
 
