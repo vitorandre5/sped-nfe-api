@@ -695,8 +695,9 @@ tbody td {
   display:flex;
   gap:7px
 }
-.document-preview-card {
+.modal-card.document-preview-card {
   width:min(100%,1000px);
+  max-height:min(90vh,900px);
   height:min(92vh,900px);
   display:flex;
   flex-direction:column
