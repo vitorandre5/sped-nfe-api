@@ -27,6 +27,15 @@ final class FiscalCertificateServiceTest extends TestCase
         self::assertSame('06157250000116', $certificate->getCnpj());
         $signature = $certificate->privateKey->sign('test-message', OPENSSL_ALGO_SHA256);
         self::assertSame(1, openssl_verify('test-message', $signature, (string) $certificate->publicKey, OPENSSL_ALGO_SHA256));
+        // SoapCurl concatenates the private key, leaf certificate and chain.
+        $process = proc_open(['openssl', 'x509', '-noout'], [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+        fwrite($pipes[0], (string) $certificate->privateKey . (string) $certificate);
+        fclose($pipes[0]);
+        stream_get_contents($pipes[1]);
+        fclose($pipes[1]);
+        $error = stream_get_contents($pipes[2]);
+        fclose($pipes[2]);
+        self::assertSame(0, proc_close($process), $error);
         self::assertSame($filesBefore, glob(sys_get_temp_dir() . '/fiscal-pfx-*'));
     }
 

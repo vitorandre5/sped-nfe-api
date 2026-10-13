@@ -64,7 +64,10 @@ final class CertificateService
             foreach ($certs[0] as $index => $certificate) {
                 if (openssl_x509_check_private_key($certificate, $key[0])) {
                     unset($certs[0][$index]);
-                    return new Certificate(new PrivateKey($key[0]), new PublicKey($certificate), new CertificationChain(implode("\n", $certs[0])));
+                    // NFePHP concatenates these PEM blocks for SOAP client authentication.
+                    // Keep the terminating newline that the extraction patterns omit.
+                    $chain = $certs[0] === [] ? '' : implode("\n", $certs[0]) . "\n";
+                    return new Certificate(new PrivateKey($key[0] . "\n"), new PublicKey($certificate . "\n"), new CertificationChain($chain));
                 }
             }
             throw new FiscalException('O certificado A1 não contém uma chave privada correspondente.', 'CERTIFICATE_READ_FAILED', [], 422);
