@@ -27,7 +27,7 @@ final class NFeDistributionSyncService
      * @param array<string, mixed> $payload
      * @return array<string, mixed>
      */
-    public function synchronize(array $payload, string $authorization): array
+    public function synchronize(array $payload, string $authorization, bool $scheduled = false): array
     {
         $sourceType = (string) ($payload['document_type'] ?? 'nfe55');
         if ($sourceType === 'all') {
@@ -35,7 +35,7 @@ final class NFeDistributionSyncService
             $errors = [];
             foreach (['nfe55', 'nfse'] as $type) {
                 try {
-                    $results[$type] = $this->synchronize(array_replace($payload, ['document_type' => $type]), $authorization);
+                    $results[$type] = $this->synchronize(array_replace($payload, ['document_type' => $type]), $authorization, $scheduled);
                 } catch (FiscalException $exception) {
                     $errors[$type] = ['code' => $exception->errorCode(), 'message' => 'A busca continuará automaticamente quando estiver disponível.', 'details' => $exception->details(), 'http_status' => $exception->httpStatus()];
                 }
@@ -67,15 +67,15 @@ final class NFeDistributionSyncService
         if ($isNfse && $specificNsu !== null) {
             throw new FiscalException('A consulta por NSU específico é exclusiva da NF-e.', 'INVALID_DOCUMENT_TYPE', [], 422);
         }
-        $accessToken = $this->bearerToken($authorization);
+        $accessToken = $scheduled ? $this->serviceRoleKey() : $this->bearerToken($authorization);
         $supabaseUrl = trim((string) (getenv('SUPABASE_API_URL') ?: ''));
         $anonKey = trim((string) (getenv('SUPABASE_ANON_KEY') ?: ''));
-        if ($supabaseUrl === '' || $anonKey === '') {
+        if ($supabaseUrl === '' || (!$scheduled && $anonKey === '')) {
             throw new FiscalException('O serviço fiscal não está conectado ao banco de dados.', 'SUPABASE_CONFIGURATION_REQUIRED', [], 503);
         }
 
-        $client = new SupabaseApiClient($supabaseUrl, $anonKey, $accessToken);
-        $userId = $client->authenticatedUserId();
+        $client = new SupabaseApiClient($supabaseUrl, $scheduled ? $accessToken : $anonKey, $accessToken);
+        $userId = $scheduled ? null : $client->authenticatedUserId();
         $organizationId = $this->uuid($payload['organization_id'] ?? null, 'Organização inválida.');
         $companyId = $this->uuid($payload['company_id'] ?? null, 'Empresa inválida.');
         $companyRows = $client->select('companies', [
@@ -85,12 +85,14 @@ final class NFeDistributionSyncService
         if ($companyRows === []) {
             throw new FiscalException('A empresa não pertence à sua organização.', 'COMPANY_NOT_ACCESSIBLE', [], 403);
         }
-        $membership = $client->select('organization_members', [
-            'organization_id' => $organizationId,
-            'user_id' => $userId,
-        ], 'organization_id,user_id');
-        if ($membership === []) {
-            throw new FiscalException('Você não tem acesso a esta organização.', 'ORGANIZATION_NOT_ACCESSIBLE', [], 403);
+        if (!$scheduled) {
+            $membership = $client->select('organization_members', [
+                'organization_id' => $organizationId,
+                'user_id' => (string) $userId,
+            ], 'organization_id,user_id');
+            if ($membership === []) {
+                throw new FiscalException('Você não tem acesso a esta organização.', 'ORGANIZATION_NOT_ACCESSIBLE', [], 403);
+            }
         }
 
         $company = $companyRows[0];
@@ -129,6 +131,9 @@ final class NFeDistributionSyncService
         $batches = 0;
         $status = '138';
         $message = 'Consulta concluída.';
+        $manifestationRequests = 0;
+        $specificNsuQueries = 0;
+        $sefazBlocked = false;
 
         try {
             if ($nextSyncAt !== null && strtotime($nextSyncAt) !== false && strtotime($nextSyncAt) > time()) {
@@ -175,7 +180,27 @@ final class NFeDistributionSyncService
             $nextSyncAt = null;
             $maxBatches = $specificNsu !== null ? 1 : ($isNfse ? 2 : 6);
 
-            for ($index = 0; $index < $maxBatches; $index++) {
+            if (!$isNfse) {
+                $this->processRegisteredManifestations(
+                    $client,
+                    $organizationId,
+                    $companyId,
+                    $cnpj,
+                    (string) ($company['name'] ?? ''),
+                    $environment,
+                    $documentType,
+                    $fiscalPayload,
+                    $manifestationRequests,
+                    $specificNsuQueries,
+                    $sefazBlocked
+                );
+            }
+            if ($sefazBlocked) {
+                $status = '656';
+                $nextSyncAt = gmdate(DATE_ATOM, time() + 3600);
+            }
+
+            for ($index = 0; !$sefazBlocked && $index < $maxBatches; $index++) {
                 $previousNsu = $lastNsu;
                 $savedBeforeBatch = $documentsSaved;
                 try {
@@ -222,8 +247,19 @@ final class NFeDistributionSyncService
                         $cnpj,
                         (string) ($company['name'] ?? ''),
                         $environment,
-                        $sourceType
+                        $sourceType,
+                        $fiscalPayload,
+                        $manifestationRequests,
+                        $specificNsuQueries,
+                        $sefazBlocked
                     );
+                }
+
+                if ($sefazBlocked && $specificNsu !== null) {
+                    $status = '656';
+                    $nextSyncAt = gmdate(DATE_ATOM, time() + 3600);
+                    $message = 'A busca continuará automaticamente quando estiver disponível.';
+                    break;
                 }
 
                 if ($specificNsu !== null) {
@@ -238,6 +274,13 @@ final class NFeDistributionSyncService
                     : $this->nsu((string) ($result['max_nsu'] ?? $maxNsu ?? $returnedNsu));
                 $lastNsu = max($lastNsu, $returnedNsu);
                 $maxNsu = $returnedMax === null ? null : max($maxNsu ?? $returnedMax, $returnedMax);
+
+                if ($sefazBlocked) {
+                    $status = '656';
+                    $nextSyncAt = gmdate(DATE_ATOM, time() + 3600);
+                    $message = 'A busca continuará automaticamente quando estiver disponível.';
+                    break;
+                }
 
                 if ($maxNsu !== null && $lastNsu >= $maxNsu) {
                     $nextSyncAt = gmdate(DATE_ATOM, time() + 3600);
@@ -304,6 +347,62 @@ final class NFeDistributionSyncService
         }
     }
 
+    /** Run due company/document pairs without relying on an open browser session. */
+    public function runScheduledBatch(int $limit = 10): array
+    {
+        $serviceRoleKey = $this->serviceRoleKey();
+        $supabaseUrl = trim((string) (getenv('SUPABASE_API_URL') ?: ''));
+        if ($supabaseUrl === '') {
+            throw new FiscalException('O serviço fiscal não está conectado ao banco de dados.', 'SUPABASE_CONFIGURATION_REQUIRED', [], 503);
+        }
+
+        $client = new SupabaseApiClient($supabaseUrl, $serviceRoleKey, $serviceRoleKey);
+        $companies = $client->selectFiltered('companies', [
+            'certificate_uploaded_at' => 'not.is.null',
+            'certificate_expires_at' => 'gt.' . gmdate(DATE_ATOM),
+        ], 'id,organization_id', 1000);
+        $environment = (int) (getenv('NFE_TPAMB') ?: 2);
+        $processed = 0;
+        $skipped = 0;
+        $failed = 0;
+
+        foreach ($companies as $company) {
+            foreach (['nfe55', 'nfse'] as $sourceType) {
+                if ($processed + $failed >= max(1, min($limit, 50))) {
+                    break 2;
+                }
+
+                $documentType = $environment === 1 ? $sourceType : $sourceType . '_hom';
+                $cursors = $client->select('sync_cursors', [
+                    'company_id' => (string) ($company['id'] ?? ''),
+                    'document_type' => $documentType,
+                ], 'next_sync_at,locked_until');
+                $cursor = $cursors[0] ?? null;
+                if (is_array($cursor)) {
+                    $nextSyncAt = strtotime((string) ($cursor['next_sync_at'] ?? ''));
+                    $lockedUntil = strtotime((string) ($cursor['locked_until'] ?? ''));
+                    if (($nextSyncAt !== false && $nextSyncAt > time()) || ($lockedUntil !== false && $lockedUntil > time())) {
+                        $skipped++;
+                        continue;
+                    }
+                }
+
+                try {
+                    $this->synchronize([
+                        'organization_id' => (string) $company['organization_id'],
+                        'company_id' => (string) $company['id'],
+                        'document_type' => $sourceType,
+                    ], 'Bearer ' . $serviceRoleKey, true);
+                    $processed++;
+                } catch (Throwable $exception) {
+                    $failed++;
+                }
+            }
+        }
+
+        return ['processed' => $processed, 'skipped' => $skipped, 'failed' => $failed];
+    }
+
     /** @param array<string, mixed> $source */
     private function storeSource(
         SupabaseApiClient $client,
@@ -313,7 +412,12 @@ final class NFeDistributionSyncService
         string $cnpj,
         string $companyName,
         int $environment,
-        string $documentType = 'nfe55'
+        string $documentType,
+        array $fiscalPayload,
+        int &$manifestationRequests,
+        int &$specificNsuQueries,
+        bool &$sefazBlocked,
+        bool $allowAutomaticManifestation = true
     ): int {
         $nsu = $this->nsu((string) ($source['nsu'] ?? ''));
         $schema = (string) ($source['schema'] ?? '');
@@ -411,11 +515,352 @@ final class NFeDistributionSyncService
             'received_at' => gmdate(DATE_ATOM),
         ], 'company_id,source_type,source_external_id');
 
+        if ($documentType === 'nfe55' && $isIncomingInvoice && $parsed['situation'] !== 'Resumo disponível') {
+            $this->markManifestationDownloaded($client, $organizationId, $companyId, $environment, $parsed['access_key']);
+        }
+
+        if ($allowAutomaticManifestation
+            && $documentType === 'nfe55'
+            && $isIncomingInvoice
+            && $parsed['situation'] === 'Resumo disponível') {
+            $registered = $this->registerAutomaticKnowledge(
+                $client,
+                $organizationId,
+                $companyId,
+                $environment,
+                $parsed['access_key'],
+                $nsu,
+                $fiscalPayload,
+                $manifestationRequests,
+                $sefazBlocked
+            );
+            if ($registered && $specificNsuQueries < 18 && !$sefazBlocked) {
+                $this->downloadManifestedNfe(
+                    $client,
+                    $organizationId,
+                    $companyId,
+                    $cnpj,
+                    $companyName,
+                    $environment,
+                    $documentType,
+                    $parsed['access_key'],
+                    $nsu,
+                    $fiscalPayload,
+                    $manifestationRequests,
+                    $specificNsuQueries,
+                    $sefazBlocked
+                );
+            }
+        }
+
         if ($documentId !== null && empty($parsed['is_invoice'])) {
             $client->updateDocument($documentId, ['source_company_ids' => $sourceCompanyIds]);
         }
 
         return $isIncomingInvoice && $isNewDocument ? 1 : 0;
+    }
+
+    /** @param array<string, mixed> $fiscalPayload */
+    private function processRegisteredManifestations(
+        SupabaseApiClient $client,
+        string $organizationId,
+        string $companyId,
+        string $cnpj,
+        string $companyName,
+        int $environment,
+        string $documentType,
+        array $fiscalPayload,
+        int &$manifestationRequests,
+        int &$specificNsuQueries,
+        bool &$sefazBlocked
+    ): void {
+        $summaries = $client->select('fiscal_documents', [
+            'organization_id' => $organizationId,
+            'company_id' => $companyId,
+            'is_purchase' => 'true',
+            'situation' => 'Resumo disponível',
+        ], 'access_key,nsu');
+        foreach ($summaries as $summary) {
+            if ($manifestationRequests >= 18 || $sefazBlocked) {
+                break;
+            }
+            $accessKey = (string) ($summary['access_key'] ?? '');
+            if ($accessKey === '') {
+                continue;
+            }
+            $this->registerAutomaticKnowledge(
+                $client,
+                $organizationId,
+                $companyId,
+                $environment,
+                $accessKey,
+                $this->nsu((string) ($summary['nsu'] ?? '')),
+                $fiscalPayload,
+                $manifestationRequests,
+                $sefazBlocked
+            );
+        }
+
+        $pending = $client->select('nfe_automatic_manifestations', [
+            'organization_id' => $organizationId,
+            'company_id' => $companyId,
+            'environment' => $environment,
+            'status' => 'pending',
+        ], 'access_key,nsu');
+        foreach ($pending as $row) {
+            if ($manifestationRequests >= 18 || $sefazBlocked) {
+                break;
+            }
+            $this->registerAutomaticKnowledge(
+                $client,
+                $organizationId,
+                $companyId,
+                $environment,
+                (string) ($row['access_key'] ?? ''),
+                $this->nsu((string) ($row['nsu'] ?? '')),
+                $fiscalPayload,
+                $manifestationRequests,
+                $sefazBlocked
+            );
+        }
+
+        $registered = $client->select('nfe_automatic_manifestations', [
+            'organization_id' => $organizationId,
+            'company_id' => $companyId,
+            'environment' => $environment,
+            'status' => 'registered',
+        ], 'access_key,nsu,download_attempted_at');
+        foreach ($registered as $row) {
+            if ($specificNsuQueries >= 18 || $sefazBlocked) {
+                break;
+            }
+            $lastAttempt = strtotime((string) ($row['download_attempted_at'] ?? ''));
+            if ($lastAttempt !== false && $lastAttempt > time() - 3600) {
+                continue;
+            }
+            $this->downloadManifestedNfe(
+                $client,
+                $organizationId,
+                $companyId,
+                $cnpj,
+                $companyName,
+                $environment,
+                $documentType,
+                (string) ($row['access_key'] ?? ''),
+                $this->nsu((string) ($row['nsu'] ?? '')),
+                $fiscalPayload,
+                $manifestationRequests,
+                $specificNsuQueries,
+                $sefazBlocked
+            );
+        }
+    }
+
+    /** @param array<string, mixed> $fiscalPayload */
+    private function registerAutomaticKnowledge(
+        SupabaseApiClient $client,
+        string $organizationId,
+        string $companyId,
+        int $environment,
+        string $accessKey,
+        string $nsu,
+        array $fiscalPayload,
+        int &$manifestationRequests,
+        bool &$sefazBlocked
+    ): bool {
+        $rows = $client->select('nfe_automatic_manifestations', [
+            'organization_id' => $organizationId,
+            'company_id' => $companyId,
+            'environment' => $environment,
+            'access_key' => $accessKey,
+        ], 'status,attempt_count,event_attempted_at,download_attempted_at');
+        $existing = $rows[0] ?? [];
+        if (in_array($existing['status'] ?? null, ['downloaded', 'rejected'], true)) {
+            return false;
+        }
+        if (($existing['status'] ?? null) === 'registered') {
+            $lastDownloadAttempt = strtotime((string) ($existing['download_attempted_at'] ?? ''));
+            return $lastDownloadAttempt === false || $lastDownloadAttempt <= time() - 3600;
+        }
+
+        $now = gmdate(DATE_ATOM);
+        if ($existing === []) {
+            $client->upsert('nfe_automatic_manifestations', [
+                'organization_id' => $organizationId,
+                'company_id' => $companyId,
+                'environment' => $environment,
+                'access_key' => $accessKey,
+                'nsu' => $nsu,
+                'status' => 'pending',
+                'attempt_count' => 0,
+                'updated_at' => $now,
+            ], 'company_id,environment,access_key');
+        }
+
+        $lastAttempt = strtotime((string) ($existing['event_attempted_at'] ?? ''));
+        if (($lastAttempt !== false && $lastAttempt > time() - 3600) || $manifestationRequests >= 18) {
+            return false;
+        }
+
+        $attemptCount = (int) ($existing['attempt_count'] ?? 0) + 1;
+        $client->upsert('nfe_automatic_manifestations', [
+            'organization_id' => $organizationId,
+            'company_id' => $companyId,
+            'environment' => $environment,
+            'access_key' => $accessKey,
+            'nsu' => $nsu,
+            'status' => 'pending',
+            'attempt_count' => $attemptCount,
+            'event_attempted_at' => $now,
+            'cstat' => null,
+            'protocol' => null,
+            'updated_at' => $now,
+        ], 'company_id,environment,access_key');
+
+        try {
+            $manifestationRequests++;
+            $result = $this->nfeService->manifestarCiencia(
+                $accessKey,
+                new NFeRequestDTO($fiscalPayload)
+            );
+            $cstats = $this->responseValues($result['response'] ?? [], 'cStat');
+            if (in_array('656', $cstats, true)) {
+                $sefazBlocked = true;
+                $eventStatus = 'pending';
+            } else {
+                $accepted = array_intersect($cstats, ['135', '136', '573']) !== [];
+                $eventStatus = $accepted ? 'registered' : ($cstats === [] ? 'pending' : 'rejected');
+            }
+            $client->upsert('nfe_automatic_manifestations', [
+                'organization_id' => $organizationId,
+                'company_id' => $companyId,
+                'environment' => $environment,
+                'access_key' => $accessKey,
+                'nsu' => $nsu,
+                'status' => $eventStatus,
+                'attempt_count' => $attemptCount,
+                'event_attempted_at' => $now,
+                'cstat' => array_values(array_intersect($cstats, ['135', '136', '573']))[0] ?? ($cstats[0] ?? null),
+                'protocol' => $this->responseValues($result['response'] ?? [], 'nProt')[0] ?? null,
+                'updated_at' => gmdate(DATE_ATOM),
+            ], 'company_id,environment,access_key');
+            return $accepted;
+        } catch (Throwable $exception) {
+            // Keep the request queued; the next synchronization retries after the safe interval.
+            return false;
+        }
+    }
+
+    /** @param array<string, mixed> $fiscalPayload */
+    private function downloadManifestedNfe(
+        SupabaseApiClient $client,
+        string $organizationId,
+        string $companyId,
+        string $cnpj,
+        string $companyName,
+        int $environment,
+        string $documentType,
+        string $accessKey,
+        string $nsu,
+        array $fiscalPayload,
+        int &$manifestationRequests,
+        int &$specificNsuQueries,
+        bool &$sefazBlocked
+    ): void {
+        $now = gmdate(DATE_ATOM);
+        $client->upsert('nfe_automatic_manifestations', [
+            'organization_id' => $organizationId,
+            'company_id' => $companyId,
+            'environment' => $environment,
+            'access_key' => $accessKey,
+            'nsu' => $nsu,
+            'status' => 'registered',
+            'download_attempted_at' => $now,
+            'updated_at' => $now,
+        ], 'company_id,environment,access_key');
+        $specificNsuQueries++;
+
+        try {
+            $result = $this->nfeService->distribuir(new NFeRequestDTO($fiscalPayload + [
+                'ult_nsu' => '0',
+                'num_nsu' => $nsu,
+            ]));
+            if ((string) ($result['cStat'] ?? '') === '656') {
+                $sefazBlocked = true;
+                return;
+            }
+            if ((string) ($result['cStat'] ?? '') !== '138') {
+                return;
+            }
+
+            foreach (($result['documentos'] ?? []) as $source) {
+                if (!is_array($source) || !is_string($source['xml'] ?? null)) {
+                    continue;
+                }
+                $this->storeSource(
+                    $client,
+                    $source,
+                    $organizationId,
+                    $companyId,
+                    $cnpj,
+                    $companyName,
+                    $environment,
+                    $documentType,
+                    $fiscalPayload,
+                    $manifestationRequests,
+                    $specificNsuQueries,
+                    $sefazBlocked,
+                    false
+                );
+            }
+        } catch (Throwable $exception) {
+            // Leave the accepted event queued for the next safe NSU consultation.
+        }
+    }
+
+    private function markManifestationDownloaded(
+        SupabaseApiClient $client,
+        string $organizationId,
+        string $companyId,
+        int $environment,
+        string $accessKey
+    ): void {
+        $rows = $client->select('nfe_automatic_manifestations', [
+            'organization_id' => $organizationId,
+            'company_id' => $companyId,
+            'environment' => $environment,
+            'access_key' => $accessKey,
+        ], 'nsu,attempt_count,event_attempted_at,download_attempted_at');
+        if ($rows === []) {
+            return;
+        }
+        $row = $rows[0];
+        $client->upsert('nfe_automatic_manifestations', [
+            'organization_id' => $organizationId,
+            'company_id' => $companyId,
+            'environment' => $environment,
+            'access_key' => $accessKey,
+            'nsu' => (string) $row['nsu'],
+            'status' => 'downloaded',
+            'attempt_count' => (int) ($row['attempt_count'] ?? 0),
+            'event_attempted_at' => $row['event_attempted_at'] ?? null,
+            'download_attempted_at' => $row['download_attempted_at'] ?? null,
+            'updated_at' => gmdate(DATE_ATOM),
+        ], 'company_id,environment,access_key');
+    }
+
+    /** @param array<string, mixed> $source @return list<string> */
+    private function responseValues(array $source, string $key): array
+    {
+        $values = [];
+        foreach ($source as $name => $value) {
+            if ((string) $name === $key && (is_string($value) || is_numeric($value))) {
+                $values[] = (string) $value;
+            } elseif (is_array($value)) {
+                $values = array_merge($values, $this->responseValues($value, $key));
+            }
+        }
+        return $values;
     }
 
     private function isCancellation(array $parsed): bool
@@ -489,6 +934,15 @@ final class NFeDistributionSyncService
         }
 
         return $matches[1];
+    }
+
+    private function serviceRoleKey(): string
+    {
+        $key = trim((string) (getenv('FISCAL_SUPABASE_SERVICE_ROLE_KEY') ?: ''));
+        if ($key === '') {
+            throw new FiscalException('A sincronização automática do servidor não está configurada.', 'SYNC_WORKER_CONFIGURATION_REQUIRED', [], 503);
+        }
+        return $key;
     }
 
     private function uuid($value, string $message): string

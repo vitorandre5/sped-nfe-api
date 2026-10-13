@@ -378,6 +378,22 @@ final class SpedNFeAdapter
     }
 
     /**
+     * Registra somente o evento não conclusivo de Ciência da Operação (210210).
+     *
+     * @param array<string, mixed> $context
+     * @return array{response_xml:string,response:array<string,mixed>}
+     */
+    public function registerKnowledgeOfOperation(array $context, string $accessKey): array
+    {
+        if (!preg_match('/^[A-Z0-9]{44}$/', strtoupper($accessKey))) {
+            throw new FiscalException('Chave de acesso inválida para manifestação.', 'INVALID_ACCESS_KEY', [], 422);
+        }
+
+        $responseXml = $this->tools($context)->sefazManifesta(strtoupper($accessKey), 210210);
+        return ['response_xml' => $responseXml, 'response' => $this->toArray($responseXml)];
+    }
+
+    /**
      * @param array<string, mixed> $context
      * @return array<string, mixed>
      */

@@ -36,6 +36,25 @@ services:
       start_period: 15s
     networks:
       fiscal-private: {}
+  sync-worker:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile.production
+    restart: unless-stopped
+    environment:
+      SUPABASE_API_URL: https://supabase-fiscal.oc2.freeddns.org
+      FISCAL_SUPABASE_SERVICE_ROLE_KEY: ${FISCAL_SUPABASE_SERVICE_ROLE_KEY:?Configure the backend-only Supabase service role key}
+      FISCAL_CERTIFICATE_ENCRYPTION_KEY: ${FISCAL_CERTIFICATE_ENCRYPTION_KEY:?Configure the certificate encryption key}
+      NFE_TPAMB: ${NFE_TPAMB:-2}
+      NFE_RAZAO_SOCIAL: ${NFE_RAZAO_SOCIAL:-EMPRESA NAO INFORMADA}
+      NFE_CNPJ: ${NFE_CNPJ:-}
+      NFE_SIGLA_UF: ${NFE_SIGLA_UF:-MG}
+      NFE_SCHEMES: ${NFE_SCHEMES:-PL_009_V4}
+      NFE_VERSAO: ${NFE_VERSAO:-4.00}
+      NFE_VERAPLIC: ${NFE_VERAPLIC:-}
+    command: ["php", "scripts/fiscal-sync-worker.php"]
+    networks:
+      fiscal-private: {}
   web:
     expose:
     - '8080'

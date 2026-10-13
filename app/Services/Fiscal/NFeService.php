@@ -39,6 +39,14 @@ final class NFeService
     /**
      * @return array<string, mixed>
      */
+    public function manifestarCiencia(string $accessKey, NFeRequestDTO $dto): array
+    {
+        return $this->sefazService->manifestarCiencia($dto->payload(), self::MODEL, $accessKey);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
     public function criar(NFeRequestDTO $dto): array
     {
         return $this->sefazService->create($dto->payload(), self::MODEL);

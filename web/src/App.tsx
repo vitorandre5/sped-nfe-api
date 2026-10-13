@@ -14,7 +14,6 @@ import type { Company, FiscalDocument, MunicipalTax } from './lib/supabase'
 type Membership = { organization_id: string; role: string; organizations: { name: string } | null }
 type Page = 'documents' | 'companies' | 'settings'
 type Notice = { tone: 'success' | 'error' | 'info'; text: string } | null
-type AutoSync = { documentType: 'nfe55' | 'nfse'; companyId: string; nextSyncAt: string | null }
 type CnpjRegistryProfile = Record<string, unknown>
 
 const ALLOW_SIGNUP = import.meta.env.VITE_ALLOW_SIGNUP !== 'false'
@@ -82,10 +81,8 @@ function App() {
   const [showOrganizationSetup, setShowOrganizationSetup] = useState(false)
   const [notice, setNotice] = useState<Notice>(null)
   const [busy, setBusy] = useState(false)
-  const [autoSync, setAutoSync] = useState<AutoSync[]>([])
   const searchInput = useRef<HTMLInputElement>(null)
   const accountMenuRef = useRef<HTMLDivElement>(null)
-  const autoSyncRunning = useRef(false)
   const queryClient = useQueryClient()
 
   useEffect(() => {
@@ -97,10 +94,6 @@ function App() {
     const { data: listener } = supabase.auth.onAuthStateChange((_event, value) => setSession(value))
     return () => listener.subscription.unsubscribe()
   }, [])
-
-  useEffect(() => {
-    if (!session) setAutoSync([])
-  }, [session])
 
   useEffect(() => {
     if (!accountMenuOpen) return
@@ -145,54 +138,6 @@ function App() {
 
   const organizationId = membership?.organization_id
 
-  useEffect(() => {
-    const due = autoSync.filter((item) => item.nextSyncAt).sort((a, b) => Date.parse(a.nextSyncAt!) - Date.parse(b.nextSyncAt!))[0]
-    if (!due || !session || !organizationId) return
-    const delay = Math.max(0, Date.parse(due.nextSyncAt!) - Date.now())
-    const timer = window.setTimeout(async () => {
-      if (autoSyncRunning.current || !supabase) return
-      autoSyncRunning.current = true
-      try {
-        const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
-        if (sessionError || !sessionData.session?.access_token) throw new Error('Entre novamente para retomar a sincronização automática.')
-        const response = await fetch('/api/nfe/sincronizar', {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${sessionData.session.access_token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ organization_id: organizationId, company_id: due.companyId, document_type: due.documentType }),
-        })
-        const result = await response.json() as { success?: boolean; code?: string; details?: { next_sync_at?: string | null }; data?: { message?: string; documentos_salvos?: number; next_sync_at?: string | null } }
-        if (!response.ok || !result.success || !result.data) {
-          const error = new Error(syncFailureMessage(result.code)) as Error & { nextSyncAt?: string | null }
-          error.nextSyncAt = result.details?.next_sync_at
-          throw error
-        }
-        const count = result.data.documentos_salvos ?? 0
-        setAutoSync((current) => current.map((item) => item.companyId === due.companyId && item.documentType === due.documentType
-          ? { ...item, nextSyncAt: result.data!.next_sync_at ?? new Date(Date.now() + 60 * 60 * 1000).toISOString() }
-          : item))
-        await queryClient.invalidateQueries({ queryKey: ['documents', organizationId] })
-        await queryClient.invalidateQueries({ queryKey: ['companies', organizationId] })
-        await queryClient.invalidateQueries({ queryKey: ['sync-status', organizationId] })
-        if (count > 0) {
-          const text = `${count} novo${count === 1 ? '' : 's'} documento${count === 1 ? '' : 's'} fiscal${count === 1 ? '' : 'is'} recebido${count === 1 ? '' : 's'}.`
-          setNotice({ tone: 'success', text })
-          if ('Notification' in window && Notification.permission === 'granted') new Notification('Fiscal · novas notas', { body: text })
-        }
-      } catch (error) {
-        setNotice({ tone: 'info', text: error instanceof Error ? error.message : 'A busca continuará automaticamente quando estiver disponível.' })
-        const nextSyncAt = error instanceof Error && 'nextSyncAt' in error && typeof error.nextSyncAt === 'string'
-          ? error.nextSyncAt
-          : new Date(Date.now() + 60 * 60 * 1000).toISOString()
-        setAutoSync((current) => current.map((item) => item.companyId === due.companyId && item.documentType === due.documentType
-          ? { ...item, nextSyncAt }
-          : item))
-      } finally {
-        autoSyncRunning.current = false
-      }
-    }, delay)
-    return () => window.clearTimeout(timer)
-  }, [autoSync, session, organizationId, queryClient])
-
   const { data: companies = [], isLoading: companiesLoading } = useQuery({
     queryKey: ['companies', organizationId],
     enabled: Boolean(organizationId),
@@ -225,6 +170,7 @@ function App() {
         .select('*, company:companies(name,cnpj)', { count: 'exact' })
         .eq('organization_id', organizationId!)
         .eq('is_purchase', true)
+        .neq('situation', 'Resumo disponível')
         .order('issued_at', { ascending: false, nullsFirst: false })
         .range(documentPage * 50, documentPage * 50 + 49)
       if (selectedCompany !== 'all') request = request.contains('source_company_ids', [selectedCompany])
@@ -246,7 +192,7 @@ function App() {
       if (error) throw error
       return { rows: (data ?? []) as FiscalDocument[], total: count ?? 0 }
     },
-    refetchInterval: busy || autoSync.length > 0 ? 3000 : false,
+    refetchInterval: busy ? 3000 : 15000,
   })
 
   const documents = documentResult.rows
@@ -341,7 +287,7 @@ function App() {
             <>
               <section className="page-heading">
                 <div><div className="eyebrow"><span className="eyebrow-line" /> CENTRAL DE DOCUMENTOS</div><h1>Busca fiscal</h1><p>Encontre notas e acompanhe o que chega para suas empresas.</p></div>
-                <div className="heading-actions">{autoSync.length > 0 && <button className="button button-secondary" onClick={() => setAutoSync([])} title="Interromper a sincronização automática desta sessão">Automática ativa ({autoSync.length}) · Pausar</button>}<button className="button button-secondary" onClick={() => refresh()} disabled={documentsLoading}><RefreshCw size={16} className={documentsLoading ? 'spin' : ''} />Atualizar</button><button className="button button-primary" onClick={() => companies.length ? setSyncDialog(true) : setCompanyDialog(true)}><ArrowDownToLine size={17} />Sincronizar notas</button></div>
+                <div className="heading-actions"><button className="button button-secondary" onClick={() => refresh()} disabled={documentsLoading}><RefreshCw size={16} className={documentsLoading ? 'spin' : ''} />Atualizar</button><button className="button button-primary" onClick={() => companies.length ? setSyncDialog(true) : setCompanyDialog(true)}><ArrowDownToLine size={17} />Sincronizar notas</button></div>
               </section>
 
               <section className="summary-grid" aria-label="Resumo dos documentos">
@@ -371,7 +317,7 @@ function App() {
       </main>
 
       {companyDialog && <CompanyDialog organizationId={organizationId!} onClose={() => setCompanyDialog(false)} onSaved={async () => { setCompanyDialog(false); await queryClient.invalidateQueries({ queryKey: ['companies', organizationId] }); setNotice({ tone: 'success', text: 'Empresa adicionada.' }) }} onNotice={setNotice} />}
-      {syncDialog && <SyncDialog companies={companies} initialCompanyId={selectedCompany === 'all' ? companies[0]?.id : selectedCompany} organizationId={organizationId!} onClose={() => setSyncDialog(false)} onNotice={setNotice} onBusy={setBusy} onEnableAuto={(value) => setAutoSync((current) => [...current.filter((item) => item.companyId !== value.companyId || item.documentType !== value.documentType), value])} onDone={async () => { setSyncDialog(false); await queryClient.invalidateQueries({ queryKey: ['companies', organizationId] }); await queryClient.invalidateQueries({ queryKey: ['documents', organizationId] }); await queryClient.invalidateQueries({ queryKey: ['sync-status', organizationId] }) }} />}
+      {syncDialog && <SyncDialog companies={companies} initialCompanyId={selectedCompany === 'all' ? companies[0]?.id : selectedCompany} organizationId={organizationId!} onClose={() => setSyncDialog(false)} onNotice={setNotice} onBusy={setBusy} onDone={async () => { setSyncDialog(false); await queryClient.invalidateQueries({ queryKey: ['companies', organizationId] }); await queryClient.invalidateQueries({ queryKey: ['documents', organizationId] }); await queryClient.invalidateQueries({ queryKey: ['sync-status', organizationId] }) }} />}
       {previewDocument && previewPdfUrl && <DocumentPreview document={previewDocument} pdfUrl={previewPdfUrl} onClose={() => { setPreviewDocument(null); setPreviewPdfUrl(null) }} onDownload={() => { void downloadDocument(previewDocument, 'pdf') }} />}
       {notice && <div className={`toast ${notice.tone}`} role="status"><span>{notice.tone === 'error' ? <CircleAlert size={17} /> : <Check size={17} />}</span>{notice.text}<button onClick={() => setNotice(null)} aria-label="Fechar aviso"><X size={15} /></button></div>}
       {busy && <div className="busy-scrim" aria-live="polite">Sincronizando notas fiscais…</div>}
@@ -554,7 +500,7 @@ function CompanyDialog({ organizationId, onClose, onSaved, onNotice }: { organiz
   return <Modal title="Adicionar empresa" description="Informe o CNPJ para localizar e preencher os dados cadastrais públicos." onClose={onClose}><form className="dialog-form" onSubmit={save}><label className="field-label">CNPJ<input autoFocus inputMode="text" autoCapitalize="characters" value={formatCnpj(cnpj)} onChange={(event) => setCnpj(normalizeTaxId(event.target.value).slice(0, 14))} required placeholder="00.000.000/0000-00"/>{(registryLoading || registryMessage) && <small className="cnpj-lookup-status" role="status">{registryLoading ? 'Consultando cadastro público…' : registryMessage}</small>}</label><label className="field-label">Nome empresarial<input value={name} onChange={(event) => { nameEdited.current = true; setName(event.target.value) }} required maxLength={160} placeholder="Razão social"/></label><label className="field-label">UF do estabelecimento<select value={state} onChange={(event) => { stateEdited.current = true; setState(event.target.value) }} required>{BRAZILIAN_STATES.map(([code, label]) => <option key={code} value={code}>{code} · {label}</option>)}</select></label>{registryData && <div className="dialog-note"><ShieldCheck size={16}/><span>Cadastro localizado: {String(registryData.situacao_cadastral_descricao ?? 'situação não informada')}{registryData.cnae_fiscal_principal_descricao ? ` · CNAE ${String(registryData.cnae_fiscal_principal_descricao)}` : ''}. Confira o nome e a UF antes de salvar.</span></div>}<div className="dialog-note"><ShieldCheck size={16}/>A consulta é auxiliar, pode estar desatualizada e não substitui a conferência de IE, CRT ou demais dados fiscais. O certificado A1 será solicitado ao sincronizar.</div><div className="dialog-actions"><button type="button" className="button button-secondary" onClick={onClose}>Cancelar</button><button className="button button-primary" disabled={working}>{working ? 'Salvando…' : 'Adicionar empresa'}</button></div></form></Modal>
 }
 
-function SyncDialog({ companies, initialCompanyId, organizationId, onClose, onNotice, onBusy, onEnableAuto, onDone }: { companies: Company[]; initialCompanyId?: string; organizationId: string; onClose: () => void; onNotice: (notice: Notice) => void; onBusy: (busy: boolean) => void; onEnableAuto: (value: AutoSync) => void; onDone: () => void }) {
+function SyncDialog({ companies, initialCompanyId, organizationId, onClose, onNotice, onBusy, onDone }: { companies: Company[]; initialCompanyId?: string; organizationId: string; onClose: () => void; onNotice: (notice: Notice) => void; onBusy: (busy: boolean) => void; onDone: () => void }) {
   const [companyId, setCompanyId] = useState(initialCompanyId ?? '')
   const [file, setFile] = useState<File | null>(null)
   const [password, setPassword] = useState('')
@@ -611,21 +557,13 @@ function SyncDialog({ companies, initialCompanyId, organizationId, onClose, onNo
         headers: { Authorization: 'Bearer ' + accessToken, 'Content-Type': 'application/json' },
         body: JSON.stringify({ organization_id: organizationId, company_id: company.id, document_type: 'all' }),
       })
-      const result = await response.json() as { success?: boolean; code?: string; data?: { documentos_salvos?: number; next_sync_at?: string | null; sources?: Partial<Record<'nfe55' | 'nfse', { next_sync_at?: string | null }>>; source_errors?: Partial<Record<'nfe55' | 'nfse', { details?: { next_sync_at?: string | null } }>> } }
+      const result = await response.json() as { success?: boolean; code?: string; data?: { documentos_salvos?: number } }
       if (!response.ok || !result.success || !result.data) throw new Error(syncFailureMessage(result.code))
       const count = result.data.documentos_salvos ?? 0
       onNotice({ tone: 'success', text: count > 0
         ? count + ' documento' + (count === 1 ? '' : 's') + ' recebido' + (count === 1 ? '' : 's') + '. A busca continua em segundo plano.'
         : 'Sincronização iniciada. Os documentos aparecerão nesta página conforme forem recebidos.' })
-      for (const documentType of ['nfe55', 'nfse'] as const) {
-        const source = result.data.sources?.[documentType]
-        const sourceError = result.data.source_errors?.[documentType]
-        if (source || sourceError) onEnableAuto({
-          documentType,
-          companyId: company.id,
-          nextSyncAt: source?.next_sync_at ?? sourceError?.details?.next_sync_at ?? result.data.next_sync_at ?? new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-        })
-      }
+
       onDone()
     } catch (error) {
       onNotice({ tone: 'error', text: error instanceof Error ? error.message : 'Não foi possível iniciar a consulta.' })
@@ -647,7 +585,6 @@ function SyncDialog({ companies, initialCompanyId, organizationId, onClose, onNo
       <label className="field-label">{displayedCompany?.certificate_uploaded_at ? 'Substituir certificado A1 (opcional)' : 'Certificado digital A1'}<input ref={certificateInput} type="file" accept=".pfx,.p12,application/x-pkcs12" onChange={(event) => setFile(event.target.files?.[0] ?? null)} required={!displayedCompany?.certificate_uploaded_at}/><small>Ao enviar, o A1 ficará associado a esta empresa e será criptografado no servidor. Não será necessário enviá-lo nas próximas consultas.</small></label>
       {file && <label className="field-label">Senha do certificado<input type="password" autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} required/></label>}
       <small>As consultas continuam em segundo plano usando o certificado salvo. A senha é guardada junto do arquivo, criptografada no servidor.</small>
-      <div className="dialog-note"><ShieldCheck size={16}/>Cada serviço respeita seu intervalo oficial. Nenhuma manifestação fiscal é enviada automaticamente.</div>
       {working && <div className="sync-progress"><span className="spinner"/>{phase}</div>}
       <div className="dialog-actions"><button type="button" className="button button-secondary" onClick={onClose} disabled={working}>Cancelar</button><button className="button button-primary" disabled={working || !companyId || (!file && !displayedCompany?.certificate_uploaded_at)}>{working ? 'Sincronizando...' : 'Iniciar consulta'}<ArrowRight size={16}/></button></div>
     </form>
@@ -655,7 +592,7 @@ function SyncDialog({ companies, initialCompanyId, organizationId, onClose, onNo
 }
 
 function DocumentTable({ documents, downloadMenuId, onPreview, onToggleDownload, onDownload }: { documents: FiscalDocument[]; downloadMenuId: string | null; onPreview: (document: FiscalDocument) => void; onToggleDownload: (id: string) => void; onDownload: (document: FiscalDocument, format: 'xml' | 'pdf') => void }) {
-  return <div className="table-scroll"><table><thead><tr><th>Documento</th><th>Emitente</th><th>Destinatário</th><th>Emissão</th><th>Valor</th><th>Situação</th><th>Ações</th></tr></thead><tbody>{documents.map((item) => <tr key={item.id} onClick={() => onPreview(item)} tabIndex={0} onKeyDown={(event) => { if (event.target === event.currentTarget && event.key === 'Enter') onPreview(item) }}><td><div className="document-cell"><span className="doc-icon"><FileText size={16}/></span><span><strong>{item.document_number ? `${documentLabel(item.document_type)} ${item.document_number}` : `${documentLabel(item.document_type)} recebida`}</strong><small>{shortKey(item.access_key)} · NSU {item.nsu}</small></span></div></td><td><div className="party-cell"><strong>{item.issuer_name ?? 'Emitente não identificado'}</strong><small>{formatCnpj(item.issuer_cnpj ?? '')}</small></div></td><td><div className="party-cell"><strong>{item.recipient_name ?? 'Destinatário não identificado'}</strong><small>{formatCnpj(item.recipient_cnpj ?? '')}</small></div></td><td className="date-cell">{formatDate(item.issued_at)}</td><td className="amount-cell">{formatMoney(item.total_amount)}</td><td><span className="status-badge"><span/> {item.situation}</span>{item.situation.startsWith('Resumo') && <small className="summary-notice">A SEFAZ libera o XML completo ap&oacute;s a manifesta&ccedil;&atilde;o; o Fiscal atualizar&aacute; esta nota quando receb&ecirc;-lo.</small>}</td><td><div className="row-actions"><button className="row-action" aria-label={`Visualizar ${documentLabel(item.document_type)}`} disabled={item.situation.startsWith('Resumo')} title={item.situation.startsWith('Resumo') ? 'PDF indispon\u00edvel at\u00e9 a libera\u00e7\u00e3o do XML completo' : 'Visualizar PDF'} onClick={(event) => { event.stopPropagation(); onPreview(item) }}><Eye size={16}/></button><div className="download-menu-wrap"><button className="row-action" aria-label={`Baixar ${documentLabel(item.document_type)}`} title="Baixar documento" aria-expanded={downloadMenuId === item.id} onClick={(event) => { event.stopPropagation(); onToggleDownload(item.id) }}><Download size={16}/></button>{downloadMenuId === item.id && <div className="download-menu" role="menu"><button role="menuitem" onClick={(event) => { event.stopPropagation(); onDownload(item, 'xml') }}>Baixar XML</button><button role="menuitem" disabled={item.situation.startsWith('Resumo')} onClick={(event) => { event.stopPropagation(); onDownload(item, 'pdf') }}>Baixar PDF</button></div>}</div></div></td></tr>)}</tbody></table></div>
+  return <div className="table-scroll"><table><thead><tr><th>Documento</th><th>Emitente</th><th>Destinatário</th><th>Emissão</th><th>Valor</th><th>Situação</th><th>Ações</th></tr></thead><tbody>{documents.map((item) => <tr key={item.id} onClick={() => onPreview(item)} tabIndex={0} onKeyDown={(event) => { if (event.target === event.currentTarget && event.key === 'Enter') onPreview(item) }}><td><div className="document-cell"><span className="doc-icon"><FileText size={16}/></span><span><strong>{item.document_number ? `${documentLabel(item.document_type)} ${item.document_number}` : `${documentLabel(item.document_type)} recebida`}</strong><small>{shortKey(item.access_key)} · NSU {item.nsu}</small></span></div></td><td><div className="party-cell"><strong>{item.issuer_name ?? 'Emitente não identificado'}</strong><small>{formatCnpj(item.issuer_cnpj ?? '')}</small></div></td><td><div className="party-cell"><strong>{item.recipient_name ?? 'Destinatário não identificado'}</strong><small>{formatCnpj(item.recipient_cnpj ?? '')}</small></div></td><td className="date-cell">{formatDate(item.issued_at)}</td><td className="amount-cell">{formatMoney(item.total_amount)}</td><td><span className="status-badge"><span/> {item.situation}</span></td><td><div className="row-actions"><button className="row-action" aria-label={`Visualizar ${documentLabel(item.document_type)}`} title="Visualizar PDF" onClick={(event) => { event.stopPropagation(); onPreview(item) }}><Eye size={16}/></button><div className="download-menu-wrap"><button className="row-action" aria-label={`Baixar ${documentLabel(item.document_type)}`} title="Baixar documento" aria-expanded={downloadMenuId === item.id} onClick={(event) => { event.stopPropagation(); onToggleDownload(item.id) }}><Download size={16}/></button>{downloadMenuId === item.id && <div className="download-menu" role="menu"><button role="menuitem" onClick={(event) => { event.stopPropagation(); onDownload(item, 'xml') }}>Baixar XML</button><button role="menuitem" onClick={(event) => { event.stopPropagation(); onDownload(item, 'pdf') }}>Baixar PDF</button></div>}</div></div></td></tr>)}</tbody></table></div>
 }
 
 function DocumentPreview({ document, pdfUrl, onClose, onDownload }: { document: FiscalDocument; pdfUrl: string; onClose: () => void; onDownload: () => void }) {

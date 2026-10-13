@@ -38,10 +38,25 @@ final class SupabaseApiClient
      */
     public function select(string $table, array $filters, string $columns = '*'): array
     {
+        $rawFilters = [];
+        foreach ($filters as $column => $value) {
+            $rawFilters[$column] = 'eq.' . $value;
+        }
+
+        return $this->selectFiltered($table, $rawFilters, $columns);
+    }
+
+    /**
+     * @param array<string, string> $filters PostgREST filter expressions.
+     * @return list<array<string, mixed>>
+     */
+    public function selectFiltered(string $table, array $filters, string $columns = '*', int $limit = 1000): array
+    {
         $query = ['select' => $columns];
         foreach ($filters as $column => $value) {
-            $query[$column] = 'eq.' . $value;
+            $query[$column] = $value;
         }
+        $query['limit'] = (string) max(1, min($limit, 1000));
         $result = $this->request('GET', '/rest/v1/' . rawurlencode($table) . '?' . http_build_query($query));
 
         return is_array($result) ? array_values(array_filter($result, 'is_array')) : [];

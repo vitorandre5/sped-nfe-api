@@ -76,6 +76,23 @@ final class SefazService
     }
 
     /**
+     * Registra Ciência da Operação para uma NF-e recebida (evento 210210).
+     *
+     * @param array<string, mixed> $payload
+     * @return array<string, mixed>
+     */
+    public function manifestarCiencia(array $payload, int $model, string $accessKey): array
+    {
+        if ($model !== 55) {
+            throw new FiscalException('A Ciência automática é exclusiva para NF-e modelo 55.', 'DIST_DFE_MODEL_NOT_SUPPORTED', [], 422);
+        }
+
+        $context = $this->contextResolver->resolve($payload, $model, false);
+        $this->certificateService->assertAvailable($context);
+        return $this->adapter->registerKnowledgeOfOperation($context, $accessKey);
+    }
+
+    /**
      * @param array<string, mixed> $payload
      * @return array<string, mixed>
      */

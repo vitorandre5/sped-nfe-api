@@ -35,7 +35,7 @@ final class DanfeService
         $normalizedType = strtolower($documentType);
         if (in_array($normalizedType, ['nfe55', 'nfe55_hom'], true) && $root === 'resNFe') {
             throw new FiscalException(
-                'A SEFAZ disponibilizou apenas o resumo desta NF-e. O DANFE exige o XML completo; este sistema não envia manifestação fiscal automaticamente. Faça a manifestação adequada para solicitar o XML completo.',
+                'O documento ainda não está disponível para visualização.',
                 'NFE_SUMMARY_ONLY',
                 [],
                 422

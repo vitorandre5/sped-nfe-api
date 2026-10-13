@@ -22,8 +22,7 @@ final class DanfeServiceTest extends TestCase
             self::fail('A summary-only NF-e must not be rendered as a DANFE.');
         } catch (FiscalException $exception) {
             self::assertSame('NFE_SUMMARY_ONLY', $exception->errorCode());
-            self::assertStringContainsString('XML completo', $exception->getMessage());
-            self::assertStringContainsString('não envia manifestação', $exception->getMessage());
+            self::assertSame('O documento ainda não está disponível para visualização.', $exception->getMessage());
         }
     }
 }
