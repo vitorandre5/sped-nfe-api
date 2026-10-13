@@ -71,6 +71,38 @@ final class NfseXmlParser
             if ($isInvoice && ($number === null || !preg_match('/^\d{1,15}$/', $number))) {
                 throw new FiscalException('O número da NFS-e é inválido.', 'NFSE_NUMBER_INVALID', [], 502);
             }
+            $municipalTaxPath = '//n:infDPS/n:valores/n:trib/n:tribMun';
+            $municipalTaxCode = $text($municipalTaxPath . '/n:tribISSQN');
+            $municipalTax = [
+                'status' => 'not_informed',
+                'tax_type' => $municipalTaxCode,
+                'incidence_municipality_code' => $text('/n:NFSe/n:infNFSe/n:cLocIncid'),
+                'incidence_municipality' => $text('/n:NFSe/n:infNFSe/n:xLocIncid'),
+                'municipal_service_code' => $text('//n:infDPS/n:serv/n:cServ/n:cTribMun'),
+                'municipal_service_description' => $text('//n:infDPS/n:serv/n:cServ/n:xTribMun'),
+                'special_regime' => $text('//n:infDPS/n:prest/n:regTrib/n:regEspTrib'),
+                'immunity_type' => $text($municipalTaxPath . '/n:tpImunidade'),
+                'suspension_type' => $text($municipalTaxPath . '/n:exigSusp/n:tpSusp'),
+                'suspension_process' => $text($municipalTaxPath . '/n:exigSusp/n:nProcesso'),
+                'benefit_type' => $text($municipalTaxPath . '/n:tpBM'),
+                'benefit_amount' => $text($municipalTaxPath . '/n:vCalcBM'),
+                'deductions' => $text('//n:infDPS/n:valores/n:vDedRed/n:vDR') ?? $text('//n:infDPS/n:valores/n:vDedRed/n:vCalcDR'),
+                'unconditional_discount' => $text('//n:infDPS/n:valores/n:vDescIncond'),
+                'tax_base' => $text('/n:NFSe/n:infNFSe/n:valores/n:vBC'),
+                'rate' => $text('/n:NFSe/n:infNFSe/n:valores/n:pAliqAplic'),
+                'retention_type' => $text($municipalTaxPath . '/n:tpRetISSQN'),
+                'amount' => $text('/n:NFSe/n:infNFSe/n:valores/n:vISSQN'),
+            ];
+            if ($municipalTaxCode === '4') {
+                $municipalTax['status'] = 'not_subject';
+            } elseif (count(array_filter([
+                $municipalTax['tax_type'], $municipalTax['immunity_type'], $municipalTax['suspension_type'],
+                $municipalTax['suspension_process'], $municipalTax['benefit_type'], $municipalTax['benefit_amount'],
+                $municipalTax['deductions'], $municipalTax['unconditional_discount'], $municipalTax['tax_base'],
+                $municipalTax['rate'], $municipalTax['retention_type'], $municipalTax['amount'],
+            ], static fn ($value): bool => $value !== null)) > 0) {
+                $municipalTax['status'] = 'available';
+            }
             return [
                 'access_key' => $key,
                 'is_invoice' => $isInvoice,
@@ -82,6 +114,7 @@ final class NfseXmlParser
                 'series' => $text('//n:infDPS/n:serie'),
                 'issued_at' => $issuedAt,
                 'total_amount' => $amount,
+                'municipal_tax' => $municipalTax,
                 'is_purchase' => $recipient === $companyCnpj,
                 'is_sale' => $issuer === $companyCnpj,
                 'operation_nature' => $text('//n:cServ/n:xDescServ'),

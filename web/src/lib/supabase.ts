@@ -33,6 +33,7 @@ export type FiscalDocument = {
   series: string | null
   issued_at: string | null
   total_amount: number | null
+  municipal_tax: MunicipalTax | null
   situation: string
   is_purchase: boolean
   is_sale: boolean
@@ -43,6 +44,27 @@ export type FiscalDocument = {
   storage_path: string
   created_at: string
   company?: Pick<Company, 'name' | 'cnpj'>
+}
+
+export type MunicipalTax = {
+  status: 'available' | 'not_subject' | 'not_informed'
+  tax_type: string | null
+  incidence_municipality_code: string | null
+  incidence_municipality: string | null
+  municipal_service_code: string | null
+  municipal_service_description: string | null
+  special_regime: string | null
+  immunity_type: string | null
+  suspension_type: string | null
+  suspension_process: string | null
+  benefit_type: string | null
+  benefit_amount: string | null
+  deductions: string | null
+  unconditional_discount: string | null
+  tax_base: string | null
+  rate: string | null
+  retention_type: string | null
+  amount: string | null
 }
 
 export type SyncCursor = {

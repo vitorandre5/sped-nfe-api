@@ -220,6 +220,7 @@ final class NFeDistributionSyncService
                         $organizationId,
                         $companyId,
                         $cnpj,
+                        (string) ($company['name'] ?? ''),
                         $environment,
                         $sourceType
                     );
@@ -310,6 +311,7 @@ final class NFeDistributionSyncService
         string $organizationId,
         string $companyId,
         string $cnpj,
+        string $companyName,
         int $environment,
         string $documentType = 'nfe55'
     ): int {
@@ -318,13 +320,16 @@ final class NFeDistributionSyncService
         $xml = (string) $source['xml'];
         $parsed = $documentType === 'nfse'
             ? (new NfseXmlParser())->parse($source, $cnpj, $environment)
-            : $this->parser->parse($xml, $schema, $cnpj);
+            : $this->parser->parse($xml, $schema, $cnpj, $companyName);
         $digest = hash('sha256', $xml);
         $path = sprintf('%s/%s/%s/%d/%s-%s.xml', $organizationId, $companyId, $documentType === 'nfse' ? 'nfse' : '55', $environment, $nsu, $digest);
         $client->uploadXml($path, $xml);
 
         $documentId = null;
-        if (!empty($parsed['is_invoice'])) {
+        $isInvoice = !empty($parsed['is_invoice']);
+        $isIncomingInvoice = $isInvoice && !empty($parsed['is_purchase']);
+        $isNewDocument = false;
+        if ($isIncomingInvoice) {
             $existing = $client->select('fiscal_documents', [
                 'organization_id' => $organizationId,
                 'access_key' => $parsed['access_key'],
@@ -358,10 +363,11 @@ final class NFeDistributionSyncService
                 'series' => $parsed['series'],
                 'issued_at' => $parsed['issued_at'],
                 'total_amount' => $parsed['total_amount'],
+                'municipal_tax' => $parsed['municipal_tax'] ?? null,
                 'situation' => $parsed['situation'],
                 'storage_path' => $path,
                 'xml_sha256' => $digest,
-                'is_purchase' => !empty($parsed['is_purchase']) || !empty($previous['is_purchase']),
+                'is_purchase' => true,
                 'is_sale' => !empty($parsed['is_sale']) || !empty($previous['is_sale']),
                 'source_company_ids' => $sourceCompanyIds,
                 'operation_categories' => $operationCategories,
@@ -373,7 +379,7 @@ final class NFeDistributionSyncService
             if ($documentId === '') {
                 throw new FiscalException('Não foi possível vincular o XML à nota fiscal.', 'DOCUMENT_IMPORT_FAILED', [], 502);
             }
-        } else {
+        } elseif (!$isInvoice) {
             $existing = $client->select('fiscal_documents', [
                 'organization_id' => $organizationId,
                 'access_key' => $parsed['access_key'],
@@ -409,7 +415,7 @@ final class NFeDistributionSyncService
             $client->updateDocument($documentId, ['source_company_ids' => $sourceCompanyIds]);
         }
 
-        return !empty($parsed['is_invoice']) && $isNewDocument ? 1 : 0;
+        return $isIncomingInvoice && $isNewDocument ? 1 : 0;
     }
 
     private function isCancellation(array $parsed): bool

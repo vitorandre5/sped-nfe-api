@@ -17,6 +17,12 @@ final class NfseXmlParserTest extends TestCase
         $result = (new NfseXmlParser())->parse($source, '12345678000195');
         self::assertSame('123', $result['document_number']);
         self::assertSame('32.97', $result['total_amount']);
+        self::assertSame('available', $result['municipal_tax']['status']);
+        self::assertSame('3550308', $result['municipal_tax']['incidence_municipality_code']);
+        self::assertSame('23.08', $result['municipal_tax']['tax_base']);
+        self::assertSame('4.00', $result['municipal_tax']['rate']);
+        self::assertSame('0.92', $result['municipal_tax']['amount']);
+        self::assertSame('1', $result['municipal_tax']['retention_type']);
         self::assertTrue($result['is_sale']);
         self::assertSame($original, $source['xml']);
         self::assertStringContainsString('<cStat>107</cStat>', $source['xml']);
@@ -47,6 +53,18 @@ final class NfseXmlParserTest extends TestCase
         $source['xml'] = str_replace('<vServ>32.97</vServ>', '<vServ>invalid</vServ>', $source['xml']);
         $this->expectException(FiscalException::class);
         (new NfseXmlParser())->parse($source, '12345678000195');
+    }
+
+    public function testDistinguishesNfseWithoutMunicipalTaxDetails(): void
+    {
+        $source = $this->source();
+        $source['xml'] = preg_replace('/<valores>.*?<\/valores>/s', '', $source['xml'], 1) ?? $source['xml'];
+        $source['xml'] = preg_replace('/<tribMun>.*?<\/tribMun>/s', '', $source['xml'], 1) ?? $source['xml'];
+        $result = (new NfseXmlParser())->parse($source, '12345678000195');
+
+        self::assertSame('not_informed', $result['municipal_tax']['status']);
+        self::assertNull($result['municipal_tax']['tax_base']);
+        self::assertNull($result['municipal_tax']['amount']);
     }
 
     private function source(): array

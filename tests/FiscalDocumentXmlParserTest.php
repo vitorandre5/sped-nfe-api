@@ -21,15 +21,52 @@ final class FiscalDocumentXmlParserTest extends TestCase
         $parsed = (new FiscalDocumentXmlParser())->parse(
             $xml,
             'resNFe_v1.01.xsd',
-            'AB123456789012'
+            'AB123456789012',
+            'Empresa cadastrada'
         );
 
         self::assertTrue($parsed['is_invoice']);
         self::assertSame('35130611290482000188550010000065961003608500', $parsed['access_key']);
         self::assertSame('AB123456789012', $parsed['issuer_cnpj']);
         self::assertSame('Empresa Teste', $parsed['issuer_name']);
+        self::assertSame('AB123456789012', $parsed['recipient_cnpj']);
+        self::assertSame('Empresa cadastrada', $parsed['recipient_name']);
         self::assertSame('994.89', $parsed['total_amount']);
+        self::assertTrue($parsed['is_purchase']);
         self::assertTrue($parsed['is_sale']);
+    }
+
+    public function testSummaryUsesRegisteredCompanyAsRecipientInsteadOfIssuer(): void
+    {
+        $xml = '<resNFe xmlns="http://www.portalfiscal.inf.br/nfe" versao="1.01">'
+            . '<chNFe>35130611290482000188550010000065961003608500</chNFe>'
+            . '<CNPJ>11222333000144</CNPJ><xNome>ALEX ACESSORIOS</xNome><IE>148870628115</IE>'
+            . '<dhEmi>2026-10-12T10:20:00-03:00</dhEmi><tpNF>1</tpNF><vNF>230.00</vNF>'
+            . '<dhRecbto>2026-10-12T10:20:00-03:00</dhRecbto><nProt>135260000000000</nProt>'
+            . '<cSitNFe>1</cSitNFe></resNFe>';
+
+        $parsed = (new FiscalDocumentXmlParser())->parse(
+            $xml,
+            'resNFe_v1.01.xsd',
+            '20504873000149',
+            'SANTOS OLIVEIRA ENGENHARIA E CONSULTORIA LTDA'
+        );
+
+        self::assertSame('ALEX ACESSORIOS', $parsed['issuer_name']);
+        self::assertSame('11222333000144', $parsed['issuer_cnpj']);
+        self::assertSame('SANTOS OLIVEIRA ENGENHARIA E CONSULTORIA LTDA', $parsed['recipient_name']);
+        self::assertSame('20504873000149', $parsed['recipient_cnpj']);
+        self::assertTrue($parsed['is_purchase']);
+        self::assertFalse($parsed['is_sale']);
+    }
+
+    public function testCompleteInvoiceForAnotherRecipientIsNotClassifiedAsPurchase(): void
+    {
+        $xml = (string) file_get_contents(__DIR__ . '/fixtures/xml/nfe_4.0.xml');
+
+        $parsed = (new FiscalDocumentXmlParser())->parse($xml, 'procNFe_v4.00.xsd', 'AB123456789012');
+
+        self::assertFalse($parsed['is_purchase']);
     }
 
     public function testRejectsXmlWithDoctype(): void

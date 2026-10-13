@@ -652,6 +652,15 @@ tbody td {
   background:#60a36f;
   border-radius:50%
 }
+.summary-notice {
+  display:block;
+  max-width:180px;
+  margin-top:5px;
+  color:#89948b;
+  font-size:9px;
+  line-height:1.35;
+  white-space:normal
+}
 .row-action {
   width:28px;
   height:28px;
@@ -738,6 +747,52 @@ thead th:last-child,tbody td:last-child {
   margin-bottom:10px;
   color:#718076;
   font-size:11px
+}
+.municipal-tax-panel {
+  flex:none;
+  max-height:150px;
+  overflow:auto;
+  margin-bottom:10px;
+  padding:10px 12px;
+  border:1px solid #e4e9e4;
+  border-radius:8px;
+  background:#fafcf9;
+  color:#657268;
+  font-size:11px
+}
+.municipal-tax-panel>strong {
+  display:block;
+  margin-bottom:6px;
+  color:#344239;
+  font-size:12px
+}
+.municipal-tax-panel>span {
+  display:block;
+  line-height:1.5
+}
+.municipal-tax-panel dl {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:5px 16px;
+  margin:0
+}
+.municipal-tax-panel dl>div {
+  min-width:0;
+  display:flex;
+  gap:5px
+}
+.municipal-tax-panel dt {
+  flex:none;
+  color:#89948b
+}
+.municipal-tax-panel dd {
+  min-width:0;
+  margin:0;
+  overflow-wrap:anywhere;
+  color:#344239
+}
+@media (max-width:640px) {
+  .municipal-tax-panel dl { grid-template-columns:minmax(0,1fr) }
 }
 .pdf-preview {
   flex:1;

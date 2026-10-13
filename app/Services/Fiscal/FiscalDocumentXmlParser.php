@@ -14,7 +14,7 @@ final class FiscalDocumentXmlParser
     /**
      * @return array<string, mixed>
      */
-    public function parse(string $xml, string $schemaName, string $companyCnpj): array
+    public function parse(string $xml, string $schemaName, string $companyCnpj, ?string $companyName = null): array
     {
         if ($xml === '' || strlen($xml) > 20 * 1024 * 1024 || stripos($xml, '<!DOCTYPE') !== false) {
             throw new FiscalException('A SEFAZ retornou um documento fiscal inválido.', 'INVALID_DISTRIBUTED_XML', [], 422);
@@ -53,14 +53,22 @@ final class FiscalDocumentXmlParser
                 throw new FiscalException('O documento retornado não contém uma chave de acesso válida.', 'INVALID_ACCESS_KEY', [], 422);
             }
 
+            $companyCnpj = $this->taxId($companyCnpj) ?? '';
+            $recipientCnpj = $this->taxId($this->childText($xpath, $recipient, 'CNPJ'))
+                ?? $this->taxId($this->childText($xpath, $recipient, 'CPF'));
+            $recipientName = $this->childText($xpath, $recipient, 'xNome');
+            if ($rootName === 'resNFe') {
+                // The official distribution service sends resNFe summaries only to
+                // the recipient. The summary itself omits the destination block.
+                $recipientCnpj = $companyCnpj;
+                $recipientName = trim((string) $companyName) !== '' ? trim((string) $companyName) : null;
+            }
+
             $issuerCnpj = $this->taxId($this->childText($xpath, $issuer, 'CNPJ'))
                 ?? $this->taxId($this->childText($xpath, $issuer, 'CPF'))
                 ?? ($rootName === 'resNFe'
                     ? ($this->taxId($this->firstText($xpath, 'CNPJ')) ?? $this->taxId($this->firstText($xpath, 'CPF')))
                     : null);
-            $recipientCnpj = $this->taxId($this->childText($xpath, $recipient, 'CNPJ'))
-                ?? $this->taxId($this->childText($xpath, $recipient, 'CPF'));
-            $companyCnpj = $this->taxId($companyCnpj) ?? '';
             $eventType = $this->childText($xpath, $eventInfo, 'tpEvento');
             $eventDescription = $this->childText($xpath, $eventInfo, 'descEvento');
 
@@ -70,7 +78,7 @@ final class FiscalDocumentXmlParser
                 'issuer_name' => $this->childText($xpath, $issuer, 'xNome')
                     ?? ($rootName === 'resNFe' ? $this->firstText($xpath, 'xNome') : null),
                 'issuer_cnpj' => $issuerCnpj,
-                'recipient_name' => $this->childText($xpath, $recipient, 'xNome'),
+                'recipient_name' => $recipientName,
                 'recipient_cnpj' => $recipientCnpj,
                 'document_number' => $this->childText($xpath, $ide, 'nNF'),
                 'series' => $this->childText($xpath, $ide, 'serie'),
@@ -129,7 +137,10 @@ final class FiscalDocumentXmlParser
 
     private function firstText(DOMXPath $xpath, string $name): ?string
     {
-        return $this->childText($xpath, null, $name);
+        $nodes = $xpath->query('/*//*[local-name()="' . $name . '"]');
+        $value = $nodes !== false ? trim((string) $nodes->item(0)?->textContent) : '';
+
+        return $value !== '' ? $value : null;
     }
 
     /** @return list<string> */
@@ -192,8 +203,11 @@ final class FiscalDocumentXmlParser
 
     private function childText(DOMXPath $xpath, ?DOMElement $parent, string $name): ?string
     {
-        $base = $parent ? '.' : '/*';
-        $nodes = $xpath->query($base . '//*[local-name()="' . $name . '"]', $parent);
+        if (!$parent) {
+            return null;
+        }
+
+        $nodes = $xpath->query('.//*[local-name()="' . $name . '"]', $parent);
         $value = $nodes !== false ? trim((string) $nodes->item(0)?->textContent) : '';
 
         return $value !== '' ? $value : null;

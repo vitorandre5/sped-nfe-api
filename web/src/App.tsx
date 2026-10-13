@@ -9,7 +9,7 @@ import {
   SlidersHorizontal, X,
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
-import type { Company, FiscalDocument } from './lib/supabase'
+import type { Company, FiscalDocument, MunicipalTax } from './lib/supabase'
 
 type Membership = { organization_id: string; role: string; organizations: { name: string } | null }
 type Page = 'documents' | 'companies' | 'settings'
@@ -68,7 +68,7 @@ function App() {
   const [authReady, setAuthReady] = useState(false)
   const [page, setPage] = useState<Page>('documents')
   const [selectedCompany, setSelectedCompany] = useState('all')
-  const [documentDirection, setDocumentDirection] = useState<'all' | 'purchase' | 'sale' | 'return' | 'transfer' | 'remittance_return' | 'bonus' | 'industrialization' | 'import_export'>('all')
+  const [documentDirection, setDocumentDirection] = useState<'all' | 'return' | 'transfer' | 'remittance_return' | 'bonus' | 'industrialization' | 'import_export'>('all')
   const [search, setSearch] = useState('')
   const [accountMenuOpen, setAccountMenuOpen] = useState(false)
   const [dateFrom, setDateFrom] = useState('')
@@ -224,12 +224,11 @@ function App() {
       let request = supabase!.from('fiscal_documents')
         .select('*, company:companies(name,cnpj)', { count: 'exact' })
         .eq('organization_id', organizationId!)
+        .eq('is_purchase', true)
         .order('issued_at', { ascending: false, nullsFirst: false })
         .range(documentPage * 50, documentPage * 50 + 49)
       if (selectedCompany !== 'all') request = request.contains('source_company_ids', [selectedCompany])
-      if (documentDirection === 'purchase') request = request.eq('is_purchase', true)
-      if (documentDirection === 'sale') request = request.eq('is_sale', true)
-      if (!['all', 'purchase', 'sale'].includes(documentDirection)) {
+      if (documentDirection !== 'all') {
         request = request.contains('operation_categories', [documentDirection])
       }
       if (dateFrom) request = request.gte('issued_at', new Date(`${dateFrom}T00:00:00`).toISOString())
@@ -275,7 +274,7 @@ function App() {
       const xml = await fetchDocumentXml(document)
       const url = URL.createObjectURL(await createFiscalPdf(document, xml))
       setPreviewPdfUrl(url)
-      setPreviewDocument(document)
+      setPreviewDocument({ ...document, municipal_tax: document.municipal_tax ?? parseMunicipalTaxXml(xml) })
     } catch (error) {
       setNotice({ tone: 'error', text: error instanceof Error ? error.message : 'Não foi possível gerar a prévia PDF.' })
     }
@@ -356,7 +355,7 @@ function App() {
                   <label className="search-input"><Search size={18} /><span className="sr-only">Buscar documentos</span><input ref={searchInput} type="search" name="fiscal-document-search" autoComplete="off" autoCorrect="off" spellCheck={false} value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar por emitente, destinatário, CNPJ ou chave…" /></label>
                   <label className="company-select"><Building2 size={16} /><span className="sr-only">Filtrar por empresa</span><select value={selectedCompany} onChange={(event) => setSelectedCompany(event.target.value)}><option value="all">Todas as empresas</option>{companies.map((company) => <option key={company.id} value={company.id}>{company.name}</option>)}</select><ChevronDown size={15} /></label>
                 </div>
-                <div className="filter-row"><div className="filter-caption"><SlidersHorizontal size={15} /><span>Filtros</span></div><label className="date-filter"><CalendarDays size={15} /><span>De</span><input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} /></label><label className="date-filter"><CalendarDays size={15} /><span>Até</span><input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} /></label><label className="date-filter direction-filter"><span>Tipo</span><select value={documentDirection} onChange={(event) => setDocumentDirection(event.target.value as typeof documentDirection)}><option value="all">Tudo</option><option value="purchase">Compras</option><option value="sale">Vendas</option><option value="return">Devolução</option><option value="transfer">Transferência entre filiais</option><option value="remittance_return">Remessa e retorno</option><option value="bonus">Bonificação</option><option value="industrialization">Industrialização</option><option value="import_export">Importação/exportação</option></select></label><span className="type-pill"><span className="type-dot" /> NF-e e NFS-e Nacional</span><span className="updated-at">{dataUpdatedAt ? `Atualizado às ${new Intl.DateTimeFormat('pt-BR', { timeStyle: 'short' }).format(dataUpdatedAt)}` : 'Aguardando consulta'}</span></div>
+                <div className="filter-row"><div className="filter-caption"><SlidersHorizontal size={15} /><span>Filtros</span></div><label className="date-filter"><CalendarDays size={15} /><span>De</span><input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} /></label><label className="date-filter"><CalendarDays size={15} /><span>Até</span><input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} /></label><label className="date-filter direction-filter"><span>Tipo</span><select value={documentDirection} onChange={(event) => setDocumentDirection(event.target.value as typeof documentDirection)}><option value="all">Todas as notas recebidas</option><option value="return">Devolução</option><option value="transfer">Transferência entre filiais</option><option value="remittance_return">Remessa e retorno</option><option value="bonus">Bonificação</option><option value="industrialization">Industrialização</option><option value="import_export">Importação/exportação</option></select></label><span className="type-pill"><span className="type-dot" /> NF-e e NFS-e Nacional</span><span className="updated-at">{dataUpdatedAt ? `Atualizado às ${new Intl.DateTimeFormat('pt-BR', { timeStyle: 'short' }).format(dataUpdatedAt)}` : 'Aguardando consulta'}</span></div>
               </section>
 
               <section className="results-card">
@@ -656,11 +655,83 @@ function SyncDialog({ companies, initialCompanyId, organizationId, onClose, onNo
 }
 
 function DocumentTable({ documents, downloadMenuId, onPreview, onToggleDownload, onDownload }: { documents: FiscalDocument[]; downloadMenuId: string | null; onPreview: (document: FiscalDocument) => void; onToggleDownload: (id: string) => void; onDownload: (document: FiscalDocument, format: 'xml' | 'pdf') => void }) {
-  return <div className="table-scroll"><table><thead><tr><th>Documento</th><th>Emitente</th><th>Destinatário</th><th>Emissão</th><th>Valor</th><th>Situação</th><th>Ações</th></tr></thead><tbody>{documents.map((item) => <tr key={item.id} onClick={() => onPreview(item)} tabIndex={0} onKeyDown={(event) => { if (event.target === event.currentTarget && event.key === 'Enter') onPreview(item) }}><td><div className="document-cell"><span className="doc-icon"><FileText size={16}/></span><span><strong>{item.document_number ? `${documentLabel(item.document_type)} ${item.document_number}` : `${documentLabel(item.document_type)} recebida`}</strong><small>{shortKey(item.access_key)} · NSU {item.nsu}</small></span></div></td><td><div className="party-cell"><strong>{item.issuer_name ?? 'Emitente não identificado'}</strong><small>{formatCnpj(item.issuer_cnpj ?? '')}</small></div></td><td><div className="party-cell"><strong>{item.recipient_name ?? 'Destinatário não identificado'}</strong><small>{formatCnpj(item.recipient_cnpj ?? '')}</small></div></td><td className="date-cell">{formatDate(item.issued_at)}</td><td className="amount-cell">{formatMoney(item.total_amount)}</td><td><span className="status-badge"><span/> {item.situation}</span></td><td><div className="row-actions"><button className="row-action" aria-label={`Visualizar ${documentLabel(item.document_type)}`} title="Visualizar PDF" onClick={(event) => { event.stopPropagation(); onPreview(item) }}><Eye size={16}/></button><div className="download-menu-wrap"><button className="row-action" aria-label={`Baixar ${documentLabel(item.document_type)}`} title="Baixar documento" aria-expanded={downloadMenuId === item.id} onClick={(event) => { event.stopPropagation(); onToggleDownload(item.id) }}><Download size={16}/></button>{downloadMenuId === item.id && <div className="download-menu" role="menu"><button role="menuitem" onClick={(event) => { event.stopPropagation(); onDownload(item, 'xml') }}>Baixar XML</button><button role="menuitem" onClick={(event) => { event.stopPropagation(); onDownload(item, 'pdf') }}>Baixar PDF</button></div>}</div></div></td></tr>)}</tbody></table></div>
+  return <div className="table-scroll"><table><thead><tr><th>Documento</th><th>Emitente</th><th>Destinatário</th><th>Emissão</th><th>Valor</th><th>Situação</th><th>Ações</th></tr></thead><tbody>{documents.map((item) => <tr key={item.id} onClick={() => onPreview(item)} tabIndex={0} onKeyDown={(event) => { if (event.target === event.currentTarget && event.key === 'Enter') onPreview(item) }}><td><div className="document-cell"><span className="doc-icon"><FileText size={16}/></span><span><strong>{item.document_number ? `${documentLabel(item.document_type)} ${item.document_number}` : `${documentLabel(item.document_type)} recebida`}</strong><small>{shortKey(item.access_key)} · NSU {item.nsu}</small></span></div></td><td><div className="party-cell"><strong>{item.issuer_name ?? 'Emitente não identificado'}</strong><small>{formatCnpj(item.issuer_cnpj ?? '')}</small></div></td><td><div className="party-cell"><strong>{item.recipient_name ?? 'Destinatário não identificado'}</strong><small>{formatCnpj(item.recipient_cnpj ?? '')}</small></div></td><td className="date-cell">{formatDate(item.issued_at)}</td><td className="amount-cell">{formatMoney(item.total_amount)}</td><td><span className="status-badge"><span/> {item.situation}</span>{item.situation.startsWith('Resumo') && <small className="summary-notice">A SEFAZ libera o XML completo ap&oacute;s a manifesta&ccedil;&atilde;o; o Fiscal atualizar&aacute; esta nota quando receb&ecirc;-lo.</small>}</td><td><div className="row-actions"><button className="row-action" aria-label={`Visualizar ${documentLabel(item.document_type)}`} disabled={item.situation.startsWith('Resumo')} title={item.situation.startsWith('Resumo') ? 'PDF indispon\u00edvel at\u00e9 a libera\u00e7\u00e3o do XML completo' : 'Visualizar PDF'} onClick={(event) => { event.stopPropagation(); onPreview(item) }}><Eye size={16}/></button><div className="download-menu-wrap"><button className="row-action" aria-label={`Baixar ${documentLabel(item.document_type)}`} title="Baixar documento" aria-expanded={downloadMenuId === item.id} onClick={(event) => { event.stopPropagation(); onToggleDownload(item.id) }}><Download size={16}/></button>{downloadMenuId === item.id && <div className="download-menu" role="menu"><button role="menuitem" onClick={(event) => { event.stopPropagation(); onDownload(item, 'xml') }}>Baixar XML</button><button role="menuitem" disabled={item.situation.startsWith('Resumo')} onClick={(event) => { event.stopPropagation(); onDownload(item, 'pdf') }}>Baixar PDF</button></div>}</div></div></td></tr>)}</tbody></table></div>
 }
 
 function DocumentPreview({ document, pdfUrl, onClose, onDownload }: { document: FiscalDocument; pdfUrl: string; onClose: () => void; onDownload: () => void }) {
-  return <Modal title={`Visualizar ${documentLabel(document.document_type)}`} description={`${document.document_number ? `Documento ${document.document_number}` : 'Documento fiscal recebido'} · ${formatDate(document.issued_at)}`} onClose={onClose} className="document-preview-card"><div className="preview-toolbar"><span>{document.document_type.startsWith('nfse') ? 'DANFSe oficial' : 'DANFE oficial'} · NFePHP SPED-DA</span><button className="button button-secondary button-small" onClick={onDownload}><Download size={15}/>Baixar PDF</button></div><iframe className="pdf-preview" title={`Prévia em PDF de ${documentLabel(document.document_type)}`} src={pdfUrl} /><p className="preview-disclaimer">Documento auxiliar gerado a partir do XML oficial armazenado.</p></Modal>
+  return <Modal title={`Visualizar ${documentLabel(document.document_type)}`} description={`${document.document_number ? `Documento ${document.document_number}` : 'Documento fiscal recebido'} · ${formatDate(document.issued_at)}`} onClose={onClose} className="document-preview-card"><div className="preview-toolbar"><span>{document.document_type.startsWith('nfse') ? 'DANFSe oficial' : 'DANFE oficial'} · NFePHP SPED-DA</span><button className="button button-secondary button-small" onClick={onDownload}><Download size={15}/>Baixar PDF</button></div>{document.document_type.startsWith('nfse') && <MunicipalTaxDetails tax={document.municipal_tax}/>}<iframe className="pdf-preview" title={`Prévia em PDF de ${documentLabel(document.document_type)}`} src={pdfUrl} /><p className="preview-disclaimer">Documento auxiliar gerado a partir do XML oficial armazenado.</p></Modal>
+}
+
+function MunicipalTaxDetails({ tax }: { tax: MunicipalTax | null }) {
+  if (!tax || tax.status === 'not_informed') return <div className="municipal-tax-panel"><strong>Tributação municipal</strong><span>Detalhamento não informado no XML desta NFS-e.</span></div>
+  if (tax.status === 'not_subject') return <div className="municipal-tax-panel"><strong>Tributação municipal</strong><span>Esta NFS-e informa operação não sujeita ao ISSQN.</span></div>
+  const rows: [string, string | null][] = [
+    ['Código de tributação municipal', tax.municipal_service_code],
+    ['Descrição municipal', tax.municipal_service_description],
+    ['Município de incidência', [tax.incidence_municipality, tax.incidence_municipality_code].filter(Boolean).join(' · ') || null],
+    ['Regime especial', tax.special_regime],
+    ['Código ISSQN', tax.tax_type],
+    ['Imunidade', tax.immunity_type],
+    ['Suspensão', [tax.suspension_type, tax.suspension_process].filter(Boolean).join(' · ') || null],
+    ['Benefício municipal', [tax.benefit_type, tax.benefit_amount].filter(Boolean).join(' · ') || null],
+    ['Deduções', tax.deductions],
+    ['Desconto incondicional', tax.unconditional_discount],
+    ['Base de cálculo do ISSQN', tax.tax_base],
+    ['Alíquota aplicada', tax.rate ? `${tax.rate}%` : null],
+    ['Retenção do ISSQN', tax.retention_type],
+    ['ISSQN', tax.amount],
+  ].filter((row): row is [string, string] => Boolean(row[1]))
+  return <div className="municipal-tax-panel"><strong>Tributação municipal</strong>{rows.length ? <dl>{rows.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl> : <span>O XML contém informação de ISSQN, mas não detalha outros campos municipais.</span>}</div>
+}
+
+function parseMunicipalTaxXml(xml: string): MunicipalTax | null {
+  const parsed = new DOMParser().parseFromString(xml, 'application/xml')
+  if (parsed.querySelector('parsererror')) return null
+  const root = parsed.documentElement
+  const value = (base: Element | null, path: string[]) => {
+    let node: Element | null = base
+    for (const part of path) {
+      node = node ? Array.from(node.children).find((child) => child.localName === part) ?? null : null
+    }
+    const text = node?.textContent?.trim()
+    return text || null
+  }
+  const inf = Array.from(root.children).find((child) => child.localName === 'infNFSe') ?? null
+  const dps = inf && Array.from(inf.children).find((child) => child.localName === 'DPS')
+  const infDps = dps && Array.from(dps.children).find((child) => child.localName === 'infDPS')
+  const dpsValues = infDps && Array.from(infDps.children).find((child) => child.localName === 'valores')
+  const trib = dpsValues && Array.from(dpsValues.children).find((child) => child.localName === 'trib')
+  const tribMun = trib && Array.from(trib.children).find((child) => child.localName === 'tribMun')
+  const serv = infDps && Array.from(infDps.children).find((child) => child.localName === 'serv')
+  const cServ = serv && Array.from(serv.children).find((child) => child.localName === 'cServ')
+  const prest = infDps && Array.from(infDps.children).find((child) => child.localName === 'prest')
+  const regTrib = prest && Array.from(prest.children).find((child) => child.localName === 'regTrib')
+  const taxCode = value(tribMun ?? null, ['tribISSQN'])
+  const nfseValues = inf && Array.from(inf.children).find((child) => child.localName === 'valores')
+  const dedRed = dpsValues && Array.from(dpsValues.children).find((child) => child.localName === 'vDedRed')
+  const exigSusp = tribMun && Array.from(tribMun.children).find((child) => child.localName === 'exigSusp')
+  const fields = {
+    tax_type: taxCode,
+    incidence_municipality_code: value(inf, ['cLocIncid']),
+    incidence_municipality: value(inf, ['xLocIncid']),
+    municipal_service_code: value(cServ ?? null, ['cTribMun']),
+    municipal_service_description: value(cServ ?? null, ['xTribMun']),
+    special_regime: value(regTrib ?? null, ['regEspTrib']),
+    immunity_type: value(tribMun ?? null, ['tpImunidade']),
+    suspension_type: value(exigSusp ?? null, ['tpSusp']),
+    suspension_process: value(exigSusp ?? null, ['nProcesso']),
+    benefit_type: value(tribMun ?? null, ['tpBM']),
+    benefit_amount: value(tribMun ?? null, ['vCalcBM']),
+    deductions: value(dedRed ?? null, ['vDR']) ?? value(dedRed ?? null, ['vCalcDR']),
+    unconditional_discount: value(dpsValues ?? null, ['vDescIncond']),
+    tax_base: value(nfseValues ?? null, ['vBC']),
+    rate: value(nfseValues ?? null, ['pAliqAplic']),
+    retention_type: value(tribMun ?? null, ['tpRetISSQN']),
+    amount: value(nfseValues ?? null, ['vISSQN']),
+  }
+  const hasTax = Boolean(taxCode || fields.immunity_type || fields.suspension_type || fields.suspension_process || fields.benefit_type || fields.benefit_amount || fields.deductions || fields.unconditional_discount || fields.tax_base || fields.rate || fields.retention_type || fields.amount)
+  if (!hasTax) return { status: 'not_informed', ...fields }
+  return { status: taxCode === '4' ? 'not_subject' : 'available', ...fields }
 }
 
 async function fetchDocumentXml(document: FiscalDocument): Promise<string> {
