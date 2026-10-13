@@ -629,29 +629,71 @@ async function createFiscalPdf(document: FiscalDocument, xml: string): Promise<B
   if (parsed.querySelector('parsererror')) throw new Error('O XML deste documento está inválido.')
   const { jsPDF } = await import('jspdf')
   const read = (element: Element | Document, name: string) => element.getElementsByTagNameNS('*', name).item(0)?.textContent?.trim() ?? ''
-  const clean = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\x20-\x7E]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 220)
+  const clean = (value: string) => value.normalize('NFC').replace(/[\u0000-\u001F\u007F-\u009F]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 1500)
   const pdf = new jsPDF({ unit: 'mm', format: 'a4' })
   const pageWidth = pdf.internal.pageSize.getWidth()
   const pageHeight = pdf.internal.pageSize.getHeight()
   const margin = 14
-  let y = 18
-  const title = `${documentLabel(document.document_type)} recebida`
+  const contentWidth = pageWidth - margin * 2
+  const lineHeight = 4.2
+  let y = 16
+  const addPage = () => {
+    pdf.addPage()
+    y = 16
+    drawRunningHeader()
+  }
+  const drawRunningHeader = () => {
+    pdf.setFillColor(35, 115, 79)
+    pdf.rect(0, 0, pageWidth, 5, 'F')
+    pdf.setFont('helvetica', 'normal')
+    pdf.setFontSize(7)
+    pdf.setTextColor(105, 115, 108)
+    pdf.text('ESPELHO FISCAL PARA CONSULTA', margin, 11)
+  }
+  drawRunningHeader()
+  const ensureSpace = (height: number) => {
+    if (y + height > pageHeight - margin) addPage()
+  }
   const section = (label: string) => {
-    if (y > pageHeight - 22) { pdf.addPage(); y = 18 }
-    pdf.setFont('helvetica', 'bold'); pdf.setFontSize(10); pdf.text(clean(label), margin, y); y += 6
-    pdf.setDrawColor(218, 226, 219); pdf.line(margin, y - 2, pageWidth - margin, y - 2)
+    ensureSpace(12)
+    pdf.setFillColor(239, 244, 240)
+    pdf.roundedRect(margin, y, contentWidth, 8, 1.5, 1.5, 'F')
+    pdf.setFont('helvetica', 'bold')
+    pdf.setFontSize(8)
+    pdf.setTextColor(35, 93, 63)
+    pdf.text(clean(label).toLocaleUpperCase('pt-BR'), margin + 3, y + 5.4)
+    y += 12
   }
   const field = (label: string, value: string) => {
-    if (!value) return
-    if (y > pageHeight - 18) { pdf.addPage(); y = 18 }
-    pdf.setFont('helvetica', 'bold'); pdf.setFontSize(8); pdf.text(clean(`${label}:`), margin, y)
+    const normalized = clean(value)
+    if (!normalized) return
+    ensureSpace(12)
+    pdf.setFont('helvetica', 'bold')
+    pdf.setFontSize(7)
+    pdf.setTextColor(98, 108, 101)
+    pdf.text(clean(label), margin, y)
+    y += 4
     pdf.setFont('helvetica', 'normal')
-    const wrapped = pdf.splitTextToSize(clean(value), pageWidth - margin * 2 - 31) as string[]
-    pdf.text(wrapped, margin + 31, y)
-    y += Math.max(5, wrapped.length * 4)
+    pdf.setFontSize(9)
+    pdf.setTextColor(28, 34, 30)
+    const wrapped = pdf.splitTextToSize(normalized, contentWidth) as string[]
+    for (const line of wrapped) {
+      ensureSpace(lineHeight)
+      pdf.text(line, margin, y)
+      y += lineHeight
+    }
+    y += 2
   }
-  pdf.setFont('helvetica', 'bold'); pdf.setFontSize(16); pdf.text(clean(title), margin, y); y += 8
-  pdf.setFont('helvetica', 'normal'); pdf.setFontSize(8); pdf.text('Espelho auxiliar de consulta · XML fiscal armazenado com segurança', margin, y); y += 9
+  pdf.setFont('helvetica', 'bold')
+  pdf.setFontSize(17)
+  pdf.setTextColor(27, 51, 38)
+  pdf.text(clean(`${documentLabel(document.document_type)} recebida`), margin, y + 3)
+  y += 9
+  pdf.setFont('helvetica', 'normal')
+  pdf.setFontSize(8)
+  pdf.setTextColor(93, 102, 96)
+  pdf.text('Espelho auxiliar de consulta · XML fiscal armazenado com segurança', margin, y + 2)
+  y += 11
   section('Identificação')
   field('Número', document.document_number ?? '')
   field('Chave de acesso', document.access_key ?? '')
@@ -670,14 +712,32 @@ async function createFiscalPdf(document: FiscalDocument, xml: string): Promise<B
     section('Itens / serviços')
     for (const [index, item] of items.entries()) {
       const prod = item.getElementsByTagNameNS('*', 'prod').item(0) ?? item
-      field(`${index + 1}. ${read(prod, 'xProd') || 'Item'}`, `${read(prod, 'qCom')} ${read(prod, 'uCom')} · ${formatMoney(Number(read(prod, 'vProd')) || null)}`)
+      field(`${index + 1}. ${read(prod, 'xProd') || 'Item'}`, [read(prod, 'qCom'), read(prod, 'uCom'), formatMoney(Number(read(prod, 'vProd')) || null)].filter(Boolean).join(' · '))
     }
     for (const [index, description] of serviceDescriptions.entries()) field(`${index + 1}. Serviço`, description.textContent ?? '')
     if (items.length + serviceDescriptions.length > 80) field('Observação', 'A prévia lista até 80 itens ou serviços.')
   }
-  y += 4
-  pdf.setFont('helvetica', 'normal'); pdf.setFontSize(7)
-  pdf.text(pdf.splitTextToSize('Este espelho serve para conferência e não substitui o DANFE, a NFS-e oficial ou o XML autorizado.', pageWidth - margin * 2), margin, Math.min(y, pageHeight - 10))
+  ensureSpace(17)
+  y += 2
+  pdf.setDrawColor(218, 226, 219)
+  pdf.line(margin, y, pageWidth - margin, y)
+  y += 5
+  pdf.setFont('helvetica', 'normal')
+  pdf.setFontSize(7)
+  pdf.setTextColor(105, 115, 108)
+  for (const line of pdf.splitTextToSize('Este espelho serve para conferência e não substitui o DANFE, a NFS-e oficial ou o XML autorizado.', contentWidth) as string[]) {
+    ensureSpace(lineHeight)
+    pdf.text(line, margin, y)
+    y += lineHeight
+  }
+  const pageCount = pdf.getNumberOfPages()
+  for (let page = 1; page <= pageCount; page += 1) {
+    pdf.setPage(page)
+    pdf.setFont('helvetica', 'normal')
+    pdf.setFontSize(7)
+    pdf.setTextColor(120, 128, 122)
+    pdf.text(`Página ${page} de ${pageCount}`, pageWidth - margin, pageHeight - 7, { align: 'right' })
+  }
   return pdf.output('blob')
 }
 
