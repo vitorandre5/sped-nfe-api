@@ -552,9 +552,18 @@ a {
 }
 table {
   width:100%;
+  min-width:1060px;
+  table-layout:fixed;
   border-collapse:collapse;
   text-align:left
 }
+thead th:nth-child(1),tbody td:nth-child(1) {width:18%}
+thead th:nth-child(2),tbody td:nth-child(2) {width:22%}
+thead th:nth-child(3),tbody td:nth-child(3) {width:22%}
+thead th:nth-child(4),tbody td:nth-child(4) {width:8%}
+thead th:nth-child(5),tbody td:nth-child(5) {width:7%}
+thead th:nth-child(6),tbody td:nth-child(6) {width:12%}
+thead th:nth-child(7),tbody td:nth-child(7) {width:11%}
 thead th {
   padding:11px 13px;
   background:#fafbf9;
@@ -598,14 +607,24 @@ tbody td {
 }
 .document-cell>span:last-child,.party-cell {
   display:grid;
-  gap:3px
+  gap:3px;
+  min-width:0;
+  overflow:hidden
 }
 .document-cell strong,.party-cell strong {
+  display:block;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
   font-size:10px;
   color:#354139;
   font-weight:600
 }
 .document-cell small,.party-cell small {
+  display:block;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
   font-size:9px;
   color:#9aa29b
 }
@@ -636,6 +655,7 @@ tbody td {
 .row-action {
   width:28px;
   height:28px;
+  flex:0 0 28px;
   display:grid;
   place-items:center;
   border:0;
@@ -650,7 +670,12 @@ tbody td {
 .row-actions {
   display:flex;
   align-items:center;
-  gap:4px
+  justify-content:flex-end;
+  gap:4px;
+  min-width:60px
+}
+thead th:last-child,tbody td:last-child {
+  padding-right:19px
 }
 .download-menu-wrap {
   position:relative
