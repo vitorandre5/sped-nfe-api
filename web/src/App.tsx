@@ -596,7 +596,7 @@ function DocumentTable({ documents, downloadMenuId, onPreview, onToggleDownload,
 }
 
 function DocumentPreview({ document, pdfUrl, onClose, onDownload }: { document: FiscalDocument; pdfUrl: string; onClose: () => void; onDownload: () => void }) {
-  return <Modal title={`Visualizar ${documentLabel(document.document_type)}`} description={`${document.document_number ? `Documento ${document.document_number}` : 'Documento fiscal recebido'} · ${formatDate(document.issued_at)}`} onClose={onClose} className="document-preview-card"><div className="preview-toolbar"><span>Prévia PDF auxiliar</span><button className="button button-secondary button-small" onClick={onDownload}><Download size={15}/>Baixar PDF</button></div><iframe className="pdf-preview" title={`Prévia em PDF de ${documentLabel(document.document_type)}`} src={pdfUrl} /><p className="preview-disclaimer">Espelho para consulta gerado a partir dos dados fiscais disponíveis. O XML é o documento oficial.</p></Modal>
+  return <Modal title={`Visualizar ${documentLabel(document.document_type)}`} description={`${document.document_number ? `Documento ${document.document_number}` : 'Documento fiscal recebido'} · ${formatDate(document.issued_at)}`} onClose={onClose} className="document-preview-card"><div className="preview-toolbar"><span>{document.document_type.startsWith('nfse') ? 'DANFSe oficial' : 'DANFE oficial'} · NFePHP SPED-DA</span><button className="button button-secondary button-small" onClick={onDownload}><Download size={15}/>Baixar PDF</button></div><iframe className="pdf-preview" title={`Prévia em PDF de ${documentLabel(document.document_type)}`} src={pdfUrl} /><p className="preview-disclaimer">Documento auxiliar gerado a partir do XML oficial armazenado.</p></Modal>
 }
 
 async function fetchDocumentXml(document: FiscalDocument): Promise<string> {
@@ -624,123 +624,20 @@ function saveBlob(blob: Blob, filename: string) {
 }
 
 async function createFiscalPdf(document: FiscalDocument, xml: string): Promise<Blob> {
-  if (/<!DOCTYPE/i.test(xml)) throw new Error('O XML não pode ser exibido por conter uma declaração não permitida.')
-  const parsed = new DOMParser().parseFromString(xml, 'application/xml')
-  if (parsed.querySelector('parsererror')) throw new Error('O XML deste documento está inválido.')
-  const { jsPDF } = await import('jspdf')
-  const read = (element: Element | Document, name: string) => element.getElementsByTagNameNS('*', name).item(0)?.textContent?.trim() ?? ''
-  const clean = (value: string) => value.normalize('NFC').replace(/[\u0000-\u001F\u007F-\u009F]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 1500)
-  const pdf = new jsPDF({ unit: 'mm', format: 'a4' })
-  const pageWidth = pdf.internal.pageSize.getWidth()
-  const pageHeight = pdf.internal.pageSize.getHeight()
-  const margin = 14
-  const contentWidth = pageWidth - margin * 2
-  const lineHeight = 4.2
-  let y = 16
-  const addPage = () => {
-    pdf.addPage()
-    y = 16
-    drawRunningHeader()
-  }
-  const drawRunningHeader = () => {
-    pdf.setFillColor(35, 115, 79)
-    pdf.rect(0, 0, pageWidth, 5, 'F')
-    pdf.setFont('helvetica', 'normal')
-    pdf.setFontSize(7)
-    pdf.setTextColor(105, 115, 108)
-    pdf.text('ESPELHO FISCAL PARA CONSULTA', margin, 11)
-  }
-  drawRunningHeader()
-  const ensureSpace = (height: number) => {
-    if (y + height > pageHeight - margin) addPage()
-  }
-  const section = (label: string) => {
-    ensureSpace(12)
-    pdf.setFillColor(239, 244, 240)
-    pdf.roundedRect(margin, y, contentWidth, 8, 1.5, 1.5, 'F')
-    pdf.setFont('helvetica', 'bold')
-    pdf.setFontSize(8)
-    pdf.setTextColor(35, 93, 63)
-    pdf.text(clean(label).toLocaleUpperCase('pt-BR'), margin + 3, y + 5.4)
-    y += 12
-  }
-  const field = (label: string, value: string) => {
-    const normalized = clean(value)
-    if (!normalized) return
-    ensureSpace(12)
-    pdf.setFont('helvetica', 'bold')
-    pdf.setFontSize(7)
-    pdf.setTextColor(98, 108, 101)
-    pdf.text(clean(label), margin, y)
-    y += 4
-    pdf.setFont('helvetica', 'normal')
-    pdf.setFontSize(9)
-    pdf.setTextColor(28, 34, 30)
-    const wrapped = pdf.splitTextToSize(normalized, contentWidth) as string[]
-    for (const line of wrapped) {
-      ensureSpace(lineHeight)
-      pdf.text(line, margin, y)
-      y += lineHeight
-    }
-    y += 2
-  }
-  pdf.setFont('helvetica', 'bold')
-  pdf.setFontSize(17)
-  pdf.setTextColor(27, 51, 38)
-  pdf.text(clean(`${documentLabel(document.document_type)} recebida`), margin, y + 3)
-  y += 9
-  pdf.setFont('helvetica', 'normal')
-  pdf.setFontSize(8)
-  pdf.setTextColor(93, 102, 96)
-  pdf.text('Espelho auxiliar de consulta · XML fiscal armazenado com segurança', margin, y + 2)
-  y += 11
-  section('Identificação')
-  field('Número', document.document_number ?? '')
-  field('Chave de acesso', document.access_key ?? '')
-  field('NSU', document.nsu)
-  field('Emissão', formatDate(document.issued_at))
-  field('Situação', document.situation)
-  field('Valor total', formatMoney(document.total_amount))
-  section('Partes')
-  field('Emitente', document.issuer_name ?? read(parsed, 'xNome'))
-  field('CNPJ do emitente', document.issuer_cnpj ?? read(parsed, 'CNPJ'))
-  field('Destinatário / tomador', document.recipient_name ?? '')
-  field('CNPJ do destinatário / tomador', document.recipient_cnpj ?? '')
-  const items = Array.from(parsed.getElementsByTagNameNS('*', 'det')).slice(0, 80)
-  const serviceDescriptions = Array.from(parsed.getElementsByTagNameNS('*', 'xDescServ')).slice(0, 80)
-  if (items.length || serviceDescriptions.length) {
-    section('Itens / serviços')
-    for (const [index, item] of items.entries()) {
-      const prod = item.getElementsByTagNameNS('*', 'prod').item(0) ?? item
-      field(`${index + 1}. ${read(prod, 'xProd') || 'Item'}`, [read(prod, 'qCom'), read(prod, 'uCom'), formatMoney(Number(read(prod, 'vProd')) || null)].filter(Boolean).join(' · '))
-    }
-    for (const [index, description] of serviceDescriptions.entries()) field(`${index + 1}. Serviço`, description.textContent ?? '')
-    if (items.length + serviceDescriptions.length > 80) field('Observação', 'A prévia lista até 80 itens ou serviços.')
-  }
-  ensureSpace(17)
-  y += 2
-  pdf.setDrawColor(218, 226, 219)
-  pdf.line(margin, y, pageWidth - margin, y)
-  y += 5
-  pdf.setFont('helvetica', 'normal')
-  pdf.setFontSize(7)
-  pdf.setTextColor(105, 115, 108)
-  for (const line of pdf.splitTextToSize('Este espelho serve para conferência e não substitui o DANFE, a NFS-e oficial ou o XML autorizado.', contentWidth) as string[]) {
-    ensureSpace(lineHeight)
-    pdf.text(line, margin, y)
-    y += lineHeight
-  }
-  const pageCount = pdf.getNumberOfPages()
-  for (let page = 1; page <= pageCount; page += 1) {
-    pdf.setPage(page)
-    pdf.setFont('helvetica', 'normal')
-    pdf.setFontSize(7)
-    pdf.setTextColor(120, 128, 122)
-    pdf.text(`Página ${page} de ${pageCount}`, pageWidth - margin, pageHeight - 7, { align: 'right' })
-  }
-  return pdf.output('blob')
+  if (!supabase) throw new Error('O serviço de documentos está indisponível.')
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+  if (sessionError || !sessionData.session?.access_token) throw new Error('Entre novamente para gerar o PDF.')
+  const response = await fetch('/api/documentos/pdf', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${sessionData.session.access_token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ document_type: document.document_type, xml }),
+  })
+  const result = await response.json() as { success?: boolean; message?: string; data?: { pdf_base64?: string; content_type?: string } }
+  if (!response.ok || !result.success || !result.data?.pdf_base64) throw new Error(result.message ?? 'Não foi possível gerar o DANFE/DANFSe.')
+  const binary = atob(result.data.pdf_base64)
+  const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0))
+  return new Blob([bytes], { type: result.data.content_type ?? 'application/pdf' })
 }
-
 function EmptyDocuments({ hasCompanies, onAddCompany, onSync }: { hasCompanies: boolean; onAddCompany: () => void; onSync: () => void }) {
   return <div className="empty-state"><div className="empty-art"><div className="empty-sheet sheet-back"/><div className="empty-sheet sheet-front"><span/><span/><span/></div><div className="empty-search"><Search size={18}/></div></div><h3>{hasCompanies ? 'Sua caixa fiscal está vazia' : 'Comece adicionando uma empresa'}</h3><p>{hasCompanies ? 'Sincronize as notas de produtos e serviços das suas empresas.' : 'Cadastre um CNPJ para organizar os documentos fiscais recebidos.'}</p><button className="button button-primary" onClick={hasCompanies ? onSync : onAddCompany}>{hasCompanies ? <><ArrowDownToLine size={16}/>Sincronizar notas</> : <><Plus size={16}/>Adicionar empresa</>}</button></div>
 }

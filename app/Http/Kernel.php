@@ -6,6 +6,7 @@ namespace App\Http;
 
 use App\Adapters\SpedNFeAdapter;
 use App\Controllers\CnpjRegistryController;
+use App\Controllers\DocumentPdfController;
 use App\Controllers\NFCeController;
 use App\Controllers\NFeController;
 use App\Exceptions\FiscalException;
@@ -241,6 +242,7 @@ final class Kernel
         };
 
         $router->get('/health', $health);
+        $router->post('/api/documentos/pdf', [new DocumentPdfController($danfeService), 'generate']);
 
         $cnpjRegistryController = new CnpjRegistryController(new CnpjRegistryService(
             trim((string) (getenv('SUPABASE_API_URL') ?: '')),
