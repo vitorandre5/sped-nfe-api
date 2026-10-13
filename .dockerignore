@@ -9,7 +9,12 @@ vendor
 web
 supabase/.temp
 supabase/.branches
-storage
+# storage contains the NFePHP configuration schema and SEFAZ service catalog.
+# Only the tracked library resources below belong in the image.
+storage/*
+!storage/*.json
+!storage/*.schema
+!storage/wsnfe_*.xml
 tests
 docs
 examples

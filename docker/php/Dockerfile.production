@@ -16,6 +16,9 @@ COPY composer.json composer.lock ./
 RUN composer install --no-dev --classmap-authoritative --no-interaction --prefer-dist
 
 COPY . .
-RUN composer dump-autoload --no-dev --classmap-authoritative --no-interaction
+RUN test -s storage/config.schema \
+    && test -s storage/wsnfe_4.00_mod55.xml \
+    && test -s schemes/PL_010_V1.30/distDFeInt_v1.01.xsd \
+    && composer dump-autoload --no-dev --classmap-authoritative --no-interaction
 
 EXPOSE 8080
