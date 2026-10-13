@@ -9,7 +9,7 @@ RUN apk add --no-cache libxml2 libzip openssl libpng freetype libjpeg-turbo onig
     && openssl list -providers -provider default -provider legacy > /dev/null \
     && apk add --no-cache --virtual .build-deps $PHPIZE_DEPS libxml2-dev libzip-dev curl-dev libpng-dev freetype-dev libjpeg-turbo-dev oniguruma-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j"$(nproc)" dom simplexml soap zip curl gd mbstring \
+    && docker-php-ext-install -j"$(nproc)" bcmath dom simplexml soap zip curl gd mbstring \
     && apk del .build-deps
 
 COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
