@@ -41,6 +41,12 @@ services:
       context: .
       dockerfile: docker/php/Dockerfile.production
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(is_dir('/proc/1') ? 0 : 1);"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     environment:
       SUPABASE_API_URL: https://supabase-fiscal.oc2.freeddns.org
       FISCAL_SUPABASE_SERVICE_ROLE_KEY: ${FISCAL_SUPABASE_SERVICE_ROLE_KEY:?Configure the backend-only Supabase service role key}
