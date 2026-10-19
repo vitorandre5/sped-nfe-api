@@ -9,10 +9,10 @@ Recursos esperados no projeto `Fiscal`, ambiente `production`:
 | Recurso | Tipo no Coolify | Compose/configuração | Domínio | Função |
 | --- | --- | --- | --- |
 | `supabase-bd` | Application legado, sem domínio; exclusão pendente | `docker-compose.supabase.yml` | nenhum | Preservado para rollback até concluir a confirmação no Coolify |
-| `supabase-bd-native` | Service Supabase nativo | Template Supabase do Coolify | `supabase-fiscal.oc2.freeddns.org` | Produção ativa; Auth e banco validados |
+| `supabase-bd-native` | Service Supabase nativo | Template Supabase do Coolify | `supabase-fiscal.vitorandre.com.br` | Produção ativa; Auth e banco validados |
 | `redis-bd-native` | Database Redis | imagem `redis:7.4-alpine`; recurso nativo do Coolify | nenhum; acesso privado | Cache/fila privado; cache da interface pendente de integração |
 | `redis-bd` | Application (legado para rollback) | `docker-compose.redis.yml` | nenhum | Recurso anterior, preservado temporariamente |
-| `fiscal.web` | Application | `docker-compose.fiscal.yml` | `fiscal.oc2.freeddns.org` | Interface web e API PHP |
+| `fiscal.web` | Application | `docker-compose.fiscal.yml` | `fiscal.vitorandre.com.br` | Interface web e API PHP |
 
 ## Comunicação e persistência
 
@@ -27,11 +27,11 @@ As migrações são copiadas para a imagem de `fiscal-migrations`. Não monte `.
 No Coolify, mantenha manualmente apenas as variáveis listadas abaixo. Entradas associadas a serviços como `studio`, `api-gw` e `storage` são geradas pelo Compose; variáveis herdadas do Compose antigo podem continuar listadas, mas não têm efeito quando não são referenciadas pelo Compose atual.
 
 - `supabase-bd`: segredos `SERVICE_PASSWORD_64_POSTGRES`, `SERVICE_PASSWORD_JWT`, `SERVICE_SUPABASEANON_JWT`, `SERVICE_SUPABASESERVICE_JWT`, `SERVICE_PASSWORD_64_DASHBOARD`, `SERVICE_BASE64_64_SECRETKEYBASE`, `SERVICE_HEX_32_PGMETACRYPTO`, `SERVICE_HEX_32_S3ACCESSID`, `SERVICE_PASSWORD_64_S3ACCESSSECRET`, `SERVICE_HEX_32_VAULTENCKEY` e `FISCAL_REALTIME_DB_ENC_KEY` (16 caracteres, obrigatório para AES-128 no Realtime). Preserve os valores atuais ao mudar o Compose desta aplicação.
-- O Studio do Supabase é acessado em `https://supabase-fiscal.oc2.freeddns.org`; usuário `fiscaladmin` e senha na variável `SERVICE_PASSWORD_ADMIN` de `supabase-bd-native`.
+- O Studio do Supabase é acessado em `https://supabase-fiscal.vitorandre.com.br`; usuário `fiscaladmin` e senha na variável `SERVICE_PASSWORD_ADMIN` de `supabase-bd-native`.
 - `SERVICE_HEX_32_REALTIMEKEY` é legado e não é usado pelo Compose atual. Ele permanece apenas para evitar uma exclusão permanente; a chave ativa é `FISCAL_REALTIME_DB_ENC_KEY`.
 - `redis-bd-native`: use as credenciais geradas pelo Coolify e mantenha `Access: Private`; não publique a porta. Ao implementar o cache, injete a URL/credencial Redis apenas em `fiscal.web` como segredo de backend; nunca a exponha no build ou navegador.
 - `redis-bd` (legado): as variáveis do antigo Compose permanecem apenas para rollback; não exclua o recurso nem o volume antigo durante esta migração.
-- `fiscal.web`: `SERVICE_PASSWORD_64_APIPROXY`, `NFE_TPAMB`, `NFE_RAZAO_SOCIAL`, `NFE_CNPJ`, `NFE_SIGLA_UF`, `NFE_SCHEMES`, `NFE_VERSAO`, `NFE_VERAPLIC` e `SUPABASE_API_URL=https://supabase-fiscal.oc2.freeddns.org`. Use `FISCAL_SUPABASE_ANON_KEY` para a chave anon do Supabase. As senhas dos usuários são administradas diretamente no Supabase; a aplicação não exige troca no primeiro login. O modo `2` é homologação.
+- `fiscal.web`: `SERVICE_PASSWORD_64_APIPROXY`, `NFE_TPAMB`, `NFE_RAZAO_SOCIAL`, `NFE_CNPJ`, `NFE_SIGLA_UF`, `NFE_SCHEMES`, `NFE_VERSAO`, `NFE_VERAPLIC` e `SUPABASE_API_URL=https://supabase-fiscal.vitorandre.com.br`. Use `FISCAL_SUPABASE_ANON_KEY` para a chave anon do Supabase. As senhas dos usuários são administradas diretamente no Supabase; a aplicação não exige troca no primeiro login. O modo `2` é homologação.
 
 Para persistir certificados A1, configure `FISCAL_CERTIFICATE_ENCRYPTION_KEY` como segredo nos serviços `api` e `sync-worker` de `fiscal.web`, preservando a mesma chave já usada para armazenar os certificados. A API usa AES-256-GCM para criptografar o PFX e a senha no bucket privado `fiscal-certificates`; sem essa chave os certificados salvos não podem ser lidos. Configure também `FISCAL_SUPABASE_SERVICE_ROLE_KEY` somente no `sync-worker`, usando a chave `service_role` do projeto Supabase correspondente. Ela permite à rotina interna processar apenas empresas com certificado armazenado; nunca a exponha no navegador. A migration `20261013000200_company_certificate_vault.sql` cria o bucket e os campos de validade.
 
