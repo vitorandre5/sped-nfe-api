@@ -6,8 +6,8 @@ services:
     restart: unless-stopped
     environment:
       API_PORT: '8080'
-      API_ORIGIN_KEYS: https://fiscal.oc2.freeddns.org=${SERVICE_PASSWORD_64_APIPROXY}
-      SUPABASE_API_URL: https://supabase-fiscal.oc2.freeddns.org
+      API_ORIGIN_KEYS: https://fiscal.vitorandre.com.br=${SERVICE_PASSWORD_64_APIPROXY}
+      SUPABASE_API_URL: https://supabase-fiscal.vitorandre.com.br
       SUPABASE_ANON_KEY: ${FISCAL_SUPABASE_ANON_KEY}
       FISCAL_CERTIFICATE_ENCRYPTION_KEY: ${FISCAL_CERTIFICATE_ENCRYPTION_KEY}
       NFE_TPAMB: ${NFE_TPAMB:-2}
@@ -48,7 +48,7 @@ services:
       retries: 3
       start_period: 15s
     environment:
-      SUPABASE_API_URL: https://supabase-fiscal.oc2.freeddns.org
+      SUPABASE_API_URL: https://supabase-fiscal.vitorandre.com.br
       FISCAL_SUPABASE_SERVICE_ROLE_KEY: ${FISCAL_SUPABASE_SERVICE_ROLE_KEY:?Configure the backend-only Supabase service role key}
       FISCAL_CERTIFICATE_ENCRYPTION_KEY: ${FISCAL_CERTIFICATE_ENCRYPTION_KEY:?Configure the certificate encryption key}
       NFE_TPAMB: ${NFE_TPAMB:-2}
@@ -67,7 +67,7 @@ services:
     build:
       context: ./web
       args:
-        VITE_SUPABASE_URL: https://supabase-fiscal.oc2.freeddns.org
+        VITE_SUPABASE_URL: https://supabase-fiscal.vitorandre.com.br
         VITE_SUPABASE_ANON_KEY: ${FISCAL_SUPABASE_ANON_KEY}
         VITE_NFE_TPAMB: ${NFE_TPAMB:-2}
         VITE_ALLOW_SIGNUP: 'false'
@@ -75,7 +75,7 @@ services:
     environment:
       API_PROXY_KEY: ${SERVICE_PASSWORD_64_APIPROXY}
       NGINX_ENVSUBST_FILTER: API_PROXY_KEY
-      SERVICE_FQDN_WEB_8080: fiscal.oc2.freeddns.org
+      SERVICE_FQDN_WEB_8080: fiscal.vitorandre.com.br
     healthcheck:
       test:
       - CMD-SHELL
