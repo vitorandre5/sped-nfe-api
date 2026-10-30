@@ -14,8 +14,9 @@ final class DanfeService
      */
     public function generate(string $xml, string $documentType): array
     {
-        if ($xml === '' || strlen($xml) > 20 * 1024 * 1024) {
-            throw new FiscalException('O XML está vazio ou excede 20 MiB.', 'INVALID_XML_SIZE', [], 413);
+        $maxBytes = (int) (getenv('FISCAL_PDF_MAX_BODY_BYTES') ?: 2 * 1024 * 1024);
+        if ($xml === '' || strlen($xml) > $maxBytes) {
+            throw new FiscalException('O XML está vazio ou excede o limite permitido.', 'INVALID_XML_SIZE', [], 413);
         }
 
         if (preg_match('/<!DOCTYPE/i', $xml) === 1) {

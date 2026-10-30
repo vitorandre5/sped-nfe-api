@@ -33,6 +33,15 @@ No Coolify, mantenha manualmente apenas as variáveis listadas abaixo. Entradas 
 - `redis-bd` (legado): as variáveis do antigo Compose permanecem apenas para rollback; não exclua o recurso nem o volume antigo durante esta migração.
 - `fiscal.web`: `SERVICE_PASSWORD_64_APIPROXY`, `NFE_TPAMB`, `NFE_RAZAO_SOCIAL`, `NFE_CNPJ`, `NFE_SIGLA_UF`, `NFE_SCHEMES`, `NFE_VERSAO`, `NFE_VERAPLIC` e `SUPABASE_API_URL=https://supabase-fiscal.vitorandre.com.br`. Use `FISCAL_SUPABASE_ANON_KEY` para a chave anon do Supabase. As senhas dos usuários são administradas diretamente no Supabase; a aplicação não exige troca no primeiro login. O modo `2` é homologação.
 
+## Hardening de segurança (30/10/2026)
+
+- O cadastro permanece desativado por decisão operacional (`GOTRUE_DISABLE_SIGNUP=true` e `VITE_ALLOW_SIGNUP=false`); nenhuma senha temporária é enviada ou embutida no bundle. O fluxo OTP/link mágico está implementado para uma futura reabertura autorizada e o e-mail continuará exigindo confirmação.
+- No GoTrue de produção, mantenha `GOTRUE_DISABLE_SIGNUP=true`, `GOTRUE_PASSWORD_MIN_LENGTH=12`, `GOTRUE_PASSWORD_HIBP_ENABLED=true`, rotação de refresh token e os limites de token/OTP definidos no Compose. Se o Supabase estiver no serviço nativo do Coolify, replique essas opções no painel do serviço antes de reiniciar.
+- Todo `/api/*`, inclusive CNPJ e PDF, exige um JWT de usuário `authenticated` com e-mail confirmado; o backend confirma o usuário no Auth antes de despachar a rota. `health` é a única exceção documentada.
+- O PDF aceita corpo de até 2 MiB e timeout de 30 s; a API geral aceita 8 MiB; certificado A1 aceita até 5 MiB e apenas `.pfx`, `.p12` ou `.cer`. A regra de borda do Cloudflare deve limitar `/api/*` a 60 requisições por minuto por IP e retornar `429` com `Retry-After`.
+- O PHP de produção não exibe erros: `display_errors=Off`, `display_startup_errors=Off`, `log_errors=On` e log em `/var/log/php/error.log`. A resposta nunca inclui mensagem ou caminho de exceção.
+- HSTS e os headers CSP, anti-frame, `nosniff` e `Referrer-Policy` são emitidos pelo Nginx/PHP; mantenha uma Transform Rule equivalente no Cloudflare para `fiscal.vitorandre.com.br` e `supabase-fiscal.vitorandre.com.br`.
+
 Para persistir certificados A1, configure `FISCAL_CERTIFICATE_ENCRYPTION_KEY` como segredo nos serviços `api` e `sync-worker` de `fiscal.web`, preservando a mesma chave já usada para armazenar os certificados. A API usa AES-256-GCM para criptografar o PFX e a senha no bucket privado `fiscal-certificates`; sem essa chave os certificados salvos não podem ser lidos. Configure também `FISCAL_SUPABASE_SERVICE_ROLE_KEY` somente no `sync-worker`, usando a chave `service_role` do projeto Supabase correspondente. Ela permite à rotina interna processar apenas empresas com certificado armazenado; nunca a exponha no navegador. A migration `20261013000200_company_certificate_vault.sql` cria o bucket e os campos de validade.
 
 Os segredos ficam no Coolify e não devem ser copiados para `.env.example`. A URL e a chave anon do Supabase são embutidas no build da interface; ao alterá-las, reconstrua `fiscal.web`.

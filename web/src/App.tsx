@@ -17,7 +17,7 @@ type Notice = { tone: 'success' | 'error' | 'info'; text: string } | null
 type CnpjRegistryProfile = Record<string, unknown>
 
 const ALLOW_SIGNUP = import.meta.env.VITE_ALLOW_SIGNUP !== 'false'
-const DEFAULT_USER_PASSWORD = 'teste123'
+const MINIMUM_PASSWORD_LENGTH = 12
 const FISCAL_CURSOR_TYPES = import.meta.env.VITE_NFE_TPAMB === '1' ? ['nfe55', 'nfse'] : ['nfe55_hom', 'nfse_hom']
 const BRAZILIAN_STATES = [
   ['AC', 'Acre'], ['AL', 'Alagoas'], ['AP', 'Amapá'], ['AM', 'Amazonas'],
@@ -340,13 +340,15 @@ function AuthScreen({ onNotice }: { onNotice: (notice: Notice) => void }) {
     setWorking(true); setMessage('')
     try {
       if (isSignup) {
-        const { data, error } = await supabase.auth.signUp({
+        const { error } = await supabase.auth.signInWithOtp({
           email,
-          password: DEFAULT_USER_PASSWORD,
+          options: {
+            shouldCreateUser: true,
+            emailRedirectTo: window.location.origin,
+          },
         })
         if (error) throw error
-        if (data.session) setMessage('Conta criada. Você já pode entrar.')
-        else setMessage('Conta criada. Confirme o e-mail para entrar.')
+        setMessage('Enviamos um link seguro para o seu e-mail. Abra-o para entrar no Fiscal.')
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
@@ -358,7 +360,7 @@ function AuthScreen({ onNotice }: { onNotice: (notice: Notice) => void }) {
     }
     finally { setWorking(false) }
   }
-  return <div className="auth-screen"><div className="auth-decoration"><div className="auth-orbit orbit-one"/><div className="auth-orbit orbit-two"/><div className="auth-brand"><span className="brand-mark"><img src="/fiscal-symbol-white.svg" alt="" /></span><b>fiscal<span>.</span></b></div><div className="auth-manifesto"><span className="eyebrow">SEU ARQUIVO FISCAL</span><h1>Documentos em ordem.<br/><em>Decisões com clareza.</em></h1><p>Uma visão organizada das notas fiscais que chegam para suas empresas.</p></div><div className="auth-decoration-foot"><span>NF-e · modelo 55</span><span>Ambiente protegido</span></div></div><div className="auth-form-side"><form className="auth-form" onSubmit={submit}><span className="eyebrow">{isSignup ? 'PRIMEIRO ACESSO' : 'BEM-VINDO DE VOLTA'}</span><h2>{isSignup ? 'Crie sua conta' : 'Entre na sua conta'}</h2><p>Acesse seu espaço fiscal para continuar.</p><label className="field-label">E-mail<input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label>{isSignup ? <div className="dialog-note"><ShieldCheck size={16}/>As senhas das contas são gerenciadas no Supabase.</div> : <label className="field-label">Senha<input type="password" autoComplete="current-password" minLength={8} value={password} onChange={(event) => setPassword(event.target.value)} required /></label>}{message && <div className={`inline-message ${message.startsWith('Erro:') ? 'error' : ''}`} role="status">{message}</div>}<button className="button button-primary auth-submit" disabled={working}>{working ? <><span className="button-spinner"/>Processando…</> : <>{isSignup ? 'Criar conta' : 'Entrar'}<ArrowRight size={16}/></>}</button>{ALLOW_SIGNUP && <button type="button" className="text-button" onClick={() => { setIsSignup(!isSignup); setPassword(''); setMessage('') }}>{isSignup ? 'Já tem conta? Entrar' : 'Ainda não tem conta? Criar acesso'}</button>}<div className="auth-privacy"><ShieldCheck size={16}/>Seus dados fiscais ficam protegidos.</div></form></div></div>
+  return <div className="auth-screen"><div className="auth-decoration"><div className="auth-orbit orbit-one"/><div className="auth-orbit orbit-two"/><div className="auth-brand"><span className="brand-mark"><img src="/fiscal-symbol-white.svg" alt="" /></span><b>fiscal<span>.</span></b></div><div className="auth-manifesto"><span className="eyebrow">SEU ARQUIVO FISCAL</span><h1>Documentos em ordem.<br/><em>Decisões com clareza.</em></h1><p>Uma visão organizada das notas fiscais que chegam para suas empresas.</p></div><div className="auth-decoration-foot"><span>NF-e · modelo 55</span><span>Ambiente protegido</span></div></div><div className="auth-form-side"><form className="auth-form" onSubmit={submit}><span className="eyebrow">{isSignup ? 'PRIMEIRO ACESSO' : 'BEM-VINDO DE VOLTA'}</span><h2>{isSignup ? 'Crie sua conta' : 'Entre na sua conta'}</h2><p>Acesse seu espaço fiscal para continuar.</p><label className="field-label">E-mail<input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label>{isSignup ? <div className="dialog-note"><ShieldCheck size={16}/>Enviaremos um link seguro para o seu e-mail.</div> : <label className="field-label">Senha<input type="password" autoComplete="current-password" minLength={MINIMUM_PASSWORD_LENGTH} value={password} onChange={(event) => setPassword(event.target.value)} required /></label>}{message && <div className={`inline-message ${message.startsWith('Erro:') ? 'error' : ''}`} role="status">{message}</div>}<button className="button button-primary auth-submit" disabled={working}>{working ? <><span className="button-spinner"/>Processando…</> : <>{isSignup ? 'Criar conta' : 'Entrar'}<ArrowRight size={16}/></>}</button>{ALLOW_SIGNUP && <button type="button" className="text-button" onClick={() => { setIsSignup(!isSignup); setPassword(''); setMessage('') }}>{isSignup ? 'Já tem conta? Entrar' : 'Ainda não tem conta? Criar acesso'}</button>}<div className="auth-privacy"><ShieldCheck size={16}/>Seus dados fiscais ficam protegidos.</div></form></div></div>
 }
 
 function SettingsPage({ onNotice }: { onNotice: (notice: Notice) => void }) {
@@ -370,8 +372,7 @@ function SettingsPage({ onNotice }: { onNotice: (notice: Notice) => void }) {
   const changePassword = async (event: FormEvent) => {
     event.preventDefault()
     if (!supabase) return
-    if (password.length < 8) { setMessage('Use pelo menos 8 caracteres na nova senha.'); return }
-    if (password === DEFAULT_USER_PASSWORD) { setMessage('Escolha uma senha pessoal diferente da senha inicial.'); return }
+    if (password.length < MINIMUM_PASSWORD_LENGTH) { setMessage(`Use pelo menos ${MINIMUM_PASSWORD_LENGTH} caracteres na nova senha.`); return }
     if (password !== confirmation) { setMessage('As senhas não coincidem.'); return }
 
     setWorking(true)
@@ -391,7 +392,7 @@ function SettingsPage({ onNotice }: { onNotice: (notice: Notice) => void }) {
     }
   }
 
-  return <section className="companies-card settings-card"><form className="dialog-form settings-form" onSubmit={changePassword}><p>Altere a senha usada para entrar na sua conta. Use pelo menos 8 caracteres.</p><label className="field-label">Nova senha<input type="password" autoComplete="new-password" minLength={8} value={password} onChange={(event) => setPassword(event.target.value)} required /></label><label className="field-label">Confirme a nova senha<input type="password" autoComplete="new-password" minLength={8} value={confirmation} onChange={(event) => setConfirmation(event.target.value)} required /></label>{message && <div className="inline-message error" role="alert">{message}</div>}<div className="settings-actions"><button className="button button-primary" disabled={working}>{working ? 'Salvando…' : 'Salvar senha'}<ArrowRight size={16} /></button></div></form></section>
+  return <section className="companies-card settings-card"><form className="dialog-form settings-form" onSubmit={changePassword}><p>Altere a senha usada para entrar na sua conta. Use pelo menos {MINIMUM_PASSWORD_LENGTH} caracteres.</p><label className="field-label">Nova senha<input type="password" autoComplete="new-password" minLength={MINIMUM_PASSWORD_LENGTH} value={password} onChange={(event) => setPassword(event.target.value)} required /></label><label className="field-label">Confirme a nova senha<input type="password" autoComplete="new-password" minLength={MINIMUM_PASSWORD_LENGTH} value={confirmation} onChange={(event) => setConfirmation(event.target.value)} required /></label>{message && <div className="inline-message error" role="alert">{message}</div>}<div className="settings-actions"><button className="button button-primary" disabled={working}>{working ? 'Salvando…' : 'Salvar senha'}<ArrowRight size={16} /></button></div></form></section>
 }
 
 function CreateOrganization({ user, onNotice, onBack }: { user: string; onNotice: (notice: Notice) => void; onBack?: () => void }) {

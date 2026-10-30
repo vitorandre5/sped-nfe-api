@@ -63,13 +63,21 @@ final class Request
         $headers = self::captureHeaders();
         $contentType = strtolower(trim(explode(';', $headers['content-type'] ?? '')[0]));
         $body = [];
+        $maxBodyBytes = self::maxBodyBytes((string) $path);
+        $contentLength = (int) ($headers['content-length'] ?? 0);
+        if ($contentLength > $maxBodyBytes) {
+            throw new FiscalException('O corpo da requisição excede o limite permitido.', 'REQUEST_BODY_TOO_LARGE', [], 413);
+        }
 
         if ($contentType === 'multipart/form-data' || $contentType === 'application/x-www-form-urlencoded') {
             $body = is_array($_POST) ? self::normalizeArray($_POST) : [];
             $body = self::mergeMultipartJsonPayload($body);
             $body = self::attachUploadedCertificate($body, self::normalizeFiles($_FILES ?? []));
         } else {
-            $raw = file_get_contents('php://input');
+            $raw = file_get_contents('php://input', false, null, 0, $maxBodyBytes + 1);
+            if (is_string($raw) && strlen($raw) > $maxBodyBytes) {
+                throw new FiscalException('O corpo da requisição excede o limite permitido.', 'REQUEST_BODY_TOO_LARGE', [], 413);
+            }
 
             if ($raw !== false && trim($raw) !== '') {
                 $decoded = json_decode($raw, true);
@@ -217,6 +225,9 @@ final class Request
             $body['certificado']['path'] = $certificateFile['tmp_name'];
             $body['certificado']['filename'] = $certificateFile['name'] ?? null;
             $body['certificado']['mime_type'] = $certificateFile['type'] ?? null;
+            $body['certificado']['upload_error'] = (int) ($certificateFile['error'] ?? UPLOAD_ERR_OK);
+            $body['certificado']['size'] = (int) ($certificateFile['size'] ?? 0);
+            $body['certificado']['uploaded'] = true;
         }
 
         if (!isset($body['certificado']) || !is_array($body['certificado'])) {
@@ -266,6 +277,16 @@ final class Request
         }
 
         return $normalized;
+    }
+
+    private static function maxBodyBytes(string $path): int
+    {
+        $default = $path === '/api/documentos/pdf' ? 2 * 1024 * 1024 : 8 * 1024 * 1024;
+        $configured = (int) (getenv($path === '/api/documentos/pdf'
+            ? 'FISCAL_PDF_MAX_BODY_BYTES'
+            : 'FISCAL_API_BODY_MAX_BYTES') ?: 0);
+
+        return $configured > 0 ? $configured : $default;
     }
 
     /**

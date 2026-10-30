@@ -53,7 +53,7 @@ services:
         VITE_SUPABASE_URL: ${VITE_SUPABASE_URL:-http://localhost:54321}
         VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY:?Configure VITE_SUPABASE_ANON_KEY após supabase start}
         VITE_NFE_TPAMB: ${VITE_NFE_TPAMB:-2}
-        VITE_ALLOW_SIGNUP: ${VITE_ALLOW_SIGNUP:-true}
+        VITE_ALLOW_SIGNUP: ${VITE_ALLOW_SIGNUP:-false}
     environment:
       API_PROXY_KEY: ${API_PROXY_KEY:?Configure API_PROXY_KEY no arquivo .env}
       NGINX_ENVSUBST_FILTER: API_PROXY_KEY

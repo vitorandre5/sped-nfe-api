@@ -18,13 +18,14 @@ use App\Services\Fiscal\DanfeService;
 use App\Services\Fiscal\NFCeService;
 use App\Services\Fiscal\NFeService;
 use App\Services\Fiscal\SefazService;
+use App\Services\Fiscal\SupabaseApiClient;
 use Throwable;
 
 final class Kernel
 {
     public function handle(Request $request): JsonResponse
     {
-        $headers = $this->corsHeaders($request);
+        $headers = $this->responseHeaders($request);
 
         try {
             if ($request->method() === 'OPTIONS') {
@@ -33,6 +34,7 @@ final class Kernel
 
             $this->assertOriginAllowed($request);
             $this->assertAuthorized($request);
+            $this->assertAuthenticated($request);
 
             $response = $this->router()->dispatch($request);
 
@@ -49,15 +51,39 @@ final class Kernel
                 'details' => $exception->details(),
             ], $headers);
         } catch (Throwable $exception) {
+            error_log(sprintf(
+                'Fiscal API internal error: %s at %s:%d',
+                $exception->getMessage(),
+                $exception->getFile(),
+                $exception->getLine()
+            ));
             return new JsonResponse(500, [
                 'success' => false,
                 'message' => 'Erro interno ao processar a operação fiscal.',
                 'code' => 'INTERNAL_SERVER_ERROR',
-                'details' => [
-                    'exception' => $exception->getMessage(),
-                ],
+                'details' => [],
             ], $headers);
         }
+    }
+
+    private function assertAuthenticated(Request $request): void
+    {
+        if (strpos($request->path(), '/api/') !== 0) {
+            return;
+        }
+
+        $authorization = trim((string) ($request->header('authorization') ?? ''));
+        if (!preg_match('/^Bearer\s+([A-Za-z0-9._~-]+)$/i', $authorization, $matches)) {
+            throw new FiscalException('Entre novamente para continuar.', 'AUTH_REQUIRED', [], 401);
+        }
+
+        $url = trim((string) (getenv('SUPABASE_API_URL') ?: ''));
+        $anonKey = trim((string) (getenv('SUPABASE_ANON_KEY') ?: ''));
+        if ($url === '' || $anonKey === '') {
+            throw new FiscalException('O serviço fiscal não está conectado ao banco de dados.', 'SUPABASE_CONFIGURATION_REQUIRED', [], 503);
+        }
+
+        (new SupabaseApiClient($url, $anonKey, $matches[1]))->authenticatedUser();
     }
 
     private function assertAuthorized(Request $request): void
@@ -82,12 +108,9 @@ final class Kernel
 
         if ($providedKey === '' || !hash_equals($expectedKey, $providedKey)) {
             throw new FiscalException(
-                'Requisição não autorizada.',
-                'UNAUTHORIZED',
-                [
-                    'origin' => $origin !== '' ? $origin : null,
-                    'required_headers' => ['X-API-Key', 'Authorization: Bearer <token>'],
-                ],
+                'Entre novamente para continuar.',
+                'AUTH_REQUIRED',
+                [],
                 401
             );
         }
@@ -118,9 +141,14 @@ final class Kernel
     /**
      * @return array<string, string>
      */
-    private function corsHeaders(Request $request): array
+    private function responseHeaders(Request $request): array
     {
         $headers = [
+            'Strict-Transport-Security' => 'max-age=31536000',
+            'Content-Security-Policy' => "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://supabase-fiscal.vitorandre.com.br wss://supabase-fiscal.vitorandre.com.br; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+            'X-Frame-Options' => 'DENY',
+            'X-Content-Type-Options' => 'nosniff',
+            'Referrer-Policy' => 'strict-origin-when-cross-origin',
             'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS',
             'Access-Control-Allow-Headers' => 'Content-Type, Authorization, X-API-Key',
             'Vary' => 'Origin',

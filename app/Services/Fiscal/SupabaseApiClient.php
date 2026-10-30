@@ -23,13 +23,64 @@ final class SupabaseApiClient
 
     public function authenticatedUserId(): string
     {
-        $user = $this->request('GET', '/auth/v1/user');
+        $user = $this->authenticatedUser();
         $id = is_array($user) ? (string) ($user['id'] ?? '') : '';
         if (!preg_match('/^[0-9a-f-]{36}$/i', $id)) {
-            throw new FiscalException('Sessão inválida. Entre novamente.', 'AUTH_REQUIRED', [], 401);
+            throw $this->authRequired();
         }
 
         return strtolower($id);
+    }
+
+    /** @return array<string, mixed> */
+    public function authenticatedUser(): array
+    {
+        $claims = $this->tokenClaims();
+        if (($claims['role'] ?? null) !== 'authenticated') {
+            throw $this->authRequired();
+        }
+
+        $user = $this->request('GET', '/auth/v1/user');
+        $id = is_array($user) ? (string) ($user['id'] ?? '') : '';
+        $confirmedAt = is_array($user)
+            ? ($user['email_confirmed_at'] ?? $user['confirmed_at'] ?? null)
+            : null;
+        if (!is_array($user)
+            || !preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i', $id)
+            || !is_string($confirmedAt)
+            || trim($confirmedAt) === '') {
+            throw $this->authRequired();
+        }
+
+        return $user;
+    }
+
+    /** @return array<string, mixed> */
+    private function tokenClaims(): array
+    {
+        $parts = explode('.', $this->accessToken);
+        if (count($parts) !== 3) {
+            throw $this->authRequired();
+        }
+
+        $payload = strtr($parts[1], '-_', '+/');
+        $padding = strlen($payload) % 4;
+        if ($padding > 0) {
+            $payload .= str_repeat('=', 4 - $padding);
+        }
+
+        $decoded = base64_decode($payload, true);
+        $claims = is_string($decoded) ? json_decode($decoded, true) : null;
+        if (!is_array($claims)) {
+            throw $this->authRequired();
+        }
+
+        return $claims;
+    }
+
+    private function authRequired(): FiscalException
+    {
+        return new FiscalException('Entre novamente para continuar.', 'AUTH_REQUIRED', [], 401);
     }
 
     /**
@@ -234,7 +285,7 @@ final class SupabaseApiClient
 
         if ($status < 200 || $status >= 300) {
             $message = $path === '/auth/v1/user'
-                ? 'Sessão inválida. Entre novamente.'
+                ? 'Entre novamente para continuar.'
                 : 'Não foi possível salvar os dados fiscais com segurança.';
             $code = $path === '/auth/v1/user' ? 'AUTH_REQUIRED' : 'SUPABASE_REQUEST_FAILED';
             throw new FiscalException($message, $code, [], $path === '/auth/v1/user' ? 401 : 502);

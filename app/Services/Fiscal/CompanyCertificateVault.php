@@ -8,7 +8,7 @@ use App\Exceptions\FiscalException;
 
 final class CompanyCertificateVault
 {
-    private const MAX_CERTIFICATE_BYTES = 10 * 1024 * 1024;
+    private const DEFAULT_MAX_CERTIFICATE_BYTES = 5 * 1024 * 1024;
 
     /** @param array<string, mixed> $payload @return array<string, mixed> */
     public function save(array $payload, string $authorization): array
@@ -32,12 +32,24 @@ final class CompanyCertificateVault
         $certificateInput = is_array($payload['certificado'] ?? null) ? $payload['certificado'] : [];
         $path = (string) ($certificateInput['path'] ?? '');
         $password = (string) ($certificateInput['password'] ?? '');
+        $filename = strtolower(trim((string) ($certificateInput['filename'] ?? '')));
+        $extension = pathinfo($filename, PATHINFO_EXTENSION);
+        if (!($certificateInput['uploaded'] ?? false)) {
+            throw new FiscalException('Envie o arquivo do certificado A1.', 'CERTIFICATE_REQUIRED', [], 422);
+        }
+        if (!in_array($extension, ['pfx', 'p12', 'cer'], true)) {
+            throw new FiscalException('O certificado A1 deve estar em formato .pfx, .p12 ou .cer.', 'CERTIFICATE_TYPE_INVALID', [], 422);
+        }
         if ($path === '' || !is_file($path) || !is_readable($path)) {
             throw new FiscalException('Selecione o arquivo do certificado A1.', 'CERTIFICATE_REQUIRED', [], 422);
         }
+        if ((int) ($certificateInput['upload_error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
+            throw new FiscalException('Não foi possível receber o certificado A1.', 'CERTIFICATE_UPLOAD_FAILED', [], 422);
+        }
         $size = filesize($path);
-        if ($size === false || $size < 1 || $size > self::MAX_CERTIFICATE_BYTES) {
-            throw new FiscalException('O arquivo A1 deve ter até 10 MB.', 'CERTIFICATE_SIZE_INVALID', [], 422);
+        $maxBytes = (int) (getenv('FISCAL_CERTIFICATE_MAX_BYTES') ?: self::DEFAULT_MAX_CERTIFICATE_BYTES);
+        if ($size === false || $size < 1 || $size > $maxBytes) {
+            throw new FiscalException('O arquivo A1 excede o limite permitido.', 'CERTIFICATE_SIZE_INVALID', [], 422);
         }
         if ($password === '') {
             throw new FiscalException('Informe a senha do certificado A1.', 'CERTIFICATE_PASSWORD_REQUIRED', [], 422);

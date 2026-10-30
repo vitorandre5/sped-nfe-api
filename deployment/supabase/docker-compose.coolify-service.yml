@@ -26,7 +26,7 @@ services:
       DEFAULT_PROJECT_NAME: Fiscal
       OPENAI_API_KEY: ''
       SUPABASE_URL: http://api-gw:8000
-      SUPABASE_PUBLIC_URL: https://supabase-fiscal.oc2.freeddns.org
+      SUPABASE_PUBLIC_URL: https://supabase-fiscal.vitorandre.com.br
       SUPABASE_ANON_KEY: ${SERVICE_SUPABASEANON_JWT}
       SUPABASE_SERVICE_KEY: ${SERVICE_SUPABASESERVICE_JWT}
       AUTH_JWT_SECRET: ${SERVICE_PASSWORD_JWT}
@@ -67,8 +67,8 @@ services:
       SUPABASE_SECRET_KEY: ${SUPABASE_SECRET_KEY:-}
       ANON_KEY_ASYMMETRIC: ${ANON_KEY_ASYMMETRIC:-}
       SERVICE_ROLE_KEY_ASYMMETRIC: ${SERVICE_ROLE_KEY_ASYMMETRIC:-}
-      SUPABASE_PUBLIC_URL: https://supabase-fiscal.oc2.freeddns.org
-      SERVICE_FQDN_API_GW_8000: supabase-fiscal.oc2.freeddns.org
+      SUPABASE_PUBLIC_URL: https://supabase-fiscal.vitorandre.com.br
+      SERVICE_FQDN_API_GW_8000: supabase-fiscal.vitorandre.com.br
       DASHBOARD_USERNAME: fiscaladmin
       DASHBOARD_PASSWORD: ${SERVICE_PASSWORD_64_DASHBOARD}
   auth:
@@ -91,22 +91,30 @@ services:
     environment:
       GOTRUE_API_HOST: 0.0.0.0
       GOTRUE_API_PORT: 9999
-      API_EXTERNAL_URL: https://supabase-fiscal.oc2.freeddns.org/auth/v1
+      API_EXTERNAL_URL: https://supabase-fiscal.vitorandre.com.br/auth/v1
       GOTRUE_DB_DRIVER: postgres
       GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${SERVICE_PASSWORD_64_POSTGRES}@db:5432/postgres
-      GOTRUE_SITE_URL: https://fiscal.oc2.freeddns.org
-      GOTRUE_URI_ALLOW_LIST: https://fiscal.oc2.freeddns.org
+      GOTRUE_SITE_URL: https://fiscal.vitorandre.com.br
+      GOTRUE_URI_ALLOW_LIST: https://fiscal.vitorandre.com.br
       GOTRUE_DISABLE_SIGNUP: true
       GOTRUE_JWT_ADMIN_ROLES: service_role
       GOTRUE_JWT_AUD: authenticated
       GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
       GOTRUE_JWT_EXP: 3600
       GOTRUE_JWT_SECRET: ${SERVICE_PASSWORD_JWT}
-      GOTRUE_JWT_ISSUER: https://supabase-fiscal.oc2.freeddns.org/auth/v1
+      GOTRUE_JWT_ISSUER: https://supabase-fiscal.vitorandre.com.br/auth/v1
       GOTRUE_EXTERNAL_EMAIL_ENABLED: true
       GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED: false
       GOTRUE_MAILER_AUTOCONFIRM: false
-      GOTRUE_SMTP_ADMIN_EMAIL: admin@oc2.freeddns.org
+      GOTRUE_SMTP_ADMIN_EMAIL: admin@vitorandre.com.br
+      GOTRUE_PASSWORD_MIN_LENGTH: 12
+      GOTRUE_PASSWORD_HIBP_ENABLED: true
+      GOTRUE_RATE_LIMIT_HEADER: X-Forwarded-For
+      GOTRUE_RATE_LIMIT_TOKEN_REFRESH: 30
+      GOTRUE_RATE_LIMIT_VERIFY: 30
+      GOTRUE_RATE_LIMIT_OTP: 10
+      GOTRUE_SECURITY_REFRESH_TOKEN_ROTATION_ENABLED: true
+      GOTRUE_SECURITY_UPDATE_PASSWORD_REQUIRE_REAUTHENTICATION: true
       GOTRUE_SMTP_HOST: ''
       GOTRUE_SMTP_PORT: 587
       GOTRUE_SMTP_USER: ''
@@ -214,7 +222,7 @@ services:
       POSTGREST_URL: http://rest:3000
       AUTH_JWT_SECRET: ${SERVICE_PASSWORD_JWT}
       DATABASE_URL: postgres://supabase_storage_admin:${SERVICE_PASSWORD_64_POSTGRES}@db:5432/postgres
-      STORAGE_PUBLIC_URL: https://supabase-fiscal.oc2.freeddns.org
+      STORAGE_PUBLIC_URL: https://supabase-fiscal.vitorandre.com.br
       REQUEST_ALLOW_X_FORWARDED_PATH: 'true'
       FILE_SIZE_LIMIT: 20971520
       STORAGE_BACKEND: file
@@ -311,7 +319,7 @@ services:
     environment:
       JWT_SECRET: ${SERVICE_PASSWORD_JWT}
       SUPABASE_URL: http://api-gw:8000
-      SUPABASE_PUBLIC_URL: https://supabase-fiscal.oc2.freeddns.org
+      SUPABASE_PUBLIC_URL: https://supabase-fiscal.vitorandre.com.br
       SUPABASE_ANON_KEY: ${SERVICE_SUPABASEANON_JWT}
       SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_SUPABASESERVICE_JWT}
       SUPABASE_PUBLISHABLE_KEYS: '{"default":"${SUPABASE_PUBLISHABLE_KEY:-}"}'
