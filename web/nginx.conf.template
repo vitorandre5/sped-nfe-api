@@ -1,4 +1,5 @@
 limit_req_zone $binary_remote_addr zone=fiscal_api:10m rate=60r/m;
+limit_req_status 429;
 
 server {
     listen 8080;
