@@ -14,6 +14,7 @@ server {
     add_header X-Content-Type-Options "nosniff" always;
     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
     error_page 429 = @api_rate_limited;
+    error_page 413 = @request_body_too_large;
 
     location @api_rate_limited {
         default_type application/json;
@@ -24,6 +25,16 @@ server {
         add_header Referrer-Policy "strict-origin-when-cross-origin" always;
         add_header Retry-After "60" always;
         return 429 '{"success":false,"message":"Muitas requisições. Tente novamente mais tarde.","code":"RATE_LIMITED","details":[]}';
+    }
+
+    location @request_body_too_large {
+        default_type application/json;
+        add_header Strict-Transport-Security "max-age=31536000" always;
+        add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://supabase-fiscal.vitorandre.com.br wss://supabase-fiscal.vitorandre.com.br; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" always;
+        add_header X-Frame-Options "DENY" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+        return 413 '{"success":false,"message":"Corpo da requisição excede o limite permitido.","code":"REQUEST_BODY_TOO_LARGE","details":[]}';
     }
 
     location = /api/documentos/pdf {
